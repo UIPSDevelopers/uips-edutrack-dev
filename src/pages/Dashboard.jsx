@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Sidebar from "@/components/Sidebar";
-import Topbar from "@/components/Topbar";
+import CountUp from "react-countup";
+import axiosInstance from "@/lib/axios";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Package,
   ClipboardCheck,
-  Users,
   Truck,
   AlertCircle,
   BarChart2,
   PieChart as PieChartIcon,
 } from "lucide-react";
+
 import {
   BarChart,
   Bar,
@@ -21,20 +22,19 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   PieChart,
   Pie,
   Cell,
 } from "recharts";
-import axiosInstance from "@/lib/axios"; // ✅ use axiosInstance
 
 export default function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({});
   const [lowStockItems, setLowStockItems] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [topCheckedOut, setTopCheckedOut] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
+
+  const COLORS = ["#800000", "#a16207", "#0f766e", "#2563eb", "#9333ea"];
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -46,16 +46,13 @@ export default function Dashboard() {
         ]);
 
         const summary = summaryRes.data;
-        const top = topRes.data;
-        const recent = recentRes.data;
-
         setStats(summary || {});
         setLowStockItems(summary?.lowStockItems || []);
         setCategoryData(summary?.categoryDistribution || []);
-        setTopCheckedOut(top || []);
-        setRecentActivity(recent || []);
-      } catch (err) {
-        console.error("⚠️ Dashboard data error:", err);
+        setTopCheckedOut(topRes.data || []);
+        setRecentActivity(recentRes.data || []);
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
       }
     };
 
@@ -63,216 +60,296 @@ export default function Dashboard() {
   }, []);
 
   const chartData = [
-    { name: "Deliveries", value: stats.totalDeliveries || 0 },
-    { name: "Checkouts", value: stats.totalCheckouts || 0 },
+    { name: "Deliveries", value: stats?.totalDeliveries || 0 },
+    { name: "Checkouts", value: stats?.totalCheckouts || 0 },
   ];
 
-  const COLORS = ["#800000", "#a16207", "#0f766e", "#2563eb", "#9333ea"];
-
   return (
-    <main className="p-6 space-y-8">
+    <main className="p-4 sm:p-6 space-y-8">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
-        <h1 className="text-2xl font-semibold text-gray-800 mb-2">
-          Dashboard Overview
-        </h1>
-        <p className="text-sm text-gray-500 mb-6">
-          A quick overview of your inventory performance and recent activities.
-        </p>
+        {/* HEADER */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Dashboard Overview
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Manage your inventory and property tagging at a glance.
+          </p>
+        </div>
 
-        {/* === Quick Stats === */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* QUICK STATS */}
+        <section className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="Total Items"
-            value={stats.totalItems}
-            icon={<Package className="text-[#800000]" />}
+            value={stats?.totalItems}
+            icon={<Package />}
           />
           <StatCard
             title="Deliveries"
-            value={stats.totalDeliveries}
-            icon={<Truck className="text-[#800000]" />}
+            value={stats?.totalDeliveries}
+            icon={<Truck />}
           />
           <StatCard
             title="Checkouts"
-            value={stats.totalCheckouts}
-            icon={<ClipboardCheck className="text-[#800000]" />}
+            value={stats?.totalCheckouts}
+            icon={<ClipboardCheck />}
           />
-          <StatCard
-            title="Users"
-            value={stats.totalUsers}
-            icon={<Users className="text-[#800000]" />}
-          />
-        </div>
+        </section>
 
-        {/* === Charts Section === */}
-        <div className="grid lg:grid-cols-3 gap-6 mt-8">
-          {/* 📊 Delivery vs Checkout */}
-          <Card className="lg:col-span-1 border border-gray-200 shadow-sm rounded-2xl">
-            <CardHeader className="flex justify-between items-center">
-              <CardTitle className="text-sm text-gray-500 flex gap-2 items-center">
-                <BarChart2 size={16} /> Deliveries vs Checkouts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* CHARTS */}
+        <section className="mt-6 grid lg:grid-cols-2 gap-6">
+          <ChartCard title="Deliveries vs Checkouts" icon={<BarChart2 />}>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={chartData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#800000" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="Top Checked-Out Items">
+            {topCheckedOut.length === 0 ? (
+              <p className="text-sm text-gray-500">No data available</p>
+            ) : (
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={chartData} barGap={20}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
+                <BarChart layout="vertical" data={topCheckedOut}>
+                  <XAxis type="number" />
+                  <YAxis
+                    type="category"
+                    dataKey="_id"
+                    width={140}
+                    tick={{ fontSize: 12 }}
+                  />
                   <Tooltip />
-                  <Bar dataKey="value" fill="#800000" radius={[8, 8, 0, 0]} />
+                  <Bar
+                    dataKey="totalCheckedOut"
+                    fill="#800000"
+                    radius={[0, 8, 8, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            )}
+          </ChartCard>
+        </section>
 
-          {/* 🥧 Category Distribution */}
-          <Card className="lg:col-span-1 border border-gray-200 shadow-sm rounded-2xl">
-            <CardHeader className="flex justify-between items-center">
-              <CardTitle className="text-sm text-gray-500 flex gap-2 items-center">
-                <PieChartIcon size={16} /> Category Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {categoryData.length === 0 ? (
-                <p className="text-sm text-gray-500">No category data</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={250}>
+        {/* RECENT ACTIVITY + CATEGORY */}
+        <section className="mt-6 grid lg:grid-cols-2 gap-6">
+          <RecentActivityCard logs={recentActivity} />
+
+          <ChartCard title="Category Distribution" icon={<PieChartIcon />}>
+            {categoryData.length === 0 ? (
+              <p className="text-sm text-gray-500">No category data</p>
+            ) : (
+              <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
+                {/* Pie Chart */}
+                <ResponsiveContainer width={250} height={250}>
                   <PieChart>
                     <Pie
                       data={categoryData}
                       dataKey="count"
                       nameKey="_id"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      label={(entry) => entry._id}
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={4}
+                      cornerRadius={10}
+                      labelLine={true} // show connecting lines
+                      label={({
+                        percent,
+                        name,
+                        cx,
+                        cy,
+                        midAngle,
+                        outerRadius,
+                      }) => {
+                        const radius = outerRadius + 15; // offset outside the pie
+                        const rad = (midAngle * Math.PI) / 180;
+                        const x = cx + radius * Math.cos(-rad);
+                        const y = cy + radius * Math.sin(-rad);
+
+                        return (
+                          <text
+                            x={x}
+                            y={y}
+                            fill="#000"
+                            fontSize={10}
+                            textAnchor={x > cx ? "start" : "end"}
+                            dominantBaseline="central"
+                          >
+                            {`${(percent * 100).toFixed(0)}%`}
+                          </text>
+                        );
+                      }}
                     >
-                      {categoryData.map((_, index) => (
+                      {categoryData.map((cat, index) => (
                         <Cell
-                          key={index}
+                          key={cat._id}
                           fill={COLORS[index % COLORS.length]}
                         />
                       ))}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* 📈 Top Checked-Out Items */}
-          <Card className="lg:col-span-1 border border-gray-200 shadow-sm rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-sm text-gray-500">
-                Top Checked-Out Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {topCheckedOut.length === 0 ? (
-                <p className="text-sm text-gray-500">No data available</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart
-                    layout="vertical"
-                    data={topCheckedOut}
-                    margin={{ left: 20, right: 20 }}
-                  >
-                    <XAxis type="number" />
-                    <YAxis
-                      dataKey="_id"
-                      type="category"
-                      width={100}
-                      tick={{ fontSize: 10 }}
-                    />
-                    <Tooltip />
-                    <Bar
-                      dataKey="totalCheckedOut"
-                      fill="#800000"
-                      radius={[0, 6, 6, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* === Low Stock & Activity === */}
-        <div className="grid lg:grid-cols-2 gap-6 mt-8">
-          {/* ⚠️ Low Stock */}
-          <Card className="border border-red-200 bg-red-50 shadow-sm rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-sm text-red-700 flex items-center gap-2">
-                <AlertCircle size={16} /> Low Stock Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {lowStockItems.length === 0 ? (
-                <p className="text-sm text-gray-600">No low-stock items 🎉</p>
-              ) : (
-                <ul className="text-sm text-gray-800 space-y-2">
-                  {lowStockItems.slice(0, 8).map((item) => (
-                    <li key={item.itemId} className="flex justify-between">
-                      <span>{item.itemName}</span>
-                      <span className="font-semibold text-red-700">
-                        {item.quantity}
+                {/* Legends */}
+                <ul className="flex flex-row lg:flex-col gap-2 flex-wrap justify-center">
+                  {categoryData.map((cat, index) => (
+                    <li key={cat._id} className="flex items-center gap-2">
+                      <span
+                        className="w-4 h-4 rounded-full"
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        {cat._id}: {cat.count}
                       </span>
                     </li>
                   ))}
                 </ul>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </ChartCard>
+        </section>
 
-          {/* 🕓 Recent Activity */}
-          <Card className="border border-gray-200 shadow-sm rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-sm text-gray-500">
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-gray-700 space-y-3">
-              {recentActivity.length === 0 ? (
-                <p>No recent activity yet.</p>
-              ) : (
-                recentActivity.map((log, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between border-b pb-2"
-                  >
-                    <span>
-                      <span className="font-semibold text-[#800000]">
-                        {log.user}
-                      </span>{" "}
-                      {log.action}{" "}
-                      <span className="font-medium">{log.itemName}</span>
-                    </span>
-                    <span className="text-gray-500 text-xs">{log.date}</span>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        {/* LOW STOCK */}
+        <section className="mt-6">
+          <LowStockCard items={lowStockItems} />
+        </section>
+
+        {/* PROPERTY TAGGING */}
+        <section className="mt-10 space-y-4">
+          <h2 className="text-2xl font-semibold text-gray-700">
+            Property Tagging
+          </h2>
+          <div className="border border-gray-200 bg-gray-50 shadow-md rounded-2xl p-4">
+            <p className="text-sm text-gray-500">
+              Property tagging functionality will appear here.
+            </p>
+          </div>
+        </section>
       </motion.div>
     </main>
   );
 }
 
-/* 🔹 Reusable StatCard Component */
+/* ================= REUSABLE COMPONENTS ================= */
 const StatCard = ({ title, value, icon }) => (
   <motion.div whileHover={{ scale: 1.03 }}>
-    <Card className="shadow-sm border border-gray-200 bg-white rounded-2xl">
+    <Card className="shadow-md border border-gray-200 rounded-2xl hover:shadow-lg transition">
       <CardHeader className="flex justify-between items-center">
         <CardTitle className="text-sm text-gray-500">{title}</CardTitle>
-        <div className="w-6 h-6">{icon}</div>
+        {icon}
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-semibold text-[#800000]">{value ?? 0}</p>
+        <p className="text-3xl font-bold text-[#800000]">
+          <CountUp end={value ?? 0} duration={1.5} separator="," />
+        </p>
       </CardContent>
     </Card>
   </motion.div>
+);
+
+const ChartCard = ({ title, icon, children }) => (
+  <Card className="border border-gray-200 shadow-md rounded-2xl hover:shadow-lg transition">
+    <CardHeader className="flex items-center gap-2">
+      {icon}
+      <CardTitle className="text-sm text-gray-500">{title}</CardTitle>
+    </CardHeader>
+    <CardContent>{children}</CardContent>
+  </Card>
+);
+
+const LowStockCard = ({ items }) => (
+  <Card className="border border-red-200 bg-red-50 shadow-md rounded-2xl">
+    <CardHeader>
+      <CardTitle className="text-sm text-red-700 flex items-center gap-2">
+        <AlertCircle size={16} /> Low Stock Items
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-600">No low-stock items 🎉</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-red-100 text-red-700">
+                <th className="py-2 px-3 text-left">Item Name</th>
+                <th className="py-2 px-3 text-left">Grade Level</th>
+                <th className="py-2 px-3 text-left">Size / Source</th>
+                <th className="py-2 px-3 text-left">Item Type</th>
+                <th className="py-2 px-3 text-left">Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr
+                  key={item.itemId}
+                  className="border-b hover:bg-red-100 transition"
+                >
+                  <td className="py-2 px-3 font-medium">{item.itemName}</td>
+                  <td className="py-2 px-3">{item.gradeLevel}</td>
+                  <td className="py-2 px-3">{item.sizeOrSource}</td>
+                  <td className="py-2 px-3">{item.itemType}</td>
+                  <td className="py-2 px-3 font-semibold text-red-700">
+                    {item.quantity}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const RecentActivityCard = ({ logs }) => (
+  <Card className="border border-gray-200 shadow-md rounded-2xl">
+    <CardHeader>
+      <CardTitle className="text-sm text-gray-500">Recent Activity</CardTitle>
+    </CardHeader>
+    <CardContent>
+      {logs.length === 0 ? (
+        <p className="text-sm text-gray-500">No recent activity yet.</p>
+      ) : (
+        <ul className="relative border-l border-gray-300 ml-2">
+          {logs.map((log, index) => (
+            <li key={index} className="mb-6 ml-6">
+              <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-[#800000] rounded-full ring-4 ring-white text-white">
+                {log.action?.toLowerCase() === "delivered" ? "🚚" : "📦"}
+              </span>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <p className="text-gray-800">
+                  {log.user ? (
+                    <span className="font-semibold text-[#800000]">
+                      {log.user}{" "}
+                    </span>
+                  ) : (
+                    <span className="font-semibold text-[#800000]">
+                      Unknown User{" "}
+                    </span>
+                  )}
+                  {log.action}{" "}
+                  <span className="font-medium">
+                    {log.items?.length ?? 0}{" "}
+                    {log.items?.length === 1 ? "item" : "items"}
+                  </span>
+                </p>
+                <span className="text-gray-400 text-xs mt-1 sm:mt-0">
+                  {log.date ?? "-"}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </CardContent>
+  </Card>
 );
