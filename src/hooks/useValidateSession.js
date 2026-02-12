@@ -20,15 +20,20 @@ export function useValidateSession() {
         await axiosInstance.get("/me");
         setIsValidating(false);
       } catch (error) {
-        // 401 = token expired, axios interceptor will handle cleanup & redirect
-        // Other errors = network issue, clear storage and redirect to be safe
-        if (error.response?.status !== 401) {
-          console.error("Session validation failed:", error?.message);
+        const status = error.response?.status;
+
+        // 401 = token expired on backend, clear and redirect
+        if (status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
-          window.location.href = "/?reason=session_invalid";
+          window.location.href = "/?reason=session_expired";
+        } else {
+          // For other errors (network issues, endpoint not found, etc)
+          // just stop validating and let the rest of the app proceed
+          // The axios interceptor will catch 401 on actual API calls
+          console.warn("Session validation error:", error?.message);
+          setIsValidating(false);
         }
-        setIsValidating(false);
       }
     }
 
