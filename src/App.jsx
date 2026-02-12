@@ -22,6 +22,7 @@ import PrintBarcodes from "@/pages/Inventory/PrintBarcodes";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
+import { useValidateSession } from "@/hooks/useValidateSession";
 
 import AppLayout from "@/layouts/AppLayout"; // 🆕 layout with Sidebar + Topbar
 
@@ -40,6 +41,7 @@ function PublicRoute({ children }) {
 function App() {
   const token = localStorage.getItem("token");
   const { isWarmingUp } = useWarmupServer(token);
+  const { isValidating } = useValidateSession(); // ✅ Validate session on app load
 
   // 🆕 enable idle logout only when logged in (15 minutes)
   useAutoLogout(15);
@@ -47,7 +49,19 @@ function App() {
   return (
     <Router>
       <main className="relative min-h-screen">
-        {/* 💤 Waking up server overlay (only when logged in) */}
+        {/* � Validating session on app load */}
+        {isValidating && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-3 p-6 rounded-2xl shadow-lg bg-white">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+              <p className="text-sm font-medium text-gray-800">
+                Validating session…
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* �💤 Waking up server overlay (only when logged in) */}
         {token && isWarmingUp && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-3 p-6 rounded-2xl shadow-lg bg-white">
