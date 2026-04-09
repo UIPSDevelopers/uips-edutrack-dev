@@ -1,0 +1,328 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import axiosInstance from "@/lib/axios";
+
+export default function AddAsset() {
+  const [form, setForm] = useState({
+    assetName: "",
+    brand: "",
+    model: "",
+    categoryId: "",
+    status: "Active",
+    purchaseDate: "",
+    location: "",
+    serialNo: "",
+    remarks: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [assets, setAssets] = useState([]); // store assets for table
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axiosInstance.get("/categories");
+        setCategories(res.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch assets
+  const fetchAssets = async () => {
+    try {
+      const res = await axiosInstance.get("property-tagging/assets");
+      setAssets(res.data.assets || []);
+    } catch (err) {
+      console.error("Failed to fetch assets", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssets();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await axiosInstance.post(
+        "property-tagging/asset/create",
+        form,
+      );
+      const { asset } = res.data;
+
+      alert(`✅ Asset added successfully!\nSerial: ${asset.serialNo}`);
+
+      // Reset form
+      setForm({
+        assetName: "",
+        brand: "",
+        model: "",
+        categoryId: "",
+        status: "Active",
+        purchaseDate: "",
+        location: "",
+        serialNo: "",
+        remarks: "",
+      });
+
+      // Refresh table
+      fetchAssets();
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || "❌ Failed to add asset.";
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Card className="shadow-sm border border-gray-200 mt-4">
+        <CardHeader>
+          <CardTitle>Add New Asset</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <form
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            onSubmit={handleSubmit}
+          >
+            {/* Asset Name */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700">
+                Asset Name
+              </label>
+              <Input
+                name="assetName"
+                value={form.assetName}
+                onChange={handleChange}
+                placeholder="e.g., Chair, Whiteboard"
+                required
+              />
+            </div>
+
+            {/* Brand */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700">Brand</label>
+              <Input
+                name="brand"
+                value={form.brand}
+                onChange={handleChange}
+                placeholder="Brand"
+              />
+            </div>
+
+            {/* Model */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700">Model</label>
+              <Input
+                name="model"
+                value={form.model}
+                onChange={handleChange}
+                placeholder="Model"
+              />
+            </div>
+
+            {/* Category */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700">
+                Category
+              </label>
+              <Select
+                value={form.categoryId}
+                onValueChange={(val) =>
+                  setForm((prev) => ({ ...prev, categoryId: val }))
+                }
+              >
+                <SelectTrigger className="h-10 border border-gray-300 focus:ring-2 focus:ring-[#800000]">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700">
+                Status
+              </label>
+              <Select
+                value={form.status}
+                onValueChange={(val) =>
+                  setForm((prev) => ({ ...prev, status: val }))
+                }
+              >
+                <SelectTrigger className="h-10 border border-gray-300 focus:ring-2 focus:ring-[#800000]">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Needs Repair">Needs Repair</SelectItem>
+                  <SelectItem value="Disposed">Disposed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Purchase Date */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700">
+                Purchase Date
+              </label>
+              <Input
+                type="date"
+                name="purchaseDate"
+                value={form.purchaseDate}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Location */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700">
+                Location / Room
+              </label>
+              <Input
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+                placeholder="e.g., Room 1, Library"
+              />
+            </div>
+
+            {/* Remarks */}
+            <div className="flex flex-col md:col-span-2">
+              <label className="text-sm font-medium text-gray-700">
+                Remarks
+              </label>
+              <Input
+                name="remarks"
+                value={form.remarks}
+                onChange={handleChange}
+                placeholder="Optional remarks"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="md:col-span-2 flex justify-end mt-2">
+              <Button
+                type="submit"
+                className="bg-[#800000] hover:bg-[#a10000] text-white"
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Add Asset"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Assets Table */}
+      <Card className="shadow-sm border border-gray-200 mt-6">
+        <CardHeader>
+          <CardTitle>Assets List</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full table-auto border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Serial
+                </th>
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Name
+                </th>
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Category
+                </th>
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Brand
+                </th>
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Model
+                </th>
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Status
+                </th>
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Purchase Date
+                </th>
+                <th className="border border-gray-300 px-2 py-1 text-left">
+                  Location
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-center py-2">
+                    No assets found.
+                  </td>
+                </tr>
+              )}
+              {assets.map((asset) => (
+                <tr key={asset._id}>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.serialNo}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.assetName}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.categoryId?.name || "-"}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.brand || "-"}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.model || "-"}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.status}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.purchaseDate
+                      ? new Date(asset.purchaseDate).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td className="border border-gray-300 px-2 py-1">
+                    {asset.location || "-"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+    </>
+  );
+}

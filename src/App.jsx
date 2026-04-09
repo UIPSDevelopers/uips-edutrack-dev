@@ -14,11 +14,12 @@ import Checkout from "@/pages/Inventory/Checkout";
 import Returns from "@/pages/Inventory/Returns";
 import Reports from "@/pages/Inventory/Reports";
 import BulkImportItems from "@/pages/Inventory/BulkImportItems";
-import PropertyTagging from "@/pages/PropertyTagging";
+import PropertyTagging from "@/pages/PropertyTagging/PropertyTagging";
 import ReportsPage from "@/pages/ReportsPage";
 import Settings from "@/pages/Settings";
 import Visitors from "@/pages/Visitors";
 import PrintBarcodes from "@/pages/Inventory/PrintBarcodes";
+import AddAsset from "@/pages/PropertyTagging/AddAsset";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
@@ -99,7 +100,6 @@ function App() {
             {/* Dashboard / core */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/users" element={<Users />} />
-            <Route path="/property-tagging" element={<PropertyTagging />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/visitors" element={<Visitors />} />
             <Route path="/reports-page" element={<ReportsPage />} />
@@ -115,6 +115,10 @@ function App() {
             <Route path="/inventory/checkout" element={<Checkout />} />
             <Route path="/inventory/returns" element={<Returns />} />
             <Route path="/inventory/reports" element={<Reports />} />
+
+            {/* Property Tagging Routes */}
+            <Route path="/property-tagging" element={<PropertyTagging />} />
+            <Route path="/property-tagging/add-asset" element={<AddAsset />} />
           </Route>
           {/* 🖨️ Print Barcodes (NO layout) */}
           <Route
