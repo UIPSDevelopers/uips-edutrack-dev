@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_BASE_URL || "https://uips-edutrack-backend-dev.onrender.com/api";
 
 // 🔑 Storage keys (so it's consistent everywhere)
 const TOKEN_KEY = "token";
