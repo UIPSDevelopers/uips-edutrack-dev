@@ -102,6 +102,12 @@ export default function AddAsset() {
   return (
     <>
       {/* ✅ PROPERTY TAGGING TABS INSERTED HERE */}
+
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Add Assets
+        </h1>
+      </div>
       <PropertyTaggingTabs />
 
       <Card className="shadow-sm border border-gray-200 mt-4">
