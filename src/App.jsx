@@ -21,7 +21,7 @@ import Visitors from "@/pages/Visitors";
 import PrintBarcodes from "@/pages/Inventory/PrintBarcodes";
 import AddAsset from "@/pages/PropertyTagging/AddAsset";
 import AddCategory from "@/pages/PropertyTagging/AddCategory";
-import AddLocation from "@/pages/PropertyTagging/AddLocation"
+import AddLocation from "@/pages/PropertyTagging/AddLocation";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
@@ -117,13 +117,19 @@ function App() {
             <Route path="/inventory/checkout" element={<Checkout />} />
             <Route path="/inventory/returns" element={<Returns />} />
             <Route path="/inventory/reports" element={<Reports />} />
+            <Route path="/property-tagging/:id" element={<AssetDetails />} />
 
             {/* Property Tagging Routes */}
             <Route path="/property-tagging" element={<PropertyTagging />} />
             <Route path="/property-tagging/add-asset" element={<AddAsset />} />
-            <Route path="/property-tagging/add-category" element={<AddCategory />} />
-            <Route path="/property-tagging/add-location" element={<AddLocation />} />
-
+            <Route
+              path="/property-tagging/add-category"
+              element={<AddCategory />}
+            />
+            <Route
+              path="/property-tagging/add-location"
+              element={<AddLocation />}
+            />
           </Route>
           {/* 🖨️ Print Barcodes (NO layout) */}
           <Route
