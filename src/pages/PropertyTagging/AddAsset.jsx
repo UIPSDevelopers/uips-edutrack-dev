@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import PropertyTaggingTabs from "./PropertyTaggingTabs"; // ✅ ADDED HERE
+
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -75,7 +77,6 @@ export default function AddAsset() {
 
       alert(`✅ Asset added successfully!\nSerial: ${asset.serialNo}`);
 
-      // Reset form
       setForm({
         assetName: "",
         brand: "",
@@ -88,7 +89,6 @@ export default function AddAsset() {
         remarks: "",
       });
 
-      // Refresh table
       fetchAssets();
     } catch (err) {
       console.error(err);
@@ -101,6 +101,9 @@ export default function AddAsset() {
 
   return (
     <>
+      {/* ✅ PROPERTY TAGGING TABS INSERTED HERE */}
+      <PropertyTaggingTabs />
+
       <Card className="shadow-sm border border-gray-200 mt-4">
         <CardHeader>
           <CardTitle>Add New Asset</CardTitle>
@@ -251,6 +254,7 @@ export default function AddAsset() {
         <CardHeader>
           <CardTitle>Assets List</CardTitle>
         </CardHeader>
+
         <CardContent className="overflow-x-auto">
           <table className="w-full table-auto border-collapse border border-gray-300">
             <thead>
@@ -281,6 +285,7 @@ export default function AddAsset() {
                 </th>
               </tr>
             </thead>
+
             <tbody>
               {assets.length === 0 && (
                 <tr>
@@ -289,6 +294,7 @@ export default function AddAsset() {
                   </td>
                 </tr>
               )}
+
               {assets.map((asset) => (
                 <tr key={asset._id}>
                   <td className="border border-gray-300 px-2 py-1">
