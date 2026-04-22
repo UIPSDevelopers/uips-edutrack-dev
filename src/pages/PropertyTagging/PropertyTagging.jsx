@@ -111,7 +111,7 @@ export default function PropertyTagging() {
   // PRINT QR
   // =========================
   const handlePrintQR = () => {
-    const ids = selectedAssets.join(",");
+    const ids = new URLSearchParams(location.search).get("ids")?.split(",");
 
     // opens printable QR page (you will create this route later)
     window.open(
