@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import axiosInstance from "@/lib/axios";
 
 export default function AddLocation() {
@@ -26,13 +27,15 @@ export default function AddLocation() {
   const [loading, setLoading] = useState(false);
   const [locations, setLocations] = useState([]);
 
-  // Fetch locations
+  // ======================
+  // FETCH LOCATIONS
+  // ======================
   const fetchLocations = async () => {
     try {
       const res = await axiosInstance.get("/locations");
       setLocations(res.data.data || []);
     } catch (err) {
-      console.error("Failed to fetch locations", err);
+      console.error("Error fetching locations:", err);
     }
   };
 
@@ -40,24 +43,31 @@ export default function AddLocation() {
     fetchLocations();
   }, []);
 
-  // Handle input change
+  // ======================
+  // INPUT HANDLER
+  // ======================
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  // Handle dropdown change
-  const handleSelectChange = (name, value) => {
+  // ======================
+  // SELECT HANDLER
+  // ======================
+  const handleSelectChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
-      [name]: value,
+      [field]: value,
     }));
   };
 
-  // Submit location
+  // ======================
+  // SUBMIT LOCATION
+  // ======================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -65,7 +75,7 @@ export default function AddLocation() {
     try {
       const res = await axiosInstance.post("/locations", form);
 
-      alert(`✅ Location added successfully: ${res.data.data.name}`);
+      alert(`✅ Location added: ${res.data.data.name}`);
 
       setForm({
         name: "",
@@ -77,8 +87,7 @@ export default function AddLocation() {
       fetchLocations();
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.message || "❌ Failed to add location.";
-      alert(msg);
+      alert(err.response?.data?.message || "❌ Failed to add location");
     } finally {
       setLoading(false);
     }
@@ -86,26 +95,32 @@ export default function AddLocation() {
 
   return (
     <>
-      {/* TABS */}
+      {/* ======================
+          TABS
+      ====================== */}
       <PropertyTaggingTabs />
 
-      {/* HEADER */}
-      <div className="mt-4 mb-2">
+      {/* ======================
+          HEADER
+      ====================== */}
+      <div className="mt-4 mb-3">
         <h1 className="text-2xl font-semibold text-gray-800">Add Location</h1>
       </div>
 
-      {/* FORM */}
-      <Card className="shadow-sm border border-gray-200 mt-2">
+      {/* ======================
+          FORM CARD
+      ====================== */}
+      <Card className="shadow-sm border border-gray-200">
         <CardHeader>
-          <CardTitle>Add New Location</CardTitle>
+          <CardTitle>Create New Location</CardTitle>
         </CardHeader>
 
         <CardContent>
           <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
             onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
-            {/* Name */}
+            {/* NAME */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 Location Name *
@@ -114,17 +129,16 @@ export default function AddLocation() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                placeholder="e.g., Room 101, Library"
+                placeholder="e.g. Room 101"
                 required
               />
             </div>
 
-            {/* Building DROPDOWN */}
+            {/* BUILDING */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 Building
               </label>
-
               <Select
                 value={form.building}
                 onValueChange={(val) => handleSelectChange("building", val)}
@@ -139,10 +153,9 @@ export default function AddLocation() {
               </Select>
             </div>
 
-            {/* FLOOR DROPDOWN */}
+            {/* FLOOR */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700">Floor</label>
-
               <Select
                 value={form.floor}
                 onValueChange={(val) => handleSelectChange("floor", val)}
@@ -157,7 +170,7 @@ export default function AddLocation() {
               </Select>
             </div>
 
-            {/* Description */}
+            {/* DESCRIPTION */}
             <div className="flex flex-col md:col-span-2">
               <label className="text-sm font-medium text-gray-700">
                 Description
@@ -170,12 +183,12 @@ export default function AddLocation() {
               />
             </div>
 
-            {/* Submit */}
-            <div className="md:col-span-2 flex justify-end mt-2">
+            {/* SUBMIT */}
+            <div className="md:col-span-2 flex justify-end">
               <Button
                 type="submit"
-                className="bg-[#800000] hover:bg-[#a10000] text-white"
                 disabled={loading}
+                className="bg-[#800000] hover:bg-[#a10000] text-white"
               >
                 {loading ? "Saving..." : "Add Location"}
               </Button>
@@ -184,56 +197,42 @@ export default function AddLocation() {
         </CardContent>
       </Card>
 
-      {/* TABLE */}
+      {/* ======================
+          TABLE CARD
+      ====================== */}
       <Card className="shadow-sm border border-gray-200 mt-6">
         <CardHeader>
           <CardTitle>Locations List</CardTitle>
         </CardHeader>
 
         <CardContent className="overflow-x-auto">
-          <table className="w-full table-auto border-collapse border border-gray-300">
+          <table className="w-full border border-gray-300 text-sm">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Name
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Building
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Floor
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Description
-                </th>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Building</th>
+                <th className="p-2 border">Floor</th>
+                <th className="p-2 border">Description</th>
               </tr>
             </thead>
 
             <tbody>
-              {locations.length === 0 && (
+              {locations.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-2">
-                    No locations found.
+                  <td colSpan={4} className="text-center p-3">
+                    No locations found
                   </td>
                 </tr>
+              ) : (
+                locations.map((loc) => (
+                  <tr key={loc._id} className="hover:bg-gray-50">
+                    <td className="p-2 border">{loc.name}</td>
+                    <td className="p-2 border">{loc.building || "-"}</td>
+                    <td className="p-2 border">{loc.floor || "-"}</td>
+                    <td className="p-2 border">{loc.description || "-"}</td>
+                  </tr>
+                ))
               )}
-
-              {locations.map((loc) => (
-                <tr key={loc._id}>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {loc.name}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {loc.building || "-"}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {loc.floor || "-"}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {loc.description || "-"}
-                  </td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </CardContent>
