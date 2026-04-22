@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import PropertyTaggingTabs from "./PropertyTaggingTabs";
+
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axiosInstance from "@/lib/axios";
@@ -34,7 +43,14 @@ export default function AddLocation() {
   // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
+  // Handle dropdown change
+  const handleSelectChange = (name, value) => {
     setForm((prev) => ({
       ...prev,
       [name]: value,
@@ -61,8 +77,7 @@ export default function AddLocation() {
       fetchLocations();
     } catch (err) {
       console.error(err);
-      const msg =
-        err.response?.data?.message || "❌ Failed to add location.";
+      const msg = err.response?.data?.message || "❌ Failed to add location.";
       alert(msg);
     } finally {
       setLoading(false);
@@ -71,8 +86,16 @@ export default function AddLocation() {
 
   return (
     <>
+      {/* TABS */}
+      <PropertyTaggingTabs />
+
+      {/* HEADER */}
+      <div className="mt-4 mb-2">
+        <h1 className="text-2xl font-semibold text-gray-800">Add Location</h1>
+      </div>
+
       {/* FORM */}
-      <Card className="shadow-sm border border-gray-200 mt-4">
+      <Card className="shadow-sm border border-gray-200 mt-2">
         <CardHeader>
           <CardTitle>Add New Location</CardTitle>
         </CardHeader>
@@ -96,30 +119,42 @@ export default function AddLocation() {
               />
             </div>
 
-            {/* Building */}
+            {/* Building DROPDOWN */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 Building
               </label>
-              <Input
-                name="building"
+
+              <Select
                 value={form.building}
-                onChange={handleChange}
-                placeholder="e.g., Main Building"
-              />
+                onValueChange={(val) => handleSelectChange("building", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Building" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Block A">Block A</SelectItem>
+                  <SelectItem value="Block B">Block B</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Floor */}
+            {/* FLOOR DROPDOWN */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Floor
-              </label>
-              <Input
-                name="floor"
+              <label className="text-sm font-medium text-gray-700">Floor</label>
+
+              <Select
                 value={form.floor}
-                onChange={handleChange}
-                placeholder="e.g., 1st Floor"
-              />
+                onValueChange={(val) => handleSelectChange("floor", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Floor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1st Floor">1st Floor</SelectItem>
+                  <SelectItem value="2nd Floor">2nd Floor</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Description */}
