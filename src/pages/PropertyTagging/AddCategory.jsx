@@ -63,8 +63,7 @@ export default function AddCategory() {
       fetchCategories();
     } catch (err) {
       console.error(err);
-      const msg =
-        err.response?.data?.message || "❌ Failed to add category.";
+      const msg = err.response?.data?.message || "❌ Failed to add category.";
       alert(msg);
     } finally {
       setLoading(false);
@@ -73,6 +72,13 @@ export default function AddCategory() {
 
   return (
     <>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Add Category
+        </h1>
+      </div>
+
+      <PropertyTaggingTabs />
       {/* ADD CATEGORY FORM */}
       <Card className="shadow-sm border border-gray-200 mt-4">
         <CardHeader>
