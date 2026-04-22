@@ -85,10 +85,14 @@ export default function AssetDetails() {
 
       await axiosInstance.post(`/property-tagging/assets/${id}/service`, {
         serviceType: serviceForm.serviceType,
-        description: serviceForm.description,
+        description: serviceForm.description || "",
         cost: Number(serviceForm.cost || 0),
-        performedBy: serviceForm.performedBy,
-        serviceDate: serviceForm.serviceDate || new Date(),
+        performedBy: serviceForm.performedBy || "N/A",
+
+        // ✅ FIX DATE HANDLING
+        serviceDate: serviceForm.serviceDate
+          ? new Date(serviceForm.serviceDate).toISOString()
+          : new Date().toISOString(),
       });
 
       setShowDialog(false);
@@ -200,7 +204,7 @@ export default function AssetDetails() {
                 {services.map((s) => (
                   <tr key={s._id} className="border-b">
                     <td className="p-3">{s.serviceType}</td>
-                    <td className="p-3">{s.description || "-"}</td>
+                    <td className="p-3">{s.description}</td>
                     <td className="p-3">{s.cost ? `AED ${s.cost}` : "-"}</td>
                     <td className="p-3">{s.performedBy}</td>
                     <td className="p-3">{formatDate(s.serviceDate)}</td>
