@@ -30,7 +30,7 @@ export default function PrintQR() {
 
       const results = await Promise.all(
         ids.map((id) =>
-          axiosInstance.get(`/api/assets/assets/${id}`)
+          axiosInstance.get(`/api/assets/assets/${id}/qrcode`)
         )
       );
 
