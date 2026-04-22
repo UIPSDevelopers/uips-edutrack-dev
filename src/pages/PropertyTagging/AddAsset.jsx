@@ -70,7 +70,7 @@ export default function AddAsset() {
   // =========================
   const fetchAssets = async () => {
     try {
-      const res = await axiosInstance.get("property-tagging/assets");
+      const res = await axiosInstance.get("assets/assets");
       setAssets(res.data.assets || []);
     } catch (err) {
       console.error("Failed to fetch assets", err);
@@ -102,7 +102,7 @@ export default function AddAsset() {
 
     try {
       const res = await axiosInstance.post(
-        "property-tagging/asset/create",
+        "assets/asset/create",
         form,
       );
 
