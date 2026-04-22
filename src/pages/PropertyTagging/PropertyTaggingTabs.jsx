@@ -15,7 +15,7 @@ export default function PropertyTaggingTabs() {
       setActiveTab("overview");
     } else if (location.pathname.includes("/add-asset")) {
       setActiveTab("add");
-    } else if (location.pathname.includes("/categories")) {
+    } else if (location.pathname.includes("/add-category")) {
       setActiveTab("categories");
     } else if (location.pathname.includes("/reports")) {
       setActiveTab("reports");
