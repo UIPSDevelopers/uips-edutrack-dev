@@ -35,7 +35,7 @@ export default function AssetDetails() {
   });
 
   // =========================
-  // FETCH ASSET DETAILS
+  // FETCH ASSET
   // =========================
   const fetchAsset = async () => {
     try {
@@ -57,10 +57,11 @@ export default function AssetDetails() {
   }, [id]);
 
   // =========================
-  // HANDLE INPUT CHANGE
+  // INPUT HANDLER
   // =========================
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setServiceForm((prev) => ({
       ...prev,
       [name]: value,
@@ -68,15 +69,26 @@ export default function AssetDetails() {
   };
 
   // =========================
+  // VALID SERVICE TYPES
+  // =========================
+  const allowedTypes = ["Cleaning", "Repair", "Maintenance", "Inspection"];
+
+  // =========================
   // ADD SERVICE
   // =========================
   const handleAddService = async () => {
     try {
+      if (!serviceForm.serviceType) {
+        alert("Please select a service type");
+        return;
+      }
+
       await axiosInstance.post(`/property-tagging/assets/${id}/service`, {
-        ...serviceForm,
-        serviceDate: serviceForm.serviceDate
-          ? new Date(serviceForm.serviceDate).toISOString()
-          : new Date().toISOString(),
+        serviceType: serviceForm.serviceType,
+        description: serviceForm.description,
+        cost: Number(serviceForm.cost || 0),
+        performedBy: serviceForm.performedBy,
+        serviceDate: serviceForm.serviceDate || new Date(),
       });
 
       setShowDialog(false);
@@ -92,7 +104,7 @@ export default function AssetDetails() {
       fetchAsset();
     } catch (error) {
       console.error("Error adding service:", error);
-      alert("Failed to add service");
+      alert(error?.response?.data?.message || "Failed to add service");
     }
   };
 
@@ -106,7 +118,7 @@ export default function AssetDetails() {
   };
 
   // =========================
-  // UI STATES
+  // LOADING STATES
   // =========================
   if (loading) return <p className="p-6">Loading asset...</p>;
 
@@ -122,7 +134,7 @@ export default function AssetDetails() {
         ← Back
       </Button>
 
-      {/* ASSET DETAILS */}
+      {/* ASSET INFO */}
       <Card>
         <CardHeader>
           <CardTitle>Asset Details</CardTitle>
@@ -130,7 +142,7 @@ export default function AssetDetails() {
 
         <CardContent className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <strong>Serial No:</strong> {asset.serialNo}
+            <strong>Serial:</strong> {asset.serialNo}
           </div>
           <div>
             <strong>Name:</strong> {asset.assetName}
@@ -151,14 +163,14 @@ export default function AssetDetails() {
             <strong>Status:</strong> {asset.status}
           </div>
           <div>
-            <strong>Purchase Date:</strong> {formatDate(asset.purchaseDate)}
+            <strong>Purchase:</strong> {formatDate(asset.purchaseDate)}
           </div>
         </CardContent>
       </Card>
 
       {/* SERVICE HISTORY */}
       <Card>
-        <CardHeader className="flex flex-row justify-between items-center">
+        <CardHeader className="flex justify-between items-center">
           <CardTitle>Service History</CardTitle>
 
           <Button
@@ -179,7 +191,7 @@ export default function AssetDetails() {
                   <th className="p-3">Type</th>
                   <th className="p-3">Description</th>
                   <th className="p-3">Cost</th>
-                  <th className="p-3">Performed By</th>
+                  <th className="p-3">By</th>
                   <th className="p-3">Date</th>
                 </tr>
               </thead>
@@ -187,7 +199,7 @@ export default function AssetDetails() {
               <tbody>
                 {services.map((s) => (
                   <tr key={s._id} className="border-b">
-                    <td className="p-3">{s.serviceType || "-"}</td>
+                    <td className="p-3">{s.serviceType}</td>
                     <td className="p-3">{s.description || "-"}</td>
                     <td className="p-3">{s.cost ? `AED ${s.cost}` : "-"}</td>
                     <td className="p-3">{s.performedBy || "-"}</td>
@@ -208,12 +220,20 @@ export default function AssetDetails() {
           </DialogHeader>
 
           <div className="space-y-3">
-            <Input
+            {/* SERVICE TYPE */}
+            <select
               name="serviceType"
-              placeholder="Service Type (Cleaning, Repair)"
               value={serviceForm.serviceType}
               onChange={handleChange}
-            />
+              className="w-full border p-2 rounded"
+            >
+              <option value="">Select Service Type</option>
+              {allowedTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
 
             <Input
               name="description"
