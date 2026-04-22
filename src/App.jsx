@@ -22,6 +22,7 @@ import PrintBarcodes from "@/pages/Inventory/PrintBarcodes";
 import AddAsset from "@/pages/PropertyTagging/AddAsset";
 import AddCategory from "@/pages/PropertyTagging/AddCategory";
 import AddLocation from "@/pages/PropertyTagging/AddLocation";
+import AssetDetails from "@/pages/PropertyTagging/AssetDetails";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
