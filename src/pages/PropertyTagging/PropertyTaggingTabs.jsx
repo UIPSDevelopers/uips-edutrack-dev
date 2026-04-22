@@ -63,6 +63,15 @@ export default function PropertyTaggingTabs() {
           <FolderPlus size={16} /> Categories
         </TabsTrigger>
 
+        <TabsTrigger
+          value="locations"
+          onClick={() => navigate("/property-tagging/add-location")}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
+          data-[state=active]:bg-[#800000] data-[state=active]:text-white"
+        >
+          <FolderPlus size={16} /> Locations
+        </TabsTrigger>
+
         {/* Reports */}
         <TabsTrigger
           value="reports"

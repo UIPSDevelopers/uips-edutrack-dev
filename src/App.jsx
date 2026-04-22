@@ -121,6 +121,8 @@ function App() {
             <Route path="/property-tagging" element={<PropertyTagging />} />
             <Route path="/property-tagging/add-asset" element={<AddAsset />} />
             <Route path="/property-tagging/add-category" element={<AddCategory />} />
+            <Route path="/property-tagging/add-location" element={<AddLocation />} />
+
           </Route>
           {/* 🖨️ Print Barcodes (NO layout) */}
           <Route
