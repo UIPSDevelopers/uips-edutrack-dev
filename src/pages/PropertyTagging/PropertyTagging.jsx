@@ -47,7 +47,7 @@ export default function PropertyTagging() {
         setLoading(true);
 
         // 🔥 IMPORTANT: confirm backend route matches this
-        const res = await axiosInstance.get("/property-tagging/assets");
+        const res = await axiosInstance.get("/assets/assets");
 
         console.log("API RESPONSE:", res.data);
 
