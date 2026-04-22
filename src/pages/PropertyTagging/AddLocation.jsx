@@ -95,10 +95,7 @@ export default function AddLocation() {
 
   return (
     <>
-      {/* ======================
-          TABS
-      ====================== */}
-      <PropertyTaggingTabs />
+      
 
       {/* ======================
           HEADER
@@ -106,6 +103,11 @@ export default function AddLocation() {
       <div className="mt-4 mb-3">
         <h1 className="text-2xl font-semibold text-gray-800">Add Location</h1>
       </div>
+
+      {/* ======================
+          TABS
+      ====================== */}
+      <PropertyTaggingTabs />
 
       {/* ======================
           FORM CARD
