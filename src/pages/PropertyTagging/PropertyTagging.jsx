@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Search, Ban } from "lucide-react";
 
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
@@ -26,12 +25,12 @@ export default function PropertyTagging() {
   // =========================
   // ROLE CHECK
   // =========================
-  const storedUser =
-    typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
 
-  const user = storedUser ? JSON.parse(storedUser) : null;
   const role = user?.role;
-
   const canView = ["IT", "InventoryStaff", "InventoryAdmin"].includes(role);
 
   // =========================
@@ -47,13 +46,16 @@ export default function PropertyTagging() {
       try {
         setLoading(true);
 
-        const res = await axiosInstance.get("/property-tagging", {
-          params: searchTerm ? { search: searchTerm } : {},
-        });
+        // 🔥 IMPORTANT: confirm backend route matches this
+        const res = await axiosInstance.get("/property-tagging");
 
+        console.log("API RESPONSE:", res.data);
+
+        // backend: { assets: [...] }
         setAssets(res.data.assets || []);
       } catch (error) {
-        console.error("Error fetching assets:", error);
+        console.error("Failed to fetch assets:", error);
+        setAssets([]);
       } finally {
         setLoading(false);
       }
@@ -63,7 +65,7 @@ export default function PropertyTagging() {
   }, [canView, searchTerm]);
 
   // =========================
-  // SORTING
+  // SORT
   // =========================
   const handleSort = (key) => {
     setSortConfig((prev) => ({
@@ -100,14 +102,14 @@ export default function PropertyTagging() {
   };
 
   // =========================
-  // UI BLOCK
+  // UNAUTHORIZED
   // =========================
   if (!canView) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <div className="bg-white p-6 rounded-xl shadow text-center">
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
           <Ban className="mx-auto text-red-500 mb-2" />
-          <p className="text-gray-700 font-medium">Unauthorized Access</p>
+          <p>Unauthorized Access</p>
         </div>
       </div>
     );
@@ -115,12 +117,10 @@ export default function PropertyTagging() {
 
   return (
     <main className="p-6 space-y-6">
-      {/* TITLE */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Property Tagging</h1>
       </div>
 
-      {/* TABS */}
       <PropertyTaggingTabs />
 
       {/* SEARCH */}
@@ -160,7 +160,7 @@ export default function PropertyTagging() {
                     <th
                       key={col.key}
                       onClick={() => handleSort(col.key)}
-                      className="p-3 cursor-pointer select-none"
+                      className="p-3 cursor-pointer"
                     >
                       {col.label}
                       {sortConfig.key === col.key &&
@@ -175,7 +175,7 @@ export default function PropertyTagging() {
                   <tr
                     key={asset._id}
                     onClick={() => handleRowClick(asset._id)}
-                    className="border-b hover:bg-gray-50 cursor-pointer transition"
+                    className="border-b hover:bg-gray-50 cursor-pointer"
                   >
                     <td className="p-3 font-medium text-[#800000]">
                       {asset.serialNo}
