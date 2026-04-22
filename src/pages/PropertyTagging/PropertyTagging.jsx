@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Ban } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Ban, Printer } from "lucide-react";
 
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
 import axiosInstance from "@/lib/axios";
@@ -16,6 +17,8 @@ export default function PropertyTagging() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [selectedAssets, setSelectedAssets] = useState([]);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -46,12 +49,7 @@ export default function PropertyTagging() {
       try {
         setLoading(true);
 
-        // 🔥 IMPORTANT: confirm backend route matches this
         const res = await axiosInstance.get("/assets/assets");
-
-        console.log("API RESPONSE:", res.data);
-
-        // backend: { assets: [...] }
         setAssets(res.data.assets || []);
       } catch (error) {
         console.error("Failed to fetch assets:", error);
@@ -62,7 +60,7 @@ export default function PropertyTagging() {
     };
 
     fetchAssets();
-  }, [canView, searchTerm]);
+  }, [canView]);
 
   // =========================
   // SORT
@@ -81,10 +79,6 @@ export default function PropertyTagging() {
       const aVal = a[sortConfig.key];
       const bVal = b[sortConfig.key];
 
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return sortConfig.direction === "asc" ? aVal - bVal : bVal - aVal;
-      }
-
       const strA = aVal ? String(aVal).toLowerCase() : "";
       const strB = bVal ? String(bVal).toLowerCase() : "";
 
@@ -95,14 +89,48 @@ export default function PropertyTagging() {
   }, [assets, sortConfig]);
 
   // =========================
-  // CLICK ROW → DETAILS PAGE
+  // CHECKBOX LOGIC
   // =========================
-  const handleRowClick = (id) => {
+  const toggleSelect = (id) => {
+    setSelectedAssets((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    if (selectedAssets.length === sortedAssets.length) {
+      setSelectedAssets([]);
+    } else {
+      setSelectedAssets(sortedAssets.map((a) => a._id));
+    }
+  };
+
+  // =========================
+  // PRINT QR
+  // =========================
+  const handlePrintQR = () => {
+    const ids = selectedAssets.join(",");
+
+    // opens printable QR page (you will create this route later)
+    window.open(
+      `/property-tagging/print-qr?ids=${ids}`,
+      "_blank"
+    );
+  };
+
+  // =========================
+  // CLICK ROW
+  // =========================
+  const handleRowClick = (e, id) => {
+    // prevent checkbox click from navigating
+    if (e.target.type === "checkbox") return;
     navigate(`/property-tagging/${id}`);
   };
 
   // =========================
-  // UNAUTHORIZED
+  // UI
   // =========================
   if (!canView) {
     return (
@@ -117,8 +145,18 @@ export default function PropertyTagging() {
 
   return (
     <main className="p-6 space-y-6">
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Property Tagging</h1>
+
+        <Button
+          onClick={handlePrintQR}
+          disabled={selectedAssets.length === 0}
+          className="bg-[#800000] hover:bg-[#a10000]"
+        >
+          <Printer className="w-4 h-4 mr-2" />
+          Print QR ({selectedAssets.length})
+        </Button>
       </div>
 
       <PropertyTaggingTabs />
@@ -148,6 +186,17 @@ export default function PropertyTagging() {
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-gray-100 text-left">
+                  <th className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedAssets.length === sortedAssets.length &&
+                        sortedAssets.length > 0
+                      }
+                      onChange={selectAll}
+                    />
+                  </th>
+
                   {[
                     { key: "serialNo", label: "Serial" },
                     { key: "assetName", label: "Name" },
@@ -174,9 +223,17 @@ export default function PropertyTagging() {
                 {sortedAssets.map((asset) => (
                   <tr
                     key={asset._id}
-                    onClick={() => handleRowClick(asset._id)}
+                    onClick={(e) => handleRowClick(e, asset._id)}
                     className="border-b hover:bg-gray-50 cursor-pointer"
                   >
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedAssets.includes(asset._id)}
+                        onChange={() => toggleSelect(asset._id)}
+                      />
+                    </td>
+
                     <td className="p-3 font-medium text-[#800000]">
                       {asset.serialNo}
                     </td>
