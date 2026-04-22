@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import PropertyTaggingTabs from "./PropertyTaggingTabs"; // ✅ ADDED HERE
+import PropertyTaggingTabs from "./PropertyTaggingTabs";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -30,7 +30,8 @@ export default function AddAsset() {
 
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [assets, setAssets] = useState([]); // store assets for table
+  const [locations, setLocations] = useState([]);
+  const [assets, setAssets] = useState([]);
 
   // Fetch categories
   useEffect(() => {
@@ -42,25 +43,44 @@ export default function AddAsset() {
         console.error("Failed to fetch categories", err);
       }
     };
+
     fetchCategories();
   }, []);
 
-  // Fetch assets
-  const fetchAssets = async () => {
-    try {
-      const res = await axiosInstance.get("property-tagging/assets");
-      setAssets(res.data.assets || []);
-    } catch (err) {
-      console.error("Failed to fetch assets", err);
-    }
-  };
-
+  // Fetch locations
   useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await axiosInstance.get("/locations");
+        setLocations(res.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch locations", err);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  // Fetch assets
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        const res = await axiosInstance.get("property-tagging/assets");
+        setAssets(res.data.assets || []);
+      } catch (err) {
+        console.error("Failed to fetch assets", err);
+      }
+    };
+
     fetchAssets();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name, value) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -73,6 +93,7 @@ export default function AddAsset() {
         "property-tagging/asset/create",
         form,
       );
+
       const { asset } = res.data;
 
       alert(`✅ Asset added successfully!\nSerial: ${asset.serialNo}`);
@@ -89,7 +110,9 @@ export default function AddAsset() {
         remarks: "",
       });
 
-      fetchAssets();
+      // refresh table
+      const refreshed = await axiosInstance.get("property-tagging/assets");
+      setAssets(refreshed.data.assets || []);
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || "❌ Failed to add asset.";
@@ -101,16 +124,16 @@ export default function AddAsset() {
 
   return (
     <>
-      {/* ✅ PROPERTY TAGGING TABS INSERTED HERE */}
-
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Add Assets
-        </h1>
-      </div>
+      {/* TABS */}
       <PropertyTaggingTabs />
 
-      <Card className="shadow-sm border border-gray-200 mt-4">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mt-4 mb-4">
+        <h1 className="text-2xl font-semibold text-gray-800">Add Assets</h1>
+      </div>
+
+      {/* FORM */}
+      <Card className="shadow-sm border border-gray-200">
         <CardHeader>
           <CardTitle>Add New Asset</CardTitle>
         </CardHeader>
@@ -122,52 +145,35 @@ export default function AddAsset() {
           >
             {/* Asset Name */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Asset Name
-              </label>
+              <label className="text-sm font-medium">Asset Name</label>
               <Input
                 name="assetName"
                 value={form.assetName}
                 onChange={handleChange}
-                placeholder="e.g., Chair, Whiteboard"
                 required
               />
             </div>
 
             {/* Brand */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">Brand</label>
-              <Input
-                name="brand"
-                value={form.brand}
-                onChange={handleChange}
-                placeholder="Brand"
-              />
+              <label className="text-sm font-medium">Brand</label>
+              <Input name="brand" value={form.brand} onChange={handleChange} />
             </div>
 
             {/* Model */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">Model</label>
-              <Input
-                name="model"
-                value={form.model}
-                onChange={handleChange}
-                placeholder="Model"
-              />
+              <label className="text-sm font-medium">Model</label>
+              <Input name="model" value={form.model} onChange={handleChange} />
             </div>
 
             {/* Category */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Category
-              </label>
+              <label className="text-sm font-medium">Category</label>
               <Select
                 value={form.categoryId}
-                onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, categoryId: val }))
-                }
+                onValueChange={(val) => handleSelectChange("categoryId", val)}
               >
-                <SelectTrigger className="h-10 border border-gray-300 focus:ring-2 focus:ring-[#800000]">
+                <SelectTrigger>
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -182,16 +188,12 @@ export default function AddAsset() {
 
             {/* Status */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Status
-              </label>
+              <label className="text-sm font-medium">Status</label>
               <Select
                 value={form.status}
-                onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, status: val }))
-                }
+                onValueChange={(val) => handleSelectChange("status", val)}
               >
-                <SelectTrigger className="h-10 border border-gray-300 focus:ring-2 focus:ring-[#800000]">
+                <SelectTrigger>
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -204,9 +206,7 @@ export default function AddAsset() {
 
             {/* Purchase Date */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Purchase Date
-              </label>
+              <label className="text-sm font-medium">Purchase Date</label>
               <Input
                 type="date"
                 name="purchaseDate"
@@ -215,38 +215,52 @@ export default function AddAsset() {
               />
             </div>
 
-            {/* Location */}
+            {/* LOCATION (FROM DB) */}
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Location / Room
-              </label>
-              <Input
-                name="location"
+              <label className="text-sm font-medium">Location</label>
+              <Select
                 value={form.location}
+                onValueChange={(val) => handleSelectChange("location", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc._id} value={loc.name}>
+                      {loc.name} {loc.building && `(${loc.building})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Serial */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium">Serial No</label>
+              <Input
+                name="serialNo"
+                value={form.serialNo}
                 onChange={handleChange}
-                placeholder="e.g., Room 1, Library"
               />
             </div>
 
             {/* Remarks */}
             <div className="flex flex-col md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">
-                Remarks
-              </label>
+              <label className="text-sm font-medium">Remarks</label>
               <Input
                 name="remarks"
                 value={form.remarks}
                 onChange={handleChange}
-                placeholder="Optional remarks"
               />
             </div>
 
-            {/* Submit Button */}
-            <div className="md:col-span-2 flex justify-end mt-2">
+            {/* Submit */}
+            <div className="md:col-span-2 flex justify-end">
               <Button
                 type="submit"
-                className="bg-[#800000] hover:bg-[#a10000] text-white"
                 disabled={loading}
+                className="bg-[#800000] hover:bg-[#a10000] text-white"
               >
                 {loading ? "Saving..." : "Add Asset"}
               </Button>
@@ -255,82 +269,56 @@ export default function AddAsset() {
         </CardContent>
       </Card>
 
-      {/* Assets Table */}
+      {/* TABLE */}
       <Card className="shadow-sm border border-gray-200 mt-6">
         <CardHeader>
           <CardTitle>Assets List</CardTitle>
         </CardHeader>
 
         <CardContent className="overflow-x-auto">
-          <table className="w-full table-auto border-collapse border border-gray-300">
+          <table className="w-full border border-gray-300">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Serial
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Name
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Category
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Brand
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Model
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Status
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Purchase Date
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Location
-                </th>
+                <th className="border px-2 py-1">Serial</th>
+                <th className="border px-2 py-1">Name</th>
+                <th className="border px-2 py-1">Category</th>
+                <th className="border px-2 py-1">Brand</th>
+                <th className="border px-2 py-1">Model</th>
+                <th className="border px-2 py-1">Status</th>
+                <th className="border px-2 py-1">Purchase Date</th>
+                <th className="border px-2 py-1">Location</th>
               </tr>
             </thead>
 
             <tbody>
-              {assets.length === 0 && (
+              {assets.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-2">
+                  <td colSpan={8} className="text-center py-3">
                     No assets found.
                   </td>
                 </tr>
+              ) : (
+                assets.map((asset) => (
+                  <tr key={asset._id}>
+                    <td className="border px-2 py-1">{asset.serialNo}</td>
+                    <td className="border px-2 py-1">{asset.assetName}</td>
+                    <td className="border px-2 py-1">
+                      {asset.categoryId?.name || "-"}
+                    </td>
+                    <td className="border px-2 py-1">{asset.brand || "-"}</td>
+                    <td className="border px-2 py-1">{asset.model || "-"}</td>
+                    <td className="border px-2 py-1">{asset.status}</td>
+                    <td className="border px-2 py-1">
+                      {asset.purchaseDate
+                        ? new Date(asset.purchaseDate).toLocaleDateString()
+                        : "-"}
+                    </td>
+                    <td className="border px-2 py-1">
+                      {asset.location || "-"}
+                    </td>
+                  </tr>
+                ))
               )}
-
-              {assets.map((asset) => (
-                <tr key={asset._id}>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.serialNo}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.assetName}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.categoryId?.name || "-"}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.brand || "-"}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.model || "-"}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.status}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.purchaseDate
-                      ? new Date(asset.purchaseDate).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {asset.location || "-"}
-                  </td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </CardContent>
