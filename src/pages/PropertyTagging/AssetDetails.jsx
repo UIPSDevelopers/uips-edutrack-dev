@@ -202,7 +202,7 @@ export default function AssetDetails() {
                     <td className="p-3">{s.serviceType}</td>
                     <td className="p-3">{s.description || "-"}</td>
                     <td className="p-3">{s.cost ? `AED ${s.cost}` : "-"}</td>
-                    <td className="p-3">{s.performedBy || "-"}</td>
+                    <td className="p-3">{s.performedBy}</td>
                     <td className="p-3">{formatDate(s.serviceDate)}</td>
                   </tr>
                 ))}
