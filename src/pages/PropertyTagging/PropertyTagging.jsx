@@ -63,19 +63,25 @@ export default function PropertyTagging() {
   }, [canView]);
 
   // =========================
+  // SEARCH FILTER
+  // =========================
+  const filteredAssets = useMemo(() => {
+    if (!searchTerm) return assets;
+
+    return assets.filter((a) =>
+      `${a.assetName} ${a.serialNo} ${a.brand} ${a.model}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
+    );
+  }, [assets, searchTerm]);
+
+  // =========================
   // SORT
   // =========================
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }));
-  };
-
   const sortedAssets = useMemo(() => {
-    if (!sortConfig.key) return assets;
+    if (!sortConfig.key) return filteredAssets;
 
-    return [...assets].sort((a, b) => {
+    return [...filteredAssets].sort((a, b) => {
       const aVal = a[sortConfig.key];
       const bVal = b[sortConfig.key];
 
@@ -86,16 +92,21 @@ export default function PropertyTagging() {
       if (strA > strB) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
-  }, [assets, sortConfig]);
+  }, [filteredAssets, sortConfig]);
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
 
   // =========================
   // CHECKBOX LOGIC
   // =========================
   const toggleSelect = (id) => {
     setSelectedAssets((prev) =>
-      prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -108,29 +119,26 @@ export default function PropertyTagging() {
   };
 
   // =========================
-  // PRINT QR
+  // PRINT QR (FIXED)
   // =========================
   const handlePrintQR = () => {
-    const ids = new URLSearchParams(location.search).get("ids")?.split(",");
+    if (selectedAssets.length === 0) return;
 
-    // opens printable QR page (you will create this route later)
-    window.open(
-      `/property-tagging/print-qr?ids=${ids}`,
-      "_blank"
-    );
+    const ids = selectedAssets.join(",");
+
+    window.open(`/property-tagging/print-qr?ids=${ids}`, "_blank");
   };
 
   // =========================
-  // CLICK ROW
+  // ROW CLICK
   // =========================
   const handleRowClick = (e, id) => {
-    // prevent checkbox click from navigating
     if (e.target.type === "checkbox") return;
     navigate(`/property-tagging/${id}`);
   };
 
   // =========================
-  // UI
+  // UNAUTHORIZED
   // =========================
   if (!canView) {
     return (
@@ -143,6 +151,9 @@ export default function PropertyTagging() {
     );
   }
 
+  // =========================
+  // UI
+  // =========================
   return (
     <main className="p-6 space-y-6">
       {/* HEADER */}
