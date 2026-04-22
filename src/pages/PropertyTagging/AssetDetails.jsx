@@ -43,10 +43,14 @@ export default function AssetDetails() {
 
       const res = await axiosInstance.get(`/property-tagging/assets/${id}`);
 
-      setAsset(res.data.asset);
+      setAsset(res.data.asset || null);
       setServices(res.data.services || []);
     } catch (error) {
-      console.error("Error fetching asset:", error);
+      console.error(
+        "Error fetching asset:",
+        error?.response?.data || error.message,
+      );
+      setAsset(null);
     } finally {
       setLoading(false);
     }
