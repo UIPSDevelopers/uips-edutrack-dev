@@ -21,9 +21,9 @@ export default function AddAsset() {
     brand: "",
     model: "",
     categoryId: "",
+    locationId: "", // ✅ FIXED (important)
     status: "Active",
     purchaseDate: "",
-    location: "",
     serialNo: "",
     remarks: "",
   });
@@ -33,7 +33,9 @@ export default function AddAsset() {
   const [locations, setLocations] = useState([]);
   const [assets, setAssets] = useState([]);
 
-  // Fetch categories
+  // =========================
+  // FETCH CATEGORIES
+  // =========================
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -47,7 +49,9 @@ export default function AddAsset() {
     fetchCategories();
   }, []);
 
-  // Fetch locations
+  // =========================
+  // FETCH LOCATIONS
+  // =========================
   useEffect(() => {
     const fetchLocations = async () => {
       try {
@@ -61,20 +65,25 @@ export default function AddAsset() {
     fetchLocations();
   }, []);
 
-  // Fetch assets
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        const res = await axiosInstance.get("property-tagging/assets");
-        setAssets(res.data.assets || []);
-      } catch (err) {
-        console.error("Failed to fetch assets", err);
-      }
-    };
+  // =========================
+  // FETCH ASSETS
+  // =========================
+  const fetchAssets = async () => {
+    try {
+      const res = await axiosInstance.get("property-tagging/assets");
+      setAssets(res.data.assets || []);
+    } catch (err) {
+      console.error("Failed to fetch assets", err);
+    }
+  };
 
+  useEffect(() => {
     fetchAssets();
   }, []);
 
+  // =========================
+  // HANDLERS
+  // =========================
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -84,6 +93,9 @@ export default function AddAsset() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // =========================
+  // SUBMIT
+  // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -98,21 +110,20 @@ export default function AddAsset() {
 
       alert(`✅ Asset added successfully!\nSerial: ${asset.serialNo}`);
 
+      // reset form
       setForm({
         assetName: "",
         brand: "",
         model: "",
         categoryId: "",
+        locationId: "",
         status: "Active",
         purchaseDate: "",
-        location: "",
         serialNo: "",
         remarks: "",
       });
 
-      // refresh table
-      const refreshed = await axiosInstance.get("property-tagging/assets");
-      setAssets(refreshed.data.assets || []);
+      fetchAssets();
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || "❌ Failed to add asset.";
@@ -186,6 +197,26 @@ export default function AddAsset() {
               </Select>
             </div>
 
+            {/* LOCATION (FIXED → from DB) */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium">Location</label>
+              <Select
+                value={form.locationId}
+                onValueChange={(val) => handleSelectChange("locationId", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc._id} value={loc._id}>
+                      {loc.name} {loc.building ? `(${loc.building})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Status */}
             <div className="flex flex-col">
               <label className="text-sm font-medium">Status</label>
@@ -213,26 +244,6 @@ export default function AddAsset() {
                 value={form.purchaseDate}
                 onChange={handleChange}
               />
-            </div>
-
-            {/* LOCATION (FROM DB) */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium">Location</label>
-              <Select
-                value={form.location}
-                onValueChange={(val) => handleSelectChange("location", val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {locations.map((loc) => (
-                    <SelectItem key={loc._id} value={loc.name}>
-                      {loc.name} {loc.building && `(${loc.building})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             {/* Serial */}
@@ -314,7 +325,7 @@ export default function AddAsset() {
                         : "-"}
                     </td>
                     <td className="border px-2 py-1">
-                      {asset.location || "-"}
+                      {asset.locationId?.name || "-"}
                     </td>
                   </tr>
                 ))
