@@ -247,14 +247,14 @@ export default function AddAsset() {
             </div>
 
             {/* Serial */}
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <label className="text-sm font-medium">Serial No</label>
               <Input
                 name="serialNo"
                 value={form.serialNo}
                 onChange={handleChange}
               />
-            </div>
+            </div> */}
 
             {/* Remarks */}
             <div className="flex flex-col md:col-span-2">
