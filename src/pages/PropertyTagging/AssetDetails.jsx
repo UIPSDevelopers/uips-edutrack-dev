@@ -27,9 +27,11 @@ export default function AssetDetails() {
   const [showDialog, setShowDialog] = useState(false);
 
   const [serviceForm, setServiceForm] = useState({
-    type: "",
-    date: "",
-    remarks: "",
+    serviceType: "",
+    description: "",
+    cost: "",
+    performedBy: "",
+    serviceDate: "",
   });
 
   // =========================
@@ -39,9 +41,7 @@ export default function AssetDetails() {
     try {
       setLoading(true);
 
-      const res = await axiosInstance.get(
-        `/property-tagging/assets/${id}`
-      );
+      const res = await axiosInstance.get(`/property-tagging/assets/${id}`);
 
       setAsset(res.data.asset);
       setServices(res.data.services || []);
@@ -57,24 +57,39 @@ export default function AssetDetails() {
   }, [id]);
 
   // =========================
-  // HANDLE SERVICE ADD
+  // HANDLE INPUT CHANGE
   // =========================
-  const handleServiceChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setServiceForm((prev) => ({ ...prev, [name]: value }));
+    setServiceForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
+  // =========================
+  // ADD SERVICE
+  // =========================
   const handleAddService = async () => {
     try {
-      await axiosInstance.post(
-        `/property-tagging/assets/${id}/service`,
-        serviceForm
-      );
+      await axiosInstance.post(`/property-tagging/assets/${id}/service`, {
+        ...serviceForm,
+        serviceDate: serviceForm.serviceDate
+          ? new Date(serviceForm.serviceDate).toISOString()
+          : new Date().toISOString(),
+      });
 
       setShowDialog(false);
-      setServiceForm({ type: "", date: "", remarks: "" });
 
-      fetchAsset(); // refresh
+      setServiceForm({
+        serviceType: "",
+        description: "",
+        cost: "",
+        performedBy: "",
+        serviceDate: "",
+      });
+
+      fetchAsset();
     } catch (error) {
       console.error("Error adding service:", error);
       alert("Failed to add service");
@@ -82,16 +97,24 @@ export default function AssetDetails() {
   };
 
   // =========================
+  // SAFE DATE FORMAT
+  // =========================
+  const formatDate = (date) => {
+    if (!date) return "-";
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString();
+  };
+
+  // =========================
+  // UI STATES
+  // =========================
+  if (loading) return <p className="p-6">Loading asset...</p>;
+
+  if (!asset) return <p className="p-6 text-red-500">Asset not found</p>;
+
+  // =========================
   // UI
   // =========================
-  if (loading) {
-    return <p className="p-6">Loading asset...</p>;
-  }
-
-  if (!asset) {
-    return <p className="p-6 text-red-500">Asset not found</p>;
-  }
-
   return (
     <main className="p-6 space-y-6">
       {/* BACK */}
@@ -113,12 +136,10 @@ export default function AssetDetails() {
             <strong>Name:</strong> {asset.assetName}
           </div>
           <div>
-            <strong>Category:</strong>{" "}
-            {asset.categoryId?.name || "-"}
+            <strong>Category:</strong> {asset.categoryId?.name || "-"}
           </div>
           <div>
-            <strong>Location:</strong>{" "}
-            {asset.locationId?.name || "-"}
+            <strong>Location:</strong> {asset.locationId?.name || "-"}
           </div>
           <div>
             <strong>Brand:</strong> {asset.brand || "-"}
@@ -130,8 +151,7 @@ export default function AssetDetails() {
             <strong>Status:</strong> {asset.status}
           </div>
           <div>
-            <strong>Purchase Date:</strong>{" "}
-            {asset.purchaseDate || "-"}
+            <strong>Purchase Date:</strong> {formatDate(asset.purchaseDate)}
           </div>
         </CardContent>
       </Card>
@@ -157,18 +177,21 @@ export default function AssetDetails() {
               <thead>
                 <tr className="bg-gray-100 text-left">
                   <th className="p-3">Type</th>
+                  <th className="p-3">Description</th>
+                  <th className="p-3">Cost</th>
+                  <th className="p-3">Performed By</th>
                   <th className="p-3">Date</th>
-                  <th className="p-3">Remarks</th>
                 </tr>
               </thead>
+
               <tbody>
-                {services.map((s, i) => (
-                  <tr key={i} className="border-b">
-                    <td className="p-3">{s.type}</td>
-                    <td className="p-3">
-                      {new Date(s.date).toLocaleDateString()}
-                    </td>
-                    <td className="p-3">{s.remarks || "-"}</td>
+                {services.map((s) => (
+                  <tr key={s._id} className="border-b">
+                    <td className="p-3">{s.serviceType || "-"}</td>
+                    <td className="p-3">{s.description || "-"}</td>
+                    <td className="p-3">{s.cost ? `AED ${s.cost}` : "-"}</td>
+                    <td className="p-3">{s.performedBy || "-"}</td>
+                    <td className="p-3">{formatDate(s.serviceDate)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -186,24 +209,39 @@ export default function AssetDetails() {
 
           <div className="space-y-3">
             <Input
-              name="type"
+              name="serviceType"
               placeholder="Service Type (Cleaning, Repair)"
-              value={serviceForm.type}
-              onChange={handleServiceChange}
+              value={serviceForm.serviceType}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="description"
+              placeholder="Description"
+              value={serviceForm.description}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="cost"
+              type="number"
+              placeholder="Cost"
+              value={serviceForm.cost}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="performedBy"
+              placeholder="Performed By"
+              value={serviceForm.performedBy}
+              onChange={handleChange}
             />
 
             <Input
               type="date"
-              name="date"
-              value={serviceForm.date}
-              onChange={handleServiceChange}
-            />
-
-            <Input
-              name="remarks"
-              placeholder="Remarks"
-              value={serviceForm.remarks}
-              onChange={handleServiceChange}
+              name="serviceDate"
+              value={serviceForm.serviceDate}
+              onChange={handleChange}
             />
 
             <Button
