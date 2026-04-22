@@ -21,6 +21,7 @@ import Visitors from "@/pages/Visitors";
 import PrintBarcodes from "@/pages/Inventory/PrintBarcodes";
 import AddAsset from "@/pages/PropertyTagging/AddAsset";
 import AddCategory from "@/pages/PropertyTagging/AddCategory";
+import AddLocation from "@/pages/PropertyTagging/AddLocation"
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
