@@ -56,7 +56,7 @@ export default function PropertyTaggingTabs() {
         {/* Categories (NEW) */}
         <TabsTrigger
           value="categories"
-          onClick={() => navigate("/property-tagging/categories")}
+          onClick={() => navigate("/property-tagging/add-category")}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
           data-[state=active]:bg-[#800000] data-[state=active]:text-white"
         >

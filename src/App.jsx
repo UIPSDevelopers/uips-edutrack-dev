@@ -20,6 +20,7 @@ import Settings from "@/pages/Settings";
 import Visitors from "@/pages/Visitors";
 import PrintBarcodes from "@/pages/Inventory/PrintBarcodes";
 import AddAsset from "@/pages/PropertyTagging/AddAsset";
+import AddCategory from "@/pages/PropertyTagging/AddCategory";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
@@ -119,6 +120,7 @@ function App() {
             {/* Property Tagging Routes */}
             <Route path="/property-tagging" element={<PropertyTagging />} />
             <Route path="/property-tagging/add-asset" element={<AddAsset />} />
+            <Route path="/property-tagging/add-category" element={<AddCategory />} />
           </Route>
           {/* 🖨️ Print Barcodes (NO layout) */}
           <Route
