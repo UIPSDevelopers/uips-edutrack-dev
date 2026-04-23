@@ -75,7 +75,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
                 className="border p-4 flex flex-col items-center"
               >
                 <img
-                  src={`${API_BASE}/api/asset/assets/${asset._id}/qrcode`}
+                  src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
                   className="w-40 h-40"
                   alt="QR"
                 />
