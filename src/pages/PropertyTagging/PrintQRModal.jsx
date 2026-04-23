@@ -9,7 +9,11 @@ const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
   "https://uips-edutrack-backend-dev.onrender.com";
 
-export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
+export default function PrintQRModal({
+  open = false,
+  onClose,
+  assetIds = [],
+}) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +28,9 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         setLoading(true);
 
         const results = await Promise.allSettled(
-          assetIds.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
+          assetIds.map((id) =>
+            axiosInstance.get(`/asset/assets/${id}`)
+          )
         );
 
         const valid = results
@@ -68,7 +74,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     });
 
   /* =========================
-     GENERATE PDF (50 × 25mm LABEL)
+     GENERATE PDF (MAX DENSITY LABEL)
   ========================= */
   const handleDownloadPDF = async () => {
     if (!assets.length) return;
@@ -86,47 +92,51 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-       QR CODE (BIG + CENTERED LEFT)
-    ========================= */
-      const qrSize = 23;
-      const qrX = 1.5;
-      const qrY = (25 - qrSize) / 2;
+         QR CODE (MAX SIZE LEFT BLOCK)
+      ========================= */
+      const qrSize = 24; // maximize scan area
+      const qrX = 1;
+      const qrY = 0.5;
 
       pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
       /* =========================
-       COMPACT TEXT BLOCK (RIGHT SIDE)
-    ========================= */
+         TEXT BLOCK (FULL HEIGHT UTILIZATION)
+      ========================= */
 
       const x = 26;
 
-      // UIPS (bold, but compact)
+      // UIPS (TOP ANCHOR)
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(10);
-      pdf.text("UIPS", x, 7);
+      pdf.setFontSize(11);
+      pdf.text("UIPS", x, 6);
 
-      // SERIAL (MAIN FOCUS)
+      // SERIAL (PRIMARY IDENTIFIER)
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(8);
-      pdf.text(`${asset.serialNo || "-"}`, x, 12);
+      pdf.setFontSize(9);
+      pdf.text(`${asset.serialNo || "-"}`, x, 13);
 
-      // DATE (SMALLER, TIGHT)
+      // DIVIDER LINE (structure + density feel)
+      pdf.setDrawColor(180);
+      pdf.line(x, 14, 49, 14);
+
+      // DATE (BOTTOM ANCHOR)
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
 
       pdf.setFontSize(7);
-      pdf.text(`PD: ${date}`, x, 16);
+      pdf.text(`PD:${date}`, x, 19);
 
       /* =========================
-       NEXT PAGE
-    ========================= */
+         NEXT LABEL PAGE
+      ========================= */
       if (i !== assets.length - 1) {
         pdf.addPage([50, 25], "landscape");
       }
     }
 
-    pdf.save("uips-qr-labels.pdf");
+    pdf.save("uips-qr-labels-max-density.pdf");
   };
 
   if (!open) return null;
@@ -134,6 +144,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white w-[420px] p-4 rounded-lg relative">
+
         {/* CLOSE */}
         <button
           onClick={onClose}
@@ -143,13 +154,17 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         </button>
 
         {/* HEADER */}
-        <h2 className="text-lg font-semibold mb-3">UIPS QR Label Export</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          UIPS QR Label Export
+        </h2>
 
         {/* STATUS */}
         {loading ? (
           <p>Loading assets...</p>
         ) : (
-          <p className="text-sm text-gray-600">{assets.length} labels ready</p>
+          <p className="text-sm text-gray-600">
+            {assets.length} labels ready
+          </p>
         )}
 
         {/* ACTIONS */}
@@ -158,7 +173,10 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
             Close
           </Button>
 
-          <Button onClick={handleDownloadPDF} disabled={!assets.length}>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={!assets.length}
+          >
             Download PDF
           </Button>
         </div>
