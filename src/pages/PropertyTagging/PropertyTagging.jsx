@@ -49,7 +49,7 @@ export default function PropertyTagging() {
       try {
         setLoading(true);
 
-        const res = await axiosInstance.get("/assets/assets");
+        const res = await axiosInstance.get("/asset/assets");
         setAssets(res.data.assets || []);
       } catch (error) {
         console.error("Failed to fetch assets:", error);

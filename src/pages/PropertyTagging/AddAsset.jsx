@@ -70,7 +70,7 @@ export default function AddAsset() {
   // =========================
   const fetchAssets = async () => {
     try {
-      const res = await axiosInstance.get("assets/assets");
+      const res = await axiosInstance.get("asset/assets");
       setAssets(res.data.assets || []);
     } catch (err) {
       console.error("Failed to fetch assets", err);
