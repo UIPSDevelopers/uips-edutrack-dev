@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Search, Ban, Printer } from "lucide-react";
 
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
-import axiosInstance from "@/lib/axios";
-
 import PrintQRModal from "./PrintQRModal";
+import axiosInstance from "@/lib/axios";
 
 export default function PropertyTagging() {
   const navigate = useNavigate();
@@ -28,15 +27,9 @@ export default function PropertyTagging() {
     direction: "asc",
   });
 
-  // =========================
-  // VALIDATE OBJECT ID
-  // =========================
   const isValidObjectId = (id) =>
     typeof id === "string" && /^[a-f\d]{24}$/i.test(id);
 
-  // =========================
-  // ROLE CHECK
-  // =========================
   const user =
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "null")
@@ -45,23 +38,16 @@ export default function PropertyTagging() {
   const role = user?.role;
   const canView = ["IT", "InventoryStaff", "InventoryAdmin"].includes(role);
 
-  // =========================
-  // FETCH ASSETS
-  // =========================
   useEffect(() => {
-    if (!canView) {
-      setLoading(false);
-      return;
-    }
+    if (!canView) return setLoading(false);
 
     const fetchAssets = async () => {
       try {
         setLoading(true);
-
         const res = await axiosInstance.get("/asset/assets");
         setAssets(res.data.assets || []);
-      } catch (error) {
-        console.error("Failed to fetch assets:", error);
+      } catch (err) {
+        console.error(err);
         setAssets([]);
       } finally {
         setLoading(false);
@@ -71,9 +57,6 @@ export default function PropertyTagging() {
     fetchAssets();
   }, [canView]);
 
-  // =========================
-  // SEARCH FILTER
-  // =========================
   const filteredAssets = useMemo(() => {
     if (!searchTerm) return assets;
 
@@ -84,9 +67,6 @@ export default function PropertyTagging() {
     );
   }, [assets, searchTerm]);
 
-  // =========================
-  // SORT
-  // =========================
   const sortedAssets = useMemo(() => {
     if (!sortConfig.key) return filteredAssets;
 
@@ -94,25 +74,15 @@ export default function PropertyTagging() {
       const aVal = a[sortConfig.key];
       const bVal = b[sortConfig.key];
 
-      const strA = aVal ? String(aVal).toLowerCase() : "";
-      const strB = bVal ? String(bVal).toLowerCase() : "";
+      const A = aVal ? String(aVal).toLowerCase() : "";
+      const B = bVal ? String(bVal).toLowerCase() : "";
 
-      if (strA < strB) return sortConfig.direction === "asc" ? -1 : 1;
-      if (strA > strB) return sortConfig.direction === "asc" ? 1 : -1;
+      if (A < B) return sortConfig.direction === "asc" ? -1 : 1;
+      if (A > B) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
   }, [filteredAssets, sortConfig]);
 
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-    }));
-  };
-
-  // =========================
-  // SAFE SELECT TOGGLE
-  // =========================
   const toggleSelect = (id) => {
     if (!isValidObjectId(id)) return;
 
@@ -121,55 +91,22 @@ export default function PropertyTagging() {
     );
   };
 
-  // =========================
-  // SAFE SELECT ALL
-  // =========================
   const selectAll = () => {
-    const validIds = sortedAssets.map((a) => a._id).filter(isValidObjectId);
+    const valid = sortedAssets.map((a) => a._id);
 
-    if (selectedAssets.length === validIds.length) {
+    if (selectedAssets.length === valid.length) {
       setSelectedAssets([]);
     } else {
-      setSelectedAssets(validIds);
+      setSelectedAssets(valid);
     }
   };
 
-  // =========================
-  // PRINT QR (FIXED)
-  // =========================
-
+  // ✅ MODAL OPEN
   const handlePrintQR = () => {
-  if (!selectedAssets.length) return;
-  setShowPrint(true);
-};
-
-
-  // const handlePrintQR = () => {
-  //   if (!selectedAssets.length) return;
-
-  //   const cleanIds = selectedAssets.filter(isValidObjectId);
-
-  //   if (!cleanIds.length) return;
-
-  //   const ids = cleanIds.join(",");
-
-  //   window.open(
-  //     `/property-tagging/print-qr?ids=${encodeURIComponent(ids)}`,
-  //     "_blank",
-  //   );
-  // };
-
-  // =========================
-  // ROW CLICK
-  // =========================
-  const handleRowClick = (e, id) => {
-    if (e.target.type === "checkbox") return;
-    navigate(`/property-tagging/${id}`);
+    if (!selectedAssets.length) return;
+    setShowPrint(true);
   };
 
-  // =========================
-  // UNAUTHORIZED
-  // =========================
   if (!canView) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -181,9 +118,6 @@ export default function PropertyTagging() {
     );
   }
 
-  // =========================
-  // UI
-  // =========================
   return (
     <main className="p-6 space-y-6">
       {/* HEADER */}
@@ -192,8 +126,8 @@ export default function PropertyTagging() {
 
         <Button
           onClick={handlePrintQR}
-          disabled={selectedAssets.length === 0}
-          className="bg-[#800000] hover:bg-[#a10000]"
+          disabled={!selectedAssets.length}
+          className="bg-[#800000]"
         >
           <Printer className="w-4 h-4 mr-2" />
           Print QR ({selectedAssets.length})
@@ -203,87 +137,59 @@ export default function PropertyTagging() {
       <PropertyTaggingTabs />
 
       {/* SEARCH */}
-      <div className="flex items-center gap-2 w-full md:w-1/3">
-        <Search className="w-4 h-4 text-gray-500" />
+      <div className="flex gap-2 w-full md:w-1/3">
+        <Search className="w-4 h-4" />
         <Input
-          placeholder="Search assets..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search assets..."
         />
       </div>
 
       {/* TABLE */}
       <Card>
         <CardHeader>
-          <CardTitle>Assets List</CardTitle>
+          <CardTitle>Assets</CardTitle>
         </CardHeader>
 
         <CardContent>
           {loading ? (
-            <p className="text-center py-6">Loading...</p>
-          ) : sortedAssets.length === 0 ? (
-            <p className="text-center py-6">No assets found.</p>
+            <p>Loading...</p>
           ) : (
-            <table className="w-full text-sm border-collapse">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-100 text-left">
-                  <th className="p-3">
+                <tr>
+                  <th>
                     <input
                       type="checkbox"
+                      onChange={selectAll}
                       checked={
                         selectedAssets.length === sortedAssets.length &&
                         sortedAssets.length > 0
                       }
-                      onChange={selectAll}
                     />
                   </th>
-
-                  {[
-                    { key: "serialNo", label: "Serial" },
-                    { key: "assetName", label: "Name" },
-                    { key: "categoryId", label: "Category" },
-                    { key: "brand", label: "Brand" },
-                    { key: "model", label: "Model" },
-                    { key: "status", label: "Status" },
-                    { key: "locationId", label: "Location" },
-                  ].map((col) => (
-                    <th
-                      key={col.key}
-                      onClick={() => handleSort(col.key)}
-                      className="p-3 cursor-pointer"
-                    >
-                      {col.label}
-                      {sortConfig.key === col.key &&
-                        (sortConfig.direction === "asc" ? " ▲" : " ▼")}
-                    </th>
-                  ))}
+                  <th>Serial</th>
+                  <th>Name</th>
+                  <th>Brand</th>
+                  <th>Model</th>
                 </tr>
               </thead>
 
               <tbody>
-                {sortedAssets.map((asset) => (
-                  <tr
-                    key={asset._id}
-                    onClick={(e) => handleRowClick(e, asset._id)}
-                    className="border-b hover:bg-gray-50 cursor-pointer"
-                  >
-                    <td className="p-3">
+                {sortedAssets.map((a) => (
+                  <tr key={a._id}>
+                    <td>
                       <input
                         type="checkbox"
-                        checked={selectedAssets.includes(asset._id)}
-                        onChange={() => toggleSelect(asset._id)}
+                        checked={selectedAssets.includes(a._id)}
+                        onChange={() => toggleSelect(a._id)}
                       />
                     </td>
-
-                    <td className="p-3 font-medium text-[#800000]">
-                      {asset.serialNo}
-                    </td>
-                    <td className="p-3">{asset.assetName}</td>
-                    <td className="p-3">{asset.categoryId?.name || "-"}</td>
-                    <td className="p-3">{asset.brand || "-"}</td>
-                    <td className="p-3">{asset.model || "-"}</td>
-                    <td className="p-3">{asset.status}</td>
-                    <td className="p-3">{asset.locationId?.name || "-"}</td>
+                    <td>{a.serialNo}</td>
+                    <td>{a.assetName}</td>
+                    <td>{a.brand}</td>
+                    <td>{a.model}</td>
                   </tr>
                 ))}
               </tbody>
@@ -291,6 +197,13 @@ export default function PropertyTagging() {
           )}
         </CardContent>
       </Card>
+
+      {/* ✅ MODAL */}
+      <PrintQRModal
+        open={showPrint}
+        onClose={() => setShowPrint(false)}
+        assetIds={selectedAssets}
+      />
     </main>
   );
 }
