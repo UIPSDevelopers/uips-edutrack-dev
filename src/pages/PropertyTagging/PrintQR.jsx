@@ -31,6 +31,14 @@ export default function PrintQR() {
       .filter((id) => /^[a-fA-F0-9]{24}$/.test(id));
   }, [location.search]);
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/property-tagging");
+    }
+  };
+
   /* =========================================================
      FETCH ASSETS (SAFE MODE - NO CRASH)
   ========================================================= */
@@ -106,7 +114,7 @@ export default function PrintQR() {
         <h1 className="text-xl font-semibold">Print QR Codes</h1>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button variant="outline" onClick={handleBack}>
             Back
           </Button>
 
