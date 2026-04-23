@@ -12,6 +12,9 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  /* =========================
+     FETCH ASSETS
+  ========================= */
   useEffect(() => {
     if (!open || !assetIds.length) return;
 
@@ -20,7 +23,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         setLoading(true);
 
         const results = await Promise.allSettled(
-          assetIds.map((id) => axiosInstance.get(`/asset/assets/${id}`))
+          assetIds.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
         );
 
         const valid = results
@@ -40,6 +43,9 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     fetchAssets();
   }, [open, assetIds]);
 
+  /* =========================
+     AUTO PRINT
+  ========================= */
   useEffect(() => {
     if (!loading && assets.length > 0 && open) {
       const t = setTimeout(() => window.print(), 300);
@@ -50,9 +56,8 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[90%] max-w-5xl p-6 rounded-lg relative">
-
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
+      <div className="bg-white w-[95%] max-w-6xl p-4 rounded-lg relative">
         {/* CLOSE */}
         <button
           onClick={onClose}
@@ -61,54 +66,89 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
           ✕
         </button>
 
-        <h2 className="text-xl font-semibold mb-4 no-print">
-          Print QR Codes
-        </h2>
+        <h2 className="text-lg font-semibold mb-3">Print QR Labels</h2>
 
+        {/* LOADING */}
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          /* =========================
+             PRINT AREA (IMPORTANT)
+          ========================= */
+          <div className="print-area flex flex-wrap gap-0">
             {assets.map((asset) => (
               <div
                 key={asset._id}
-                className="border p-4 flex flex-col items-center"
+                className="flex border"
+                style={{
+                  width: "50mm",
+                  height: "25mm",
+                  pageBreakInside: "avoid",
+                }}
               >
-                <img
-                  src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
-                  className="w-40 h-40"
-                  alt="QR"
-                />
+                {/* QR LEFT */}
+                <div className="w-[45%] h-full flex items-center justify-center p-1">
+                  <img
+                    src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
+                    className="w-full h-full object-contain"
+                    alt="QR"
+                  />
+                </div>
 
-                <p className="text-sm font-bold mt-2">
-                  {asset.assetName}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {asset.serialNo}
-                </p>
+                {/* TEXT RIGHT */}
+                <div className="w-[55%] h-full flex flex-col justify-center px-1">
+                  {/* TITLE */}
+                  <div className="font-bold text-[8px] leading-tight">UIPS</div>
+
+                  {/* SERIAL */}
+                  <div className="text-[6px] leading-tight">
+                    <span className="font-semibold">SN:</span>{" "}
+                    {asset.serialNo || "-"}
+                  </div>
+
+                  {/* PURCHASE DATE */}
+                  <div className="text-[6px] leading-tight">
+                    <span className="font-semibold">PD:</span>{" "}
+                    {asset.purchaseDate
+                      ? new Date(asset.purchaseDate).toLocaleDateString()
+                      : ""}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         )}
 
+        {/* ACTIONS */}
         <div className="flex justify-end mt-4 gap-2 no-print">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
 
-          <Button onClick={() => window.print()}>
-            Print
-          </Button>
+          <Button onClick={() => window.print()}>Print</Button>
         </div>
 
+        {/* =========================
+           PRINT STYLES (CRITICAL)
+        ========================= */}
         <style>{`
           @media print {
+            @page {
+              size: 50mm 25mm;
+              margin: 0;
+            }
+
+            body {
+              margin: 0;
+              background: white;
+            }
+
             .no-print {
               display: none !important;
             }
 
-            body {
-              background: white;
+            .print-area {
+              width: 50mm;
             }
           }
         `}</style>
