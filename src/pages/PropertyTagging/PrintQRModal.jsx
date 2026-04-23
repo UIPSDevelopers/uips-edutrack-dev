@@ -86,19 +86,23 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-       BACKGROUND DIVISION (SOFT DESIGN SPLIT)
+       BACKGROUND SPLIT (KEEP SAME)
     ========================= */
 
-      // Soft text-area background (corporate card feel)
       pdf.setFillColor(245, 245, 245);
       pdf.rect(23, 0, 27, 25, "F");
 
-      // Subtle vertical separator line
-      pdf.setDrawColor(220);
+      /* =========================
+       DARK PRINT-SAFE DIVIDERS
+    ========================= */
+
+      // Vertical divider (NOW DARK FOR PRINT)
+      pdf.setDrawColor(0, 0, 0); // 🔥 pure black
+      pdf.setLineWidth(0.3); // thicker for print visibility
       pdf.line(22.5, 2, 22.5, 23);
 
       /* =========================
-       QR CODE (LEFT AREA CENTERED)
+       QR CODE (LEFT CENTERED)
     ========================= */
 
       const qrSize = 21;
@@ -110,14 +114,14 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
       /* =========================
-       TEXT AREA (RIGHT - CORPORATE BLOCK)
+       TEXT AREA (RIGHT)
     ========================= */
 
       const leftBoundary = 24;
       const rightBoundary = 49;
       const centerX = (leftBoundary + rightBoundary) / 2;
 
-      // UIPS (CENTERED BRAND)
+      // UIPS
       const brandY = 11;
 
       pdf.setFont("helvetica", "bold");
@@ -127,8 +131,9 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const brandWidth = pdf.getTextWidth(brand);
       pdf.text(brand, centerX - brandWidth / 2, brandY);
 
-      // Divider under brand (internal structure)
-      pdf.setDrawColor(200);
+      // Divider under UIPS (NOW DARK)
+      pdf.setDrawColor(0, 0, 0); // 🔥 black for print visibility
+      pdf.setLineWidth(0.3);
       pdf.line(leftBoundary, 13, rightBoundary, 13);
 
       // SERIAL
@@ -149,7 +154,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       pdf.setTextColor(0);
 
       /* =========================
-       NEXT PAGE
+       PAGE BREAK
     ========================= */
       if (i !== assets.length - 1) {
         pdf.addPage([50, 25], "landscape");
