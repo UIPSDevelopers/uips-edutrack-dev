@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 
 export default function QRScanner({ onScan }) {
+  const scannerRef = useRef(null);
+
   useEffect(() => {
     const scanner = new Html5QrcodeScanner(
       "qr-reader",
@@ -11,23 +13,31 @@ export default function QRScanner({ onScan }) {
         fps: 10,
         qrbox: { width: 250, height: 250 },
         rememberLastUsedCamera: true,
-        facingMode: "environment", // back camera
+        showTorchButtonIfSupported: true,
       },
-      false,
+      false
     );
 
-    const success = (decodedText) => {
-      scanner.clear().then(() => {
-        onScan(decodedText); // instant redirect trigger
-      });
-    };
+    scanner.render(
+      (decodedText) => {
+        onScan(decodedText);
+        scanner.clear(); // stop camera after scan
+      },
+      (error) => {
+        // ignore scan errors (normal)
+      }
+    );
 
-    scanner.render(success, () => {});
+    scannerRef.current = scanner;
 
     return () => {
       scanner.clear().catch(() => {});
     };
   }, [onScan]);
 
-  return <div id="qr-reader" className="w-full" />;
+  return (
+    <div className="w-full">
+      <div id="qr-reader" style={{ width: "100%" }} />
+    </div>
+  );
 }

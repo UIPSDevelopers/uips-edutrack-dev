@@ -317,7 +317,13 @@ export default function PropertyTagging() {
       {showScanner && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded w-full max-w-md">
-            <QRScanner ref={scannerRef} onScan={handleScan} autoStart={true} />
+            <QRScanner
+              onScan={(data) => {
+                setShowScanner(false);
+                if (!data) return;
+                navigate(`/property-tagging/${data}`);
+              }}
+            />
 
             <Button
               className="mt-3 w-full"
