@@ -59,7 +59,7 @@ export default function PrintQR() {
           ids.map((id) => {
             console.log("REQUESTING ASSET ID:", id);
 
-            return axiosInstance.get(`/assets/assets/${id}`);
+            return axiosInstance.get(`/assets/${id}`);
           }),
         );
 
