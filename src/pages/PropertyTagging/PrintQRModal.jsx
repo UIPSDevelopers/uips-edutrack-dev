@@ -97,11 +97,11 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       // BRAND (BIG)
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(10);
-      pdf.text("UIPS", 26, 6);
+      pdf.text("UIPS", 26, 12);
 
       // SERIAL NUMBER (BIGGER, NO LABEL)
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(7);
+      pdf.setFontSize(10);
       pdf.text(`${asset.serialNo || "-"}`, 26, 13);
 
       // PURCHASE DATE (CLEAN)
@@ -109,7 +109,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
 
-      pdf.setFontSize(6);
+      pdf.setFontSize(10);
       pdf.text(`PD: ${date}`, 26, 18);
 
       /* =========================
