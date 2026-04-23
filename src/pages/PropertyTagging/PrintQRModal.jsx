@@ -3,16 +3,13 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "@/lib/axios";
 import { Button } from "@/components/ui/button";
+import { jsPDF } from "jspdf";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
   "https://uips-edutrack-backend-dev.onrender.com";
 
-export default function PrintQRModal({
-  open = false,
-  onClose,
-  assetIds = [],
-}) {
+export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -27,9 +24,7 @@ export default function PrintQRModal({
         setLoading(true);
 
         const results = await Promise.allSettled(
-          assetIds.map((id) =>
-            axiosInstance.get(`/asset/assets/${id}`)
-          )
+          assetIds.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
         );
 
         const valid = results
@@ -50,26 +45,77 @@ export default function PrintQRModal({
   }, [open, assetIds]);
 
   /* =========================
-     AUTO PRINT
+     GENERATE PDF
   ========================= */
-  useEffect(() => {
-    if (open && !loading && assets.length > 0) {
-      const t = setTimeout(() => {
-        window.print();
-      }, 600);
+  const handleDownloadPDF = async () => {
+    if (!assets.length) return;
 
-      return () => clearTimeout(t);
+    const pdf = new jsPDF({
+      unit: "mm",
+      format: [50, 25], // EXACT label size
+    });
+
+    for (let i = 0; i < assets.length; i++) {
+      const asset = assets[i];
+
+      const imgUrl = `${API_BASE}/asset/assets/${asset._id}/qrcode`;
+
+      // Convert image to base64 (important for jsPDF)
+      const imgData = await toBase64(imgUrl);
+
+      // QR IMAGE (left side)
+      pdf.addImage(imgData, "PNG", 2, 3, 18, 18);
+
+      // TEXT (right side)
+      pdf.setFontSize(6);
+      pdf.text("UIPS", 23, 6);
+
+      pdf.setFontSize(5);
+      pdf.text(`SN: ${asset.serialNo || "-"}`, 23, 11);
+
+      const date = asset.purchaseDate
+        ? new Date(asset.purchaseDate).toLocaleDateString()
+        : "-";
+
+      pdf.text(`PD: ${date}`, 23, 15);
+
+      // Add new page for next label
+      if (i !== assets.length - 1) {
+        pdf.addPage([50, 25]);
+      }
     }
-  }, [open, loading, assets]);
+
+    pdf.save("qr-labels.pdf");
+  };
+
+  /* =========================
+     IMAGE TO BASE64 HELPER
+  ========================= */
+  const toBase64 = (url) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.setAttribute("crossOrigin", "anonymous");
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+
+        resolve(canvas.toDataURL("image/png"));
+      };
+
+      img.onerror = reject;
+      img.src = url;
+    });
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
-
-      {/* MODAL (NOT PRINTED) */}
-      <div className="bg-white w-[95%] max-w-6xl p-4 rounded-lg relative no-print">
-
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white w-[400px] p-4 rounded-lg relative">
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500"
@@ -77,14 +123,12 @@ export default function PrintQRModal({
           ✕
         </button>
 
-        <h2 className="text-lg font-semibold mb-3">
-          Print QR Labels
-        </h2>
+        <h2 className="text-lg font-semibold mb-3">QR Label PDF Generator</h2>
 
         {loading ? (
-          <p>Loading...</p>
+          <p>Loading assets...</p>
         ) : (
-          <p>{assets.length} labels ready to print</p>
+          <p>{assets.length} QR labels ready</p>
         )}
 
         <div className="flex justify-end mt-4 gap-2">
@@ -92,122 +136,11 @@ export default function PrintQRModal({
             Close
           </Button>
 
-          <Button onClick={() => window.print()}>
-            Print
+          <Button onClick={handleDownloadPDF} disabled={!assets.length}>
+            Download PDF
           </Button>
         </div>
       </div>
-
-      {/* =========================
-          PRINT ONLY AREA (IMPORTANT)
-      ========================= */}
-      <div className="print-sheet">
-        {assets.map((asset) => (
-          <div key={asset._id} className="label">
-            <div className="qr">
-              <img
-                src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
-                alt="QR"
-              />
-            </div>
-
-            <div className="info">
-              <div className="title">UIPS</div>
-
-              <div className="text">
-                SN: {asset.serialNo || "-"}
-              </div>
-
-              <div className="text">
-                PD:{" "}
-                {asset.purchaseDate
-                  ? new Date(asset.purchaseDate).toLocaleDateString()
-                  : "-"}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* =========================
-          PRINT STYLES (FINAL FIX)
-      ========================= */}
-      <style>{`
-        /* SCREEN: hide print sheet */
-        .print-sheet {
-          display: none;
-        }
-
-        /* LABEL DESIGN (50mm x 25mm) */
-        .label {
-          width: 50mm;
-          height: 25mm;
-          display: flex;
-          border: 1px solid #000;
-          box-sizing: border-box;
-        }
-
-        .qr {
-          width: 45%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .qr img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-        }
-
-        .info {
-          width: 55%;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding-left: 2mm;
-        }
-
-        .title {
-          font-size: 8px;
-          font-weight: bold;
-        }
-
-        .text {
-          font-size: 6px;
-          line-height: 1.2;
-        }
-
-        /* =========================
-           PRINT RULES (CRITICAL)
-        ========================= */
-        @media print {
-
-          body * {
-            display: none !important;
-          }
-
-          .print-sheet,
-          .print-sheet * {
-            display: block !important;
-          }
-
-          .print-sheet {
-            display: flex !important;
-            flex-wrap: wrap;
-          }
-
-          @page {
-            size: 50mm 25mm;
-            margin: 0;
-          }
-
-          body {
-            margin: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
