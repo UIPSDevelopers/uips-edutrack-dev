@@ -19,6 +19,7 @@ import ReportsPage from "@/pages/ReportsPage";
 import Settings from "@/pages/Settings";
 import Visitors from "@/pages/Visitors";
 import PrintBarcodes from "@/pages/Inventory/PrintBarcodes";
+import PrintQR from "@/pages/PropertyTagging/PrintQR";
 import AddAsset from "@/pages/PropertyTagging/AddAsset";
 import AddCategory from "@/pages/PropertyTagging/AddCategory";
 import AddLocation from "@/pages/PropertyTagging/AddLocation";
@@ -142,7 +143,17 @@ function App() {
             }
           />
 
-          {/* 🚧 Fallback Route (404 → login) */}
+          {/* �️ Print QR codes (NO layout) */}
+          <Route
+            path="/property-tagging/print-qr"
+            element={
+              <ProtectedRoute>
+                <PrintQR />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* �🚧 Fallback Route (404 → login) */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

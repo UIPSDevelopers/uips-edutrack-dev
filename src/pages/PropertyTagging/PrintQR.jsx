@@ -5,7 +5,9 @@ import axiosInstance from "@/lib/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://uips-edutrack-backend-dev.onrender.com/api";
 
 export default function PrintQR() {
   const location = useLocation();
