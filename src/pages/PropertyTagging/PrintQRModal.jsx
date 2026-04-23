@@ -68,7 +68,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     });
 
   /* =========================
-     GENERATE PDF (50mm x 25mm)
+     GENERATE PROFESSIONAL PDF
   ========================= */
   const handleDownloadPDF = async () => {
     if (!assets.length) return;
@@ -76,7 +76,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "mm",
-      format: [50, 25], // ✅ FINAL SIZE
+      format: [50, 25], // FINAL LABEL SIZE
     });
 
     for (let i = 0; i < assets.length; i++) {
@@ -86,41 +86,55 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-         QR (LEFT SIDE)
+         LABEL BORDER (OPTIONAL VISUAL GUIDE)
       ========================= */
-      pdf.addImage(imgData, "PNG", 1.5, 3, 18, 18);
+      pdf.setDrawColor(0);
+      pdf.rect(0.5, 0.5, 49, 24); // subtle border for cutting alignment
 
       /* =========================
-         TEXT (RIGHT SIDE)
+         QR CODE (PRIMARY ELEMENT)
+         BIG + SCANNABLE
       ========================= */
-      pdf.setFontSize(6);
-      pdf.text("UIPS", 21, 6);
+      pdf.addImage(imgData, "PNG", 1.5, 2, 22, 22);
 
-      pdf.setFontSize(5);
-      pdf.text(`SN: ${asset.serialNo || "-"}`, 21, 11);
+      /* =========================
+         TEXT BLOCK (RIGHT SIDE)
+      ========================= */
 
+      // Brand / Title
+      pdf.setFontSize(7);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("UIPS ASSET", 25, 7);
+
+      // Serial Number
+      pdf.setFontSize(5.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`SN: ${asset.serialNo || "-"}`, 25, 12);
+
+      // Date
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
 
-      pdf.text(`PD: ${date}`, 21, 16);
+      pdf.text(`PD: ${date}`, 25, 16);
 
       /* =========================
-         NEXT LABEL PAGE
+         PAGE BREAK
       ========================= */
       if (i !== assets.length - 1) {
-        pdf.addPage([50, 25]);
+        pdf.addPage([50, 25], "landscape");
       }
     }
 
-    pdf.save("qr-labels-50x25mm.pdf");
+    pdf.save("uips-qr-labels-50x25mm.pdf");
   };
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[400px] p-4 rounded-lg relative">
+      <div className="bg-white w-[420px] p-4 rounded-lg relative">
+        {/* CLOSE */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500"
@@ -129,15 +143,19 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         </button>
 
         <h2 className="text-lg font-semibold mb-3">
-          QR Label Export (50×25mm)
+          Professional QR Label Export (50×25mm)
         </h2>
 
+        {/* STATUS */}
         {loading ? (
           <p>Loading assets...</p>
         ) : (
-          <p>{assets.length} labels ready</p>
+          <p className="text-sm text-gray-600">
+            {assets.length} labels ready for high-quality print
+          </p>
         )}
 
+        {/* ACTIONS */}
         <div className="flex justify-end mt-4 gap-2">
           <Button variant="outline" onClick={onClose}>
             Close
