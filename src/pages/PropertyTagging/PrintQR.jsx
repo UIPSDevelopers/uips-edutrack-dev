@@ -47,7 +47,7 @@ export default function PrintQR() {
 
         // 🔥 IMPORTANT FIX: prevent one failure from breaking everything
         const responses = await Promise.allSettled(
-          ids.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
+          ids.map((id) => axiosInstance.get(`/asset/assets/${id}/qrcode`)),
         );
 
         const validAssets = responses
