@@ -39,7 +39,7 @@ export default function PrintQRModal({
 
         setAssets(valid);
       } catch (err) {
-        console.error("Fetch assets error:", err);
+        console.error(err);
         setAssets([]);
       } finally {
         setLoading(false);
@@ -50,30 +50,11 @@ export default function PrintQRModal({
   }, [open, assetIds]);
 
   /* =========================
-     WAIT FOR IMAGES (CRITICAL FIX)
-  ========================= */
-  const waitForImages = async () => {
-    const images = document.querySelectorAll(".print-area img");
-
-    await Promise.all(
-      Array.from(images).map((img) => {
-        if (img.complete) return Promise.resolve();
-
-        return new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      })
-    );
-  };
-
-  /* =========================
-     AUTO PRINT (SAFE)
+     AUTO PRINT
   ========================= */
   useEffect(() => {
     if (open && !loading && assets.length > 0) {
-      const t = setTimeout(async () => {
-        await waitForImages();
+      const t = setTimeout(() => {
         window.print();
       }, 600);
 
@@ -85,9 +66,10 @@ export default function PrintQRModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
-      {/* MODAL */}
-      <div className="bg-white w-[95%] max-w-6xl p-4 rounded-lg relative">
-        {/* CLOSE */}
+
+      {/* MODAL (NOT PRINTED) */}
+      <div className="bg-white w-[95%] max-w-6xl p-4 rounded-lg relative no-print">
+
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500"
@@ -99,58 +81,13 @@ export default function PrintQRModal({
           Print QR Labels
         </h2>
 
-        {/* LOADING */}
         {loading ? (
-          <p>Loading assets...</p>
+          <p>Loading...</p>
         ) : (
-          /* =========================
-             PRINT AREA
-          ========================= */
-          <div className="print-area grid grid-cols-4 gap-0">
-            {assets.map((asset) => (
-              <div
-                key={asset._id}
-                className="flex border"
-                style={{
-                  width: "50mm",
-                  height: "25mm",
-                  pageBreakInside: "avoid",
-                }}
-              >
-                {/* QR SIDE */}
-                <div className="w-[45%] h-full flex items-center justify-center p-1">
-                  <img
-                    src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
-                    alt="QR"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-
-                {/* TEXT SIDE */}
-                <div className="w-[55%] h-full flex flex-col justify-center px-1">
-                  <div className="font-bold text-[8px] leading-tight">
-                    UIPS
-                  </div>
-
-                  <div className="text-[6px] leading-tight">
-                    <span className="font-semibold">SN:</span>{" "}
-                    {asset.serialNo || "-"}
-                  </div>
-
-                  <div className="text-[6px] leading-tight">
-                    <span className="font-semibold">PD:</span>{" "}
-                    {asset.purchaseDate
-                      ? new Date(asset.purchaseDate).toLocaleDateString()
-                      : "-"}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <p>{assets.length} labels ready to print</p>
         )}
 
-        {/* ACTIONS */}
-        <div className="flex justify-end mt-4 gap-2 no-print">
+        <div className="flex justify-end mt-4 gap-2">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
@@ -159,46 +96,118 @@ export default function PrintQRModal({
             Print
           </Button>
         </div>
-
-        {/* =========================
-           PRINT CSS (STABLE VERSION)
-        ========================= */}
-        <style>{`
-          @media print {
-
-            /* Hide everything except print area */
-            body > *:not(.print-area) {
-              display: none !important;
-            }
-
-            /* Ensure print area only */
-            .print-area {
-              display: grid !important;
-              grid-template-columns: repeat(4, 1fr);
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-            }
-
-            /* Hide modal UI */
-            .no-print {
-              display: none !important;
-            }
-
-            /* Page size for labels */
-            @page {
-              size: 50mm 25mm;
-              margin: 0;
-            }
-
-            body {
-              margin: 0;
-              background: white;
-            }
-          }
-        `}</style>
       </div>
+
+      {/* =========================
+          PRINT ONLY AREA (IMPORTANT)
+      ========================= */}
+      <div className="print-sheet">
+        {assets.map((asset) => (
+          <div key={asset._id} className="label">
+            <div className="qr">
+              <img
+                src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
+                alt="QR"
+              />
+            </div>
+
+            <div className="info">
+              <div className="title">UIPS</div>
+
+              <div className="text">
+                SN: {asset.serialNo || "-"}
+              </div>
+
+              <div className="text">
+                PD:{" "}
+                {asset.purchaseDate
+                  ? new Date(asset.purchaseDate).toLocaleDateString()
+                  : "-"}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* =========================
+          PRINT STYLES (FINAL FIX)
+      ========================= */}
+      <style>{`
+        /* SCREEN: hide print sheet */
+        .print-sheet {
+          display: none;
+        }
+
+        /* LABEL DESIGN (50mm x 25mm) */
+        .label {
+          width: 50mm;
+          height: 25mm;
+          display: flex;
+          border: 1px solid #000;
+          box-sizing: border-box;
+        }
+
+        .qr {
+          width: 45%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .qr img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+
+        .info {
+          width: 55%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding-left: 2mm;
+        }
+
+        .title {
+          font-size: 8px;
+          font-weight: bold;
+        }
+
+        .text {
+          font-size: 6px;
+          line-height: 1.2;
+        }
+
+        /* =========================
+           PRINT RULES (CRITICAL)
+        ========================= */
+        @media print {
+
+          body * {
+            display: none !important;
+          }
+
+          .print-sheet,
+          .print-sheet * {
+            display: block !important;
+          }
+
+          .print-sheet {
+            display: flex !important;
+            flex-wrap: wrap;
+          }
+
+          @page {
+            size: 50mm 25mm;
+            margin: 0;
+          }
+
+          body {
+            margin: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }
