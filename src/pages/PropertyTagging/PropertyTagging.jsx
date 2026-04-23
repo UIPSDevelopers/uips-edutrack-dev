@@ -155,12 +155,16 @@ export default function PropertyTagging() {
   // SCAN HANDLER (INSTANT REDIRECT)
   // =========================
   const handleScan = (data) => {
-    if (!data || scanLockRef.current) return;
+    console.log("handleScan called with:", data);
+    if (!data || scanLockRef.current) {
+      console.log("handleScan blocked: data=", data, "lock=", scanLockRef.current);
+      return;
+    }
 
     scanLockRef.current = true;
+    console.log("Navigating to /property-tagging/" + data);
 
     setShowScanner(false);
-
     navigate(`/property-tagging/${data}`);
 
     setTimeout(() => {
@@ -331,11 +335,7 @@ export default function PropertyTagging() {
             <div className="flex-1 overflow-hidden">
               <QRScanner
                 ref={scannerRef}
-                onScan={(data) => {
-                  setShowScanner(false);
-                  if (!data) return;
-                  navigate(`/property-tagging/${data}`);
-                }}
+                onScan={handleScan}
               />
             </div>
 

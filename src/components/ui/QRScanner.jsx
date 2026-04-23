@@ -94,6 +94,7 @@ const QRScanner = forwardRef(({ onScan }, ref) => {
         });
 
         if (code) {
+          console.log("QR Code detected:", code.data);
           onScan(code.data);
         }
       }
