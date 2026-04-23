@@ -45,56 +45,12 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   }, [open, assetIds]);
 
   /* =========================
-     GENERATE PDF
-  ========================= */
-  const handleDownloadPDF = async () => {
-    if (!assets.length) return;
-
-    const pdf = new jsPDF({
-      unit: "mm",
-      format: [50, 25], // EXACT label size
-    });
-
-    for (let i = 0; i < assets.length; i++) {
-      const asset = assets[i];
-
-      const imgUrl = `${API_BASE}/asset/assets/${asset._id}/qrcode`;
-
-      // Convert image to base64 (important for jsPDF)
-      const imgData = await toBase64(imgUrl);
-
-      // QR IMAGE (left side)
-      pdf.addImage(imgData, "PNG", 2, 3, 18, 18);
-
-      // TEXT (right side)
-      pdf.setFontSize(6);
-      pdf.text("UIPS", 23, 6);
-
-      pdf.setFontSize(5);
-      pdf.text(`SN: ${asset.serialNo || "-"}`, 23, 11);
-
-      const date = asset.purchaseDate
-        ? new Date(asset.purchaseDate).toLocaleDateString()
-        : "-";
-
-      pdf.text(`PD: ${date}`, 23, 15);
-
-      // Add new page for next label
-      if (i !== assets.length - 1) {
-        pdf.addPage([50, 25]);
-      }
-    }
-
-    pdf.save("qr-labels.pdf");
-  };
-
-  /* =========================
-     IMAGE TO BASE64 HELPER
+     IMAGE TO BASE64
   ========================= */
   const toBase64 = (url) =>
     new Promise((resolve, reject) => {
       const img = new Image();
-      img.setAttribute("crossOrigin", "anonymous");
+      img.crossOrigin = "anonymous";
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
@@ -111,6 +67,54 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       img.src = url;
     });
 
+  /* =========================
+     GENERATE PDF (50mm x 25mm)
+  ========================= */
+  const handleDownloadPDF = async () => {
+    if (!assets.length) return;
+
+    const pdf = new jsPDF({
+      unit: "mm",
+      format: [50, 25], // ✅ FINAL SIZE
+    });
+
+    for (let i = 0; i < assets.length; i++) {
+      const asset = assets[i];
+
+      const imgUrl = `${API_BASE}/asset/assets/${asset._id}/qrcode`;
+      const imgData = await toBase64(imgUrl);
+
+      /* =========================
+         QR (LEFT SIDE)
+      ========================= */
+      pdf.addImage(imgData, "PNG", 1.5, 3, 18, 18);
+
+      /* =========================
+         TEXT (RIGHT SIDE)
+      ========================= */
+      pdf.setFontSize(6);
+      pdf.text("UIPS", 21, 6);
+
+      pdf.setFontSize(5);
+      pdf.text(`SN: ${asset.serialNo || "-"}`, 21, 11);
+
+      const date = asset.purchaseDate
+        ? new Date(asset.purchaseDate).toLocaleDateString()
+        : "-";
+
+      pdf.text(`PD: ${date}`, 21, 16);
+
+      /* =========================
+         NEXT LABEL PAGE
+      ========================= */
+      if (i !== assets.length - 1) {
+        pdf.addPage([50, 25]);
+      }
+    }
+
+    pdf.save("qr-labels-50x25mm.pdf");
+  };
+
   if (!open) return null;
 
   return (
@@ -123,12 +127,14 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
           ✕
         </button>
 
-        <h2 className="text-lg font-semibold mb-3">QR Label PDF Generator</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          QR Label Export (50×25mm)
+        </h2>
 
         {loading ? (
           <p>Loading assets...</p>
         ) : (
-          <p>{assets.length} QR labels ready</p>
+          <p>{assets.length} labels ready</p>
         )}
 
         <div className="flex justify-end mt-4 gap-2">
