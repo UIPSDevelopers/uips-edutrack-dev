@@ -88,7 +88,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       /* =========================
          QR CODE (BIG + DOMINANT)
       ========================= */
-      pdf.addImage(imgData, "PNG", 1.5, 2, 23, 23);
+      pdf.addImage(imgData, "PNG", 1.5, 1.5, 23, 23);
 
       /* =========================
          TEXT BLOCK (RIGHT SIDE)
@@ -96,8 +96,8 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
       // BRAND (BIG)
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(10);
-      pdf.text("UIPS", 26, 12);
+      pdf.setFontSize(12);
+      pdf.text("UIPS", 30, 6);
 
       // SERIAL NUMBER (BIGGER, NO LABEL)
       pdf.setFont("helvetica", "normal");
