@@ -74,6 +74,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     if (!assets.length) return;
 
     const pdf = new jsPDF({
+      orientation: "landscape",
       unit: "mm",
       format: [50, 25], // ✅ FINAL SIZE
     });
