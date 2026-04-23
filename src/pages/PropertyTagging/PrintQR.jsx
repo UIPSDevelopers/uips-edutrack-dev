@@ -15,7 +15,7 @@ export default function PrintQR() {
   const [loading, setLoading] = useState(true);
 
   /* =========================================================
-     PARSE IDS (MEMOIZED TO AVOID RE-RUNS)
+     EXTRACT + VALIDATE IDS
   ========================================================= */
   const ids = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -30,30 +30,34 @@ export default function PrintQR() {
   }, [location.search]);
 
   /* =========================================================
-     FETCH ASSETS
+     FETCH ASSETS (SAFE MODE - NO CRASH)
   ========================================================= */
   useEffect(() => {
     const fetchAssets = async () => {
       try {
         setLoading(true);
 
-        if (ids.length === 0) {
+        if (!ids.length) {
           setAssets([]);
+          setLoading(false);
           return;
         }
 
-        const results = await Promise.all(
+        // 🔥 IMPORTANT FIX: prevent one failure from breaking everything
+        const responses = await Promise.allSettled(
           ids.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
         );
 
-        const clean = results.map((res) => res?.data?.asset).filter(Boolean);
+        const validAssets = responses
+          .filter((res) => res.status === "fulfilled")
+          .map((res) => res.value?.data?.asset)
+          .filter(Boolean);
 
-        setAssets(clean);
+        console.log("Loaded assets:", validAssets);
+
+        setAssets(validAssets);
       } catch (error) {
-        console.error(
-          "PrintQR fetch error:",
-          error?.response?.data || error.message,
-        );
+        console.error("PrintQR error:", error);
         setAssets([]);
       } finally {
         setLoading(false);
@@ -64,20 +68,20 @@ export default function PrintQR() {
   }, [ids]);
 
   /* =========================================================
-     AUTO PRINT AFTER IMAGES READY
+     AUTO PRINT WHEN READY
   ========================================================= */
   useEffect(() => {
     if (!loading && assets.length > 0) {
       const timer = setTimeout(() => {
         window.print();
-      }, 500);
+      }, 400);
 
       return () => clearTimeout(timer);
     }
   }, [loading, assets]);
 
   /* =========================================================
-     LOADING
+     LOADING STATE
   ========================================================= */
   if (loading) {
     return <p className="p-6">Loading QR codes...</p>;
@@ -86,8 +90,8 @@ export default function PrintQR() {
   /* =========================================================
      EMPTY STATE
   ========================================================= */
-  if (assets.length === 0) {
-    return <p className="p-6">No assets found.</p>;
+  if (!assets.length) {
+    return <p className="p-6 text-red-500">No assets found.</p>;
   }
 
   /* =========================================================
@@ -95,7 +99,7 @@ export default function PrintQR() {
   ========================================================= */
   return (
     <div className="p-6">
-      {/* HEADER */}
+      {/* HEADER (hidden when printing) */}
       <div className="no-print flex justify-between items-center mb-4">
         <h1 className="text-xl font-semibold">Print QR Codes</h1>
 
@@ -108,7 +112,7 @@ export default function PrintQR() {
         </div>
       </div>
 
-      {/* GRID */}
+      {/* QR GRID */}
       <div className="grid grid-cols-3 gap-6 print:grid-cols-2">
         {assets.map((asset) => (
           <div
@@ -132,7 +136,7 @@ export default function PrintQR() {
         ))}
       </div>
 
-      {/* PRINT STYLES */}
+      {/* PRINT STYLE */}
       <style>{`
         @media print {
           .no-print {
