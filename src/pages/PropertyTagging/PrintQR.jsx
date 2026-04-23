@@ -27,6 +27,9 @@ export default function PrintQR() {
         const params = new URLSearchParams(location.search);
         const idsParam = params.get("ids");
 
+        console.log("ID BEING SENT:", id);
+
+
         if (!idsParam) {
           setAssets([]);
           setLoading(false);
