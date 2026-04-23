@@ -8,68 +8,108 @@ const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
   "https://uips-edutrack-backend-dev.onrender.com";
 
-export default function PrintQRModal({ open, onClose, assetIds }) {
+export default function PrintQRModal({ isOpen, onClose, ids = [] }) {
   const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!open || !assetIds?.length) return;
+    if (!isOpen || !ids.length) return;
 
-    const fetchData = async () => {
+    const fetchAssets = async () => {
       try {
-        const results = await Promise.all(
-          assetIds.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
+        setLoading(true);
+
+        const results = await Promise.allSettled(
+          ids.map((id) => axiosInstance.get(`/asset/assets/${id}`))
         );
 
-        setAssets(results.map((r) => r.data.asset));
+        const valid = results
+          .filter((r) => r.status === "fulfilled")
+          .map((r) => r.value?.data?.asset)
+          .filter(Boolean);
+
+        setAssets(valid);
       } catch (err) {
         console.error(err);
         setAssets([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchData();
-  }, [open, assetIds]);
+    fetchAssets();
+  }, [isOpen, ids]);
 
   useEffect(() => {
-    if (open && assets.length > 0) {
-      setTimeout(() => window.print(), 400);
+    if (!loading && assets.length > 0 && isOpen) {
+      const t = setTimeout(() => window.print(), 300);
+      return () => clearTimeout(t);
     }
-  }, [open, assets]);
+  }, [loading, assets, isOpen]);
 
-  if (!open) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[90%] max-w-4xl p-6 rounded-lg relative">
-        {/* CLOSE */}
-        <div className="flex justify-between mb-4 no-print">
-          <h2 className="text-lg font-bold">Print QR</h2>
+      <div className="bg-white w-[90%] max-w-5xl p-6 rounded-lg relative">
 
-          <Button onClick={onClose} variant="outline">
+        {/* CLOSE */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500"
+        >
+          ✕
+        </button>
+
+        <h2 className="text-xl font-semibold mb-4 no-print">
+          Print QR Codes
+        </h2>
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-4">
+            {assets.map((asset) => (
+              <div
+                key={asset._id}
+                className="border p-4 flex flex-col items-center"
+              >
+                <img
+                  src={`${API_BASE}/api/asset/assets/${asset._id}/qrcode`}
+                  className="w-40 h-40"
+                  alt="QR"
+                />
+
+                <p className="text-sm font-bold mt-2">
+                  {asset.assetName}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {asset.serialNo}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-end mt-4 gap-2 no-print">
+          <Button variant="outline" onClick={onClose}>
             Close
+          </Button>
+
+          <Button onClick={() => window.print()}>
+            Print
           </Button>
         </div>
 
-        {/* GRID */}
-        <div className="grid grid-cols-3 gap-4">
-          {assets.map((a) => (
-            <div key={a._id} className="border p-3 flex flex-col items-center">
-              <img
-                src={`${API_BASE}/api/asset/assets/${a._id}/qrcode`}
-                className="w-40 h-40"
-              />
-
-              <p className="text-sm font-bold">{a.assetName}</p>
-              <p className="text-xs">{a.serialNo}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* PRINT STYLE */}
         <style>{`
           @media print {
-            .no-print { display: none !important; }
-            body { background: white; }
+            .no-print {
+              display: none !important;
+            }
+
+            body {
+              background: white;
+            }
           }
         `}</style>
       </div>
