@@ -1,83 +1,158 @@
 "use client";
 
 import { useEffect, useRef, forwardRef, useImperativeHandle, useState } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import jsQR from "jsqr";
 
 const QRScanner = forwardRef(({ onScan }, ref) => {
-  const scannerRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const [error, setError] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const streamRef = useRef(null);
 
   useImperativeHandle(ref, () => ({
     startCamera: () => {
-      if (scannerRef.current) {
-        scannerRef.current.getState();
-      }
+      setScanning(true);
     },
     stopCamera: () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(() => {});
+      setScanning(false);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     },
   }));
 
   useEffect(() => {
-    const scanner = new Html5QrcodeScanner(
-      "qr-reader",
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: true,
-        aspectRatio: 1.0,
-      },
-      false
-    );
+    const video = videoRef.current;
+    if (!video || !scanning) return;
 
-    try {
-      scanner.render(
-        (decodedText) => {
-          onScan(decodedText);
-          scanner.clear().catch(() => {});
-        },
-        (errorMessage) => {
-          // Log camera errors
-          if (
-            errorMessage &&
-            !errorMessage.includes("TrackNotStartedError") &&
-            !errorMessage.includes("NotAllowedError")
-          ) {
-            console.warn("QR Scan Error:", errorMessage);
-          }
+    const startCamera = async () => {
+      try {
+        setError(null);
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "environment", // use back camera on mobile
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+
+        streamRef.current = stream;
+        video.srcObject = stream;
+        setError(null);
+      } catch (err) {
+        console.error("Camera access error:", err);
+        let errorMsg = "Failed to access camera";
+
+        if (err.name === "NotAllowedError") {
+          errorMsg =
+            "Camera permission denied. Please enable camera access in your browser settings.";
+        } else if (err.name === "NotFoundError") {
+          errorMsg = "No camera device found on this device.";
+        } else if (err.name === "NotReadableError") {
+          errorMsg = "Camera is already in use by another application.";
         }
-      );
-    } catch (err) {
-      console.error("QRScanner initialization error:", err);
-      setError(
-        err.name === "NotAllowedError"
-          ? "Camera permission denied. Please enable camera in your browser settings."
-          : err.message || "Failed to initialize camera"
-      );
-    }
 
-    scannerRef.current = scanner;
+        setError(errorMsg);
+        setScanning(false);
+      }
+    };
+
+    startCamera();
 
     return () => {
-      scanner.clear().catch(() => {});
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
     };
-  }, [onScan]);
+  }, [scanning]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video || !scanning) return;
+
+    const ctx = canvas.getContext("2d");
+    let animationId;
+
+    const scan = () => {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+
+        if (code) {
+          onScan(code.data);
+        }
+      }
+
+      animationId = requestAnimationFrame(scan);
+    };
+
+    animationId = requestAnimationFrame(scan);
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [scanning, onScan]);
 
   if (error) {
     return (
-      <div className="w-full p-4 text-center text-red-600">
-        <p className="font-semibold">📷 Camera Error</p>
-        <p className="text-sm mt-2">{error}</p>
+      <div className="w-full h-full flex items-center justify-center bg-red-50 p-4">
+        <div className="text-center">
+          <p className="font-semibold text-red-700 mb-2">📷 Camera Error</p>
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full">
-      <div id="qr-reader" style={{ width: "100%", height: "100%" }} />
+    <div className="w-full h-full flex flex-col items-center justify-center bg-black">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="w-full h-full object-cover"
+      />
+      <canvas ref={canvasRef} className="hidden" />
+
+      {!scanning && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-3" />
+            </div>
+            <p className="text-white text-sm">Initializing camera...</p>
+          </div>
+        </div>
+      )}
+
+      {scanning && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-64 h-64 border-4 border-green-500 rounded-lg opacity-50" />
+          <div className="absolute bottom-8 left-0 right-0 text-center">
+            <p className="text-white text-sm bg-black/50 px-4 py-2 rounded-full inline-block">
+              Point camera at QR code
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
