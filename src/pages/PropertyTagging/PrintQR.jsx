@@ -34,7 +34,7 @@ export default function PrintQR() {
       setLoading(true);
 
       const results = await Promise.all(
-        ids.map((id) => axiosInstance.get(`/api/assets/assets/${id}`)),
+        ids.map((id) => axiosInstance.get(`/assets/assets/${id}`)),
       );
 
       const data = results.map((res) => res.data.asset);
@@ -102,7 +102,7 @@ export default function PrintQR() {
           >
             {/* QR CODE */}
             <img
-              src={`${API_BASE}/api/assets/assets/${asset._id}/qrcode`}
+              src={`${API_BASE}/assets/assets/${asset._id}/qrcode`}
               alt="QR Code"
               className="w-40 h-40"
               onLoad={handleImageLoad}
