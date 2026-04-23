@@ -15,7 +15,7 @@ export default function PrintQR() {
   const [loading, setLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(0);
 
-  console.log("API BASE:", API_BASE);
+ 
 
   // =========================
   // GET IDS FROM URL

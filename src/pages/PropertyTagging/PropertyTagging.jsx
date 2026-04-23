@@ -62,6 +62,8 @@ export default function PropertyTagging() {
     fetchAssets();
   }, [canView]);
 
+   console.log("API BASE:", API_BASE);
+
   // =========================
   // SEARCH FILTER
   // =========================
