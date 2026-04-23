@@ -34,12 +34,17 @@ export default function PrintQR() {
           return;
         }
 
+        // =========================
+        // HARD CLEAN + VALIDATION
+        // =========================
         const ids = idsParam
           .split(",")
-          .map((id) => id.trim())
-          .filter((id) => /^[a-fA-F0-9]{24}$/.test(id)); // strict MongoDB check
+          .map(
+            (id) => id.trim().replace(/\s/g, ""), // remove hidden spaces/newlines
+          )
+          .filter((id) => /^[a-fA-F0-9]{24}$/.test(id)); // strict MongoDB validation
 
-        console.log("CLEAN IDS:", ids);
+        console.log("CLEAN VALID IDS:", ids);
 
         if (ids.length === 0) {
           setAssets([]);
@@ -47,9 +52,12 @@ export default function PrintQR() {
           return;
         }
 
+        // =========================
+        // FETCH ASSETS SAFELY
+        // =========================
         const results = await Promise.all(
           ids.map((id) => {
-            console.log("REQUESTING:", id);
+            console.log("REQUESTING ASSET ID:", id);
 
             return axiosInstance.get(`/api/assets/assets/${id}`);
           }),
@@ -68,7 +76,7 @@ export default function PrintQR() {
   }, [location.search]);
 
   // =========================
-  // TRIGGER PRINT AFTER LOAD
+  // AUTO PRINT AFTER LOAD
   // =========================
   useEffect(() => {
     if (!loading && assets.length > 0) {
@@ -82,12 +90,15 @@ export default function PrintQR() {
   }, [loading, assets]);
 
   // =========================
-  // UI STATES
+  // LOADING STATE
   // =========================
   if (loading) {
     return <p className="p-6">Loading QR codes...</p>;
   }
 
+  // =========================
+  // EMPTY STATE
+  // =========================
   if (!assets.length) {
     return <p className="p-6">No assets found.</p>;
   }
