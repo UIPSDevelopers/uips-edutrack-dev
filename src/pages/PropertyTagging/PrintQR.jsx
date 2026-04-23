@@ -15,6 +15,8 @@ export default function PrintQR() {
   const [loading, setLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(0);
 
+  console.log("API BASE:", API_BASE);
+
   // =========================
   // GET IDS FROM URL
   // =========================
@@ -74,7 +76,7 @@ export default function PrintQR() {
     return <p className="p-6">No assets found.</p>;
   }
 
-  console.log("API BASE:", API_BASE);
+  
 
   return (
     <div className="p-6">
