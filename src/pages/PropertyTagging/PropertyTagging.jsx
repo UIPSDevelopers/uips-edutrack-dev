@@ -6,14 +6,33 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Ban, Printer } from "lucide-react";
+import { Search, Ban, Printer, ScanLine } from "lucide-react";
 
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
 import axiosInstance from "@/lib/axios";
 import PrintQRModal from "./PrintQRModal";
+import QRScanner from "@/components/QRScanner"; // ✅ ADDED
+
+// =========================
+// MOBILE DETECTION (ADDED ONLY)
+// =========================
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  return isMobile;
+};
 
 export default function PropertyTagging() {
   const navigate = useNavigate();
+
+  const isMobile = useIsMobile(); // ✅ ADDED
 
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +40,7 @@ export default function PropertyTagging() {
   const [selectedAssets, setSelectedAssets] = useState([]);
 
   const [showPrint, setShowPrint] = useState(false);
+  const [showScanner, setShowScanner] = useState(false); // ✅ ADDED
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -79,7 +99,7 @@ export default function PropertyTagging() {
     return assets.filter((a) =>
       `${a.assetName} ${a.serialNo} ${a.brand} ${a.model}`
         .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+        .includes(searchTerm.toLowerCase()),
     );
   }, [assets, searchTerm]);
 
@@ -116,14 +136,12 @@ export default function PropertyTagging() {
     if (!isValidObjectId(id)) return;
 
     setSelectedAssets((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
   const selectAll = () => {
-    const validIds = sortedAssets
-      .map((a) => a._id)
-      .filter(isValidObjectId);
+    const validIds = sortedAssets.map((a) => a._id).filter(isValidObjectId);
 
     if (selectedAssets.length === validIds.length) {
       setSelectedAssets([]);
@@ -133,11 +151,21 @@ export default function PropertyTagging() {
   };
 
   // =========================
-  // PRINT (MODAL OPEN)
+  // PRINT
   // =========================
   const handlePrintQR = () => {
     if (!selectedAssets.length) return;
     setShowPrint(true);
+  };
+
+  // =========================
+  // QR SCAN HANDLER (ADDED)
+  // =========================
+  const handleScan = (data) => {
+    setShowScanner(false);
+    if (!data) return;
+
+    navigate(`/property-tagging/${data}`);
   };
 
   // =========================
@@ -167,19 +195,31 @@ export default function PropertyTagging() {
   // =========================
   return (
     <main className="p-6 space-y-6">
-
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Property Tagging</h1>
 
-        <Button
-          onClick={handlePrintQR}
-          disabled={!selectedAssets.length}
-          className="bg-[#800000] hover:bg-[#a10000]"
-        >
-          <Printer className="w-4 h-4 mr-2" />
-          Print QR ({selectedAssets.length})
-        </Button>
+        <div className="flex gap-2">
+          {/* ✅ MOBILE ONLY BUTTON */}
+          {isMobile && (
+            <Button
+              onClick={() => setShowScanner(true)}
+              className="bg-black text-white"
+            >
+              <ScanLine className="w-4 h-4 mr-2" />
+              Scan QR
+            </Button>
+          )}
+
+          <Button
+            onClick={handlePrintQR}
+            disabled={!selectedAssets.length}
+            className="bg-[#800000] hover:bg-[#a10000]"
+          >
+            <Printer className="w-4 h-4 mr-2" />
+            Print QR ({selectedAssets.length})
+          </Button>
+        </div>
       </div>
 
       <PropertyTaggingTabs />
@@ -207,7 +247,6 @@ export default function PropertyTagging() {
             <p className="text-center py-6">No assets found.</p>
           ) : (
             <table className="w-full text-sm border-collapse">
-
               <thead>
                 <tr className="bg-gray-100 text-left">
                   <th className="p-3">
@@ -270,19 +309,34 @@ export default function PropertyTagging() {
                   </tr>
                 ))}
               </tbody>
-
             </table>
           )}
         </CardContent>
       </Card>
 
-      {/* MODAL */}
+      {/* PRINT MODAL */}
       <PrintQRModal
         open={showPrint}
         onClose={() => setShowPrint(false)}
         assetIds={selectedAssets}
       />
 
+      {/* SCANNER MODAL (ADDED ONLY) */}
+      {showScanner && isMobile && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded w-full max-w-md">
+            <QRScanner onScan={handleScan} />
+
+            <Button
+              className="mt-3 w-full"
+              variant="outline"
+              onClick={() => setShowScanner(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
