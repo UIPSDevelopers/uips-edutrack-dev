@@ -11,6 +11,8 @@ import { Search, Ban, Printer } from "lucide-react";
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
 import axiosInstance from "@/lib/axios";
 
+import PrintQRModal from "./PrintQRModal";
+
 export default function PropertyTagging() {
   const navigate = useNavigate();
 
@@ -18,6 +20,8 @@ export default function PropertyTagging() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAssets, setSelectedAssets] = useState([]);
+
+  const [showPrint, setShowPrint] = useState(false);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -133,20 +137,27 @@ export default function PropertyTagging() {
   // =========================
   // PRINT QR (FIXED)
   // =========================
+
   const handlePrintQR = () => {
-    if (!selectedAssets.length) return;
+  if (!selectedAssets.length) return;
+  setShowPrint(true);
+};
 
-    const cleanIds = selectedAssets.filter(isValidObjectId);
 
-    if (!cleanIds.length) return;
+  // const handlePrintQR = () => {
+  //   if (!selectedAssets.length) return;
 
-    const ids = cleanIds.join(",");
+  //   const cleanIds = selectedAssets.filter(isValidObjectId);
 
-    window.open(
-      `/property-tagging/print-qr?ids=${encodeURIComponent(ids)}`,
-      "_blank",
-    );
-  };
+  //   if (!cleanIds.length) return;
+
+  //   const ids = cleanIds.join(",");
+
+  //   window.open(
+  //     `/property-tagging/print-qr?ids=${encodeURIComponent(ids)}`,
+  //     "_blank",
+  //   );
+  // };
 
   // =========================
   // ROW CLICK
