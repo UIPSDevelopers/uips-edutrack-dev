@@ -33,29 +33,31 @@ const QRScanner = forwardRef(({ onScan }, ref) => {
       false
     );
 
-    scanner.render(
-      (decodedText) => {
-        onScan(decodedText);
-        scanner.clear().catch(() => {});
-      },
-      (errorMessage) => {
-        // Log camera errors
-        if (
-          errorMessage &&
-          !errorMessage.includes("TrackNotStartedError") &&
-          !errorMessage.includes("NotAllowedError")
-        ) {
-          console.warn("QR Scan Error:", errorMessage);
+    try {
+      scanner.render(
+        (decodedText) => {
+          onScan(decodedText);
+          scanner.clear().catch(() => {});
+        },
+        (errorMessage) => {
+          // Log camera errors
+          if (
+            errorMessage &&
+            !errorMessage.includes("TrackNotStartedError") &&
+            !errorMessage.includes("NotAllowedError")
+          ) {
+            console.warn("QR Scan Error:", errorMessage);
+          }
         }
-      }
-    ).catch((err) => {
+      );
+    } catch (err) {
       console.error("QRScanner initialization error:", err);
       setError(
         err.name === "NotAllowedError"
           ? "Camera permission denied. Please enable camera in your browser settings."
           : err.message || "Failed to initialize camera"
       );
-    });
+    }
 
     scannerRef.current = scanner;
 
