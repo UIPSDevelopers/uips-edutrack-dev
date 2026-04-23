@@ -86,8 +86,21 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-         QR CODE (LEFT AREA CENTERED)
-      ========================= */
+       BACKGROUND DIVISION (SOFT DESIGN SPLIT)
+    ========================= */
+
+      // Soft text-area background (corporate card feel)
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(23, 0, 27, 25, "F");
+
+      // Subtle vertical separator line
+      pdf.setDrawColor(220);
+      pdf.line(22.5, 2, 22.5, 23);
+
+      /* =========================
+       QR CODE (LEFT AREA CENTERED)
+    ========================= */
+
       const qrSize = 21;
       const leftAreaW = 22;
 
@@ -97,14 +110,14 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
       /* =========================
-         RIGHT AREA (TEXT COLUMN - FIXED ALIGNMENT ONLY)
-      ========================= */
+       TEXT AREA (RIGHT - CORPORATE BLOCK)
+    ========================= */
 
       const leftBoundary = 24;
       const rightBoundary = 49;
       const centerX = (leftBoundary + rightBoundary) / 2;
 
-      // ✅ FIXED VERTICAL ALIGNMENT FOR UIPS
+      // UIPS (CENTERED BRAND)
       const brandY = 11;
 
       pdf.setFont("helvetica", "bold");
@@ -114,16 +127,16 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const brandWidth = pdf.getTextWidth(brand);
       pdf.text(brand, centerX - brandWidth / 2, brandY);
 
-      // ✅ FIXED DIVIDER LINE ALIGNMENT
-      pdf.setDrawColor(210);
+      // Divider under brand (internal structure)
+      pdf.setDrawColor(200);
       pdf.line(leftBoundary, 13, rightBoundary, 13);
 
-      // SERIAL (UNCHANGED)
+      // SERIAL
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(8);
       pdf.text(`${asset.serialNo || "-"}`, leftBoundary, 17);
 
-      // PURCHASE DATE (UNCHANGED - BLACK)
+      // DATE (BLACK)
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
@@ -136,8 +149,8 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       pdf.setTextColor(0);
 
       /* =========================
-         NEXT PAGE
-      ========================= */
+       NEXT PAGE
+    ========================= */
       if (i !== assets.length - 1) {
         pdf.addPage([50, 25], "landscape");
       }
