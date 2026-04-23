@@ -8,19 +8,19 @@ const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
   "https://uips-edutrack-backend-dev.onrender.com";
 
-export default function PrintQRModal({ isOpen, onClose, ids = [] }) {
+export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !ids.length) return;
+    if (!open || !assetIds.length) return;
 
     const fetchAssets = async () => {
       try {
         setLoading(true);
 
         const results = await Promise.allSettled(
-          ids.map((id) => axiosInstance.get(`/asset/assets/${id}`))
+          assetIds.map((id) => axiosInstance.get(`/asset/assets/${id}`))
         );
 
         const valid = results
@@ -38,16 +38,16 @@ export default function PrintQRModal({ isOpen, onClose, ids = [] }) {
     };
 
     fetchAssets();
-  }, [isOpen, ids]);
+  }, [open, assetIds]);
 
   useEffect(() => {
-    if (!loading && assets.length > 0 && isOpen) {
+    if (!loading && assets.length > 0 && open) {
       const t = setTimeout(() => window.print(), 300);
       return () => clearTimeout(t);
     }
-  }, [loading, assets, isOpen]);
+  }, [loading, assets, open]);
 
-  if (!isOpen) return null;
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
