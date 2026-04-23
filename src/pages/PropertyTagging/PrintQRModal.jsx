@@ -86,42 +86,41 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-         QR CODE (LEFT - CENTERED)
-      ========================= */
-
-      const qrSize = 22;
-      const qrX = 2;
-      const qrY = (25 - qrSize) / 2; // 🔥 TRUE CENTERING
+       QR CODE (BIG + CENTERED LEFT)
+    ========================= */
+      const qrSize = 23;
+      const qrX = 1.5;
+      const qrY = (25 - qrSize) / 2;
 
       pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
       /* =========================
-         TEXT BLOCK (RIGHT SIDE)
-      ========================= */
+       COMPACT TEXT BLOCK (RIGHT SIDE)
+    ========================= */
 
-      const textX = 27;
+      const x = 26;
 
-      // BRAND (UIPS - BIGGEST ELEMENT)
+      // UIPS (bold, but compact)
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(11);
-      pdf.text("UIPS", textX, 7);
+      pdf.setFontSize(10);
+      pdf.text("UIPS", x, 7);
 
-      // SERIAL NUMBER (PRIMARY IDENTIFIER)
+      // SERIAL (MAIN FOCUS)
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(9);
-      pdf.text(`${asset.serialNo || "-"}`, textX, 13);
+      pdf.setFontSize(8);
+      pdf.text(`${asset.serialNo || "-"}`, x, 12);
 
-      // PURCHASE DATE (SECONDARY INFO)
+      // DATE (SMALLER, TIGHT)
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
 
       pdf.setFontSize(7);
-      pdf.text(`PD: ${date}`, textX, 18);
+      pdf.text(`PD: ${date}`, x, 16);
 
       /* =========================
-         PAGE BREAK
-      ========================= */
+       NEXT PAGE
+    ========================= */
       if (i !== assets.length - 1) {
         pdf.addPage([50, 25], "landscape");
       }
