@@ -135,13 +135,13 @@ export default function AddAsset() {
       <main className="p-6 space-y-6">
         {/* HEADER */}
         <div className="flex justify-between items-center"></div>
+        <div className="flex justify-between items-center mt-4 mb-4">
+          <h1 className="text-2xl font-semibold text-gray-800">Add Assets</h1>
+        </div>
         {/* TABS */}
         <PropertyTaggingTabs />
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mt-4 mb-4">
-          <h1 className="text-2xl font-semibold text-gray-800">Add Assets</h1>
-        </div>
 
         {/* FORM */}
         <Card className="shadow-sm border border-gray-200">
