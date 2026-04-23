@@ -24,8 +24,8 @@ export default function PropertyTagging() {
   const [showPrint, setShowPrint] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
 
-  // 🔥 prevent duplicate scans
   const scanLockRef = useRef(false);
+  const scannerRef = useRef(null);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -138,7 +138,21 @@ export default function PropertyTagging() {
   };
 
   // =========================
-  // SCAN HANDLER (SAFE + INSTANT)
+  // SCANNER OPEN (AUTO CAMERA START)
+  // =========================
+  const openScanner = () => {
+    setShowScanner(true);
+
+    // small delay ensures camera initializes properly
+    setTimeout(() => {
+      if (scannerRef.current?.startCamera) {
+        scannerRef.current.startCamera();
+      }
+    }, 200);
+  };
+
+  // =========================
+  // SCAN HANDLER (INSTANT REDIRECT)
   // =========================
   const handleScan = (data) => {
     if (!data || scanLockRef.current) return;
@@ -147,11 +161,11 @@ export default function PropertyTagging() {
 
     setShowScanner(false);
 
-    // small delay ensures scanner cleanup
+    navigate(`/property-tagging/${data}`);
+
     setTimeout(() => {
-      navigate(`/property-tagging/${data}`);
       scanLockRef.current = false;
-    }, 100);
+    }, 800);
   };
 
   // =========================
@@ -186,11 +200,8 @@ export default function PropertyTagging() {
         <h1 className="text-2xl font-semibold">Property Tagging</h1>
 
         <div className="flex gap-2">
-          {/* SCAN BUTTON (GLOBAL) */}
-          <Button
-            onClick={() => setShowScanner(true)}
-            className="bg-black text-white"
-          >
+          {/* SCAN BUTTON (AUTO CAMERA) */}
+          <Button onClick={openScanner} className="bg-black text-white">
             <ScanLine className="w-4 h-4 mr-2" />
             Scan QR
           </Button>
@@ -306,7 +317,7 @@ export default function PropertyTagging() {
       {showScanner && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded w-full max-w-md">
-            <QRScanner onScan={handleScan} />
+            <QRScanner ref={scannerRef} onScan={handleScan} autoStart={true} />
 
             <Button
               className="mt-3 w-full"
