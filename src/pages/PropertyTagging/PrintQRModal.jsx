@@ -68,7 +68,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     });
 
   /* =========================
-     GENERATE PDF (50x25mm)
+     GENERATE PDF (50 × 25mm LABEL)
   ========================= */
   const handleDownloadPDF = async () => {
     if (!assets.length) return;
@@ -86,34 +86,41 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-         QR CODE (BIG + DOMINANT)
+         QR CODE (LEFT - CENTERED)
       ========================= */
-      pdf.addImage(imgData, "PNG", 1.5, 1.5, 23, 23);
+
+      const qrSize = 22;
+      const qrX = 2;
+      const qrY = (25 - qrSize) / 2; // 🔥 TRUE CENTERING
+
+      pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
       /* =========================
          TEXT BLOCK (RIGHT SIDE)
       ========================= */
 
-      // BRAND (BIG)
+      const textX = 27;
+
+      // BRAND (UIPS - BIGGEST ELEMENT)
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(12);
-      pdf.text("UIPS", 30, 6);
+      pdf.setFontSize(11);
+      pdf.text("UIPS", textX, 7);
 
-      // SERIAL NUMBER (BIGGER, NO LABEL)
+      // SERIAL NUMBER (PRIMARY IDENTIFIER)
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(10);
-      pdf.text(`${asset.serialNo || "-"}`, 26, 13);
+      pdf.setFontSize(9);
+      pdf.text(`${asset.serialNo || "-"}`, textX, 13);
 
-      // PURCHASE DATE (CLEAN)
+      // PURCHASE DATE (SECONDARY INFO)
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
 
-      pdf.setFontSize(10);
-      pdf.text(`PD: ${date}`, 26, 18);
+      pdf.setFontSize(7);
+      pdf.text(`PD: ${date}`, textX, 18);
 
       /* =========================
-         NEXT PAGE
+         PAGE BREAK
       ========================= */
       if (i !== assets.length - 1) {
         pdf.addPage([50, 25], "landscape");
@@ -128,6 +135,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white w-[420px] p-4 rounded-lg relative">
+        {/* CLOSE */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500"
@@ -135,14 +143,17 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
           ✕
         </button>
 
+        {/* HEADER */}
         <h2 className="text-lg font-semibold mb-3">UIPS QR Label Export</h2>
 
+        {/* STATUS */}
         {loading ? (
           <p>Loading assets...</p>
         ) : (
           <p className="text-sm text-gray-600">{assets.length} labels ready</p>
         )}
 
+        {/* ACTIONS */}
         <div className="flex justify-end mt-4 gap-2">
           <Button variant="outline" onClick={onClose}>
             Close
