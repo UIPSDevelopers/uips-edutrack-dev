@@ -86,53 +86,55 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-       BACKGROUND BALANCE (OPTIONAL CLEAN FRAME)
+       LEFT AREA (QR CENTERED FULLY)
     ========================= */
 
-      // subtle margin guide (invisible feel, not boxed)
-      const marginX = 1.5;
-      const marginY = 1.5;
+      const pageW = 50;
+      const pageH = 25;
 
-      /* =========================
-       QR CODE (LEFT - BALANCED CORPORATE SIZE)
-    ========================= */
+      const leftAreaW = 22; // reserved space for QR
+      const qrSize = 21; // MAX SAFE SIZE for clean margin
 
-      const qrSize = 20; // reduced for elegance
-      const qrX = marginX;
-      const qrY = (25 - qrSize) / 2;
+      const qrX = (leftAreaW - qrSize) / 2; // 🔥 horizontal center in left area
+      const qrY = (pageH - qrSize) / 2; // 🔥 vertical center
 
       pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
       /* =========================
-       TYPOGRAPHY BLOCK (RIGHT SIDE)
+       RIGHT AREA (TEXT COLUMN)
     ========================= */
 
-      const x = 24;
+      const leftBoundary = 24;
+      const rightBoundary = 49;
+      const centerX = (leftBoundary + rightBoundary) / 2;
 
-      // BRAND (corporate identity)
+      // UIPS (CENTERED BRAND)
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(11);
-      pdf.text("UIPS", x, 8);
 
-      // SUBTLE DIVIDER (corporate structure element)
+      const brand = "UIPS";
+      const brandWidth = pdf.getTextWidth(brand);
+      pdf.text(brand, centerX - brandWidth / 2, 8);
+
+      // Divider line (corporate structure)
       pdf.setDrawColor(210);
-      pdf.line(x, 9.5, 48, 9.5);
+      pdf.line(leftBoundary, 9.5, rightBoundary, 9.5);
 
-      // SERIAL (PRIMARY IDENTIFIER)
+      // SERIAL (PRIMARY DATA)
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(9);
-      pdf.text(`${asset.serialNo || "-"}`, x, 14);
+      pdf.text(`${asset.serialNo || "-"}`, leftBoundary, 14);
 
-      // DATE (SECONDARY META)
+      // PURCHASE DATE (BLACK AS REQUESTED)
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
 
       pdf.setFontSize(7.5);
-      pdf.setTextColor(90); // softer corporate gray tone
-      pdf.text(`PD  ${date}`, x, 19);
+      pdf.setTextColor(0);
+      pdf.text(`PD  ${date}`, leftBoundary, 19);
 
-      // reset color for next iteration
+      /* reset */
       pdf.setTextColor(0);
 
       /* =========================
@@ -143,7 +145,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       }
     }
 
-    pdf.save("uips-property-labels.pdf");
+    pdf.save("uips-corporate-labels.pdf");
   };
 
   if (!open) return null;
