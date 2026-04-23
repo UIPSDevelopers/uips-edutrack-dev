@@ -33,7 +33,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
         setAssets(valid);
       } catch (err) {
-        console.error(err);
+        console.error("Fetch assets error:", err);
         setAssets([]);
       } finally {
         setLoading(false);
@@ -47,18 +47,22 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
      AUTO PRINT
   ========================= */
   useEffect(() => {
-    if (!loading && assets.length > 0 && open) {
-      const t = setTimeout(() => window.print(), 300);
+    if (open && !loading && assets.length > 0) {
+      const t = setTimeout(() => {
+        window.print();
+      }, 500);
+
       return () => clearTimeout(t);
     }
-  }, [loading, assets, open]);
+  }, [open, loading, assets]);
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
+      {/* MODAL */}
       <div className="bg-white w-[95%] max-w-6xl p-4 rounded-lg relative">
-        {/* CLOSE */}
+        {/* CLOSE BUTTON */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500"
@@ -70,12 +74,12 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
         {/* LOADING */}
         {loading ? (
-          <p>Loading...</p>
+          <p>Loading assets...</p>
         ) : (
           /* =========================
-             PRINT AREA (IMPORTANT)
+             PRINT AREA
           ========================= */
-          <div className="print-area flex flex-wrap gap-0">
+          <div className="print-area grid grid-cols-4 gap-0">
             {assets.map((asset) => (
               <div
                 key={asset._id}
@@ -86,32 +90,29 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
                   pageBreakInside: "avoid",
                 }}
               >
-                {/* QR LEFT */}
+                {/* QR SIDE */}
                 <div className="w-[45%] h-full flex items-center justify-center p-1">
                   <img
                     src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
-                    className="w-full h-full object-contain"
                     alt="QR"
+                    className="w-full h-full object-contain"
                   />
                 </div>
 
-                {/* TEXT RIGHT */}
+                {/* TEXT SIDE */}
                 <div className="w-[55%] h-full flex flex-col justify-center px-1">
-                  {/* TITLE */}
                   <div className="font-bold text-[8px] leading-tight">UIPS</div>
 
-                  {/* SERIAL */}
                   <div className="text-[6px] leading-tight">
                     <span className="font-semibold">SN:</span>{" "}
                     {asset.serialNo || "-"}
                   </div>
 
-                  {/* PURCHASE DATE */}
                   <div className="text-[6px] leading-tight">
                     <span className="font-semibold">PD:</span>{" "}
                     {asset.purchaseDate
                       ? new Date(asset.purchaseDate).toLocaleDateString()
-                      : ""}
+                      : "-"}
                   </div>
                 </div>
               </div>
@@ -129,10 +130,35 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         </div>
 
         {/* =========================
-           PRINT STYLES (CRITICAL)
+           PRINT CSS FIX
         ========================= */}
         <style>{`
           @media print {
+
+            /* Hide everything except print area */
+            body * {
+              visibility: hidden !important;
+            }
+
+            .print-area,
+            .print-area * {
+              visibility: visible !important;
+            }
+
+            /* Force print layout */
+            .print-area {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+            }
+
+            /* Hide modal UI */
+            .no-print {
+              display: none !important;
+            }
+
+            /* Page settings for labels */
             @page {
               size: 50mm 25mm;
               margin: 0;
@@ -140,15 +166,6 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
             body {
               margin: 0;
-              background: white;
-            }
-
-            .no-print {
-              display: none !important;
-            }
-
-            .print-area {
-              width: 50mm;
             }
           }
         `}</style>
