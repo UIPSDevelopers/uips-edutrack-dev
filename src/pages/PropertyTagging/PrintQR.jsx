@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axiosInstance from "@/lib/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,9 @@ export default function PrintQR() {
   const [loading, setLoading] = useState(true);
 
   /* =========================================================
-     PARSE IDS FROM URL
+     PARSE IDS (MEMOIZED TO AVOID RE-RUNS)
   ========================================================= */
-  const parseIds = () => {
+  const ids = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const raw = params.get("ids");
 
@@ -26,8 +26,8 @@ export default function PrintQR() {
     return raw
       .split(",")
       .map((id) => id.trim())
-      .filter((id) => /^[a-fA-F0-9]{24}$/.test(id)); // MongoDB ID safety
-  };
+      .filter((id) => /^[a-fA-F0-9]{24}$/.test(id));
+  }, [location.search]);
 
   /* =========================================================
      FETCH ASSETS
@@ -37,11 +37,8 @@ export default function PrintQR() {
       try {
         setLoading(true);
 
-        const ids = parseIds();
-
-        if (!ids.length) {
+        if (ids.length === 0) {
           setAssets([]);
-          setLoading(false);
           return;
         }
 
@@ -49,10 +46,14 @@ export default function PrintQR() {
           ids.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
         );
 
-        const data = results.map((res) => res.data.asset);
-        setAssets(data);
+        const clean = results.map((res) => res?.data?.asset).filter(Boolean);
+
+        setAssets(clean);
       } catch (error) {
-        console.error("Error fetching assets:", error.response?.data || error);
+        console.error(
+          "PrintQR fetch error:",
+          error?.response?.data || error.message,
+        );
         setAssets([]);
       } finally {
         setLoading(false);
@@ -60,29 +61,32 @@ export default function PrintQR() {
     };
 
     fetchAssets();
-  }, [location.search]);
+  }, [ids]);
 
   /* =========================================================
-     AUTO PRINT AFTER LOAD
+     AUTO PRINT AFTER IMAGES READY
   ========================================================= */
   useEffect(() => {
     if (!loading && assets.length > 0) {
       const timer = setTimeout(() => {
         window.print();
-      }, 400);
+      }, 500);
 
       return () => clearTimeout(timer);
     }
   }, [loading, assets]);
 
   /* =========================================================
-     STATES
+     LOADING
   ========================================================= */
   if (loading) {
     return <p className="p-6">Loading QR codes...</p>;
   }
 
-  if (!assets.length) {
+  /* =========================================================
+     EMPTY STATE
+  ========================================================= */
+  if (assets.length === 0) {
     return <p className="p-6">No assets found.</p>;
   }
 
@@ -91,7 +95,7 @@ export default function PrintQR() {
   ========================================================= */
   return (
     <div className="p-6">
-      {/* HEADER (hidden when printing) */}
+      {/* HEADER */}
       <div className="no-print flex justify-between items-center mb-4">
         <h1 className="text-xl font-semibold">Print QR Codes</h1>
 
@@ -116,6 +120,7 @@ export default function PrintQR() {
               src={`${API_BASE}/api/asset/assets/${asset._id}/qrcode`}
               alt="QR Code"
               className="w-40 h-40"
+              loading="eager"
             />
 
             {/* LABEL */}
@@ -128,23 +133,21 @@ export default function PrintQR() {
       </div>
 
       {/* PRINT STYLES */}
-      <style>
-        {`
-          @media print {
-            .no-print {
-              display: none !important;
-            }
-
-            body {
-              background: white;
-            }
-
-            @page {
-              margin: 10mm;
-            }
+      <style>{`
+        @media print {
+          .no-print {
+            display: none !important;
           }
-        `}
-      </style>
+
+          body {
+            background: white;
+          }
+
+          @page {
+            margin: 10mm;
+          }
+        }
+      `}</style>
     </div>
   );
 }
