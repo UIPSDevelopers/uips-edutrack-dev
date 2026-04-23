@@ -315,23 +315,39 @@ export default function PropertyTagging() {
       />
 
       {showScanner && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded w-full max-w-md">
-            <QRScanner
-              onScan={(data) => {
-                setShowScanner(false);
-                if (!data) return;
-                navigate(`/property-tagging/${data}`);
-              }}
-            />
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+          <div className="bg-white w-full h-full md:w-[90vw] md:h-[90vh] md:rounded-lg flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">Scan QR Code</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowScanner(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <div className="flex-1 overflow-hidden">
+              <QRScanner
+                ref={scannerRef}
+                onScan={(data) => {
+                  setShowScanner(false);
+                  if (!data) return;
+                  navigate(`/property-tagging/${data}`);
+                }}
+              />
+            </div>
 
-            <Button
-              className="mt-3 w-full"
-              variant="outline"
-              onClick={() => setShowScanner(false)}
-            >
-              Close
-            </Button>
+            <div className="p-4 border-t">
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => setShowScanner(false)}
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       )}
