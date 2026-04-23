@@ -13,59 +13,46 @@ export default function PrintQR() {
 
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [readyToPrint, setReadyToPrint] = useState(false);
 
-  // =========================
-  // FETCH + PARSE IDS SAFELY
-  // =========================
+  /* =========================================================
+     PARSE IDS FROM URL
+  ========================================================= */
+  const parseIds = () => {
+    const params = new URLSearchParams(location.search);
+    const raw = params.get("ids");
+
+    if (!raw) return [];
+
+    return raw
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => /^[a-fA-F0-9]{24}$/.test(id)); // MongoDB ID safety
+  };
+
+  /* =========================================================
+     FETCH ASSETS
+  ========================================================= */
   useEffect(() => {
     const fetchAssets = async () => {
       try {
         setLoading(true);
 
-        const params = new URLSearchParams(location.search);
-        const idsParam = params.get("ids");
+        const ids = parseIds();
 
-        console.log("RAW IDS STRING:", idsParam);
-
-        if (!idsParam) {
+        if (!ids.length) {
           setAssets([]);
           setLoading(false);
           return;
         }
 
-        // =========================
-        // HARD CLEAN + VALIDATION
-        // =========================
-        const ids = idsParam
-          .split(",")
-          .map(
-            (id) => id.trim().replace(/\s/g, ""), // remove hidden spaces/newlines
-          )
-          .filter((id) => /^[a-fA-F0-9]{24}$/.test(id)); // strict MongoDB validation
-
-        console.log("CLEAN VALID IDS:", ids);
-
-        if (ids.length === 0) {
-          setAssets([]);
-          setLoading(false);
-          return;
-        }
-
-        // =========================
-        // FETCH ASSETS SAFELY
-        // =========================
         const results = await Promise.all(
-          ids.map((id) => {
-            console.log("REQUESTING ASSET ID:", id);
-
-            return axiosInstance.get(`/assets/${id}`);
-          }),
+          ids.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
         );
 
-        setAssets(results.map((r) => r.data.asset));
+        const data = results.map((res) => res.data.asset);
+        setAssets(data);
       } catch (error) {
-        console.error("Error fetching asset:", error.response?.data || error);
+        console.error("Error fetching assets:", error.response?.data || error);
         setAssets([]);
       } finally {
         setLoading(false);
@@ -75,37 +62,33 @@ export default function PrintQR() {
     fetchAssets();
   }, [location.search]);
 
-  // =========================
-  // AUTO PRINT AFTER LOAD
-  // =========================
+  /* =========================================================
+     AUTO PRINT AFTER LOAD
+  ========================================================= */
   useEffect(() => {
     if (!loading && assets.length > 0) {
       const timer = setTimeout(() => {
-        setReadyToPrint(true);
         window.print();
-      }, 500);
+      }, 400);
 
       return () => clearTimeout(timer);
     }
   }, [loading, assets]);
 
-  // =========================
-  // LOADING STATE
-  // =========================
+  /* =========================================================
+     STATES
+  ========================================================= */
   if (loading) {
     return <p className="p-6">Loading QR codes...</p>;
   }
 
-  // =========================
-  // EMPTY STATE
-  // =========================
   if (!assets.length) {
     return <p className="p-6">No assets found.</p>;
   }
 
-  // =========================
-  // UI
-  // =========================
+  /* =========================================================
+     UI
+  ========================================================= */
   return (
     <div className="p-6">
       {/* HEADER (hidden when printing) */}
@@ -121,7 +104,7 @@ export default function PrintQR() {
         </div>
       </div>
 
-      {/* QR GRID */}
+      {/* GRID */}
       <div className="grid grid-cols-3 gap-6 print:grid-cols-2">
         {assets.map((asset) => (
           <div
@@ -130,7 +113,7 @@ export default function PrintQR() {
           >
             {/* QR CODE */}
             <img
-              src={`${API_BASE}/assets/assets/${asset._id}/qrcode`}
+              src={`${API_BASE}/api/asset/assets/${asset._id}/qrcode`}
               alt="QR Code"
               className="w-40 h-40"
             />
