@@ -123,7 +123,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       // SERIAL (PRIMARY DATA)
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(8);
-      pdf.text(`${asset.serialNo || "-"}`, leftBoundary, 14);
+      pdf.text(`${asset.serialNo || "-"}`, leftBoundary, 17);
 
       // PURCHASE DATE (BLACK AS REQUESTED)
       const date = asset.purchaseDate
@@ -132,7 +132,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
       pdf.setFontSize(8);
       pdf.setTextColor(0);
-      pdf.text(`PD  ${date}`, leftBoundary, 19);
+      pdf.text(`PD  ${date}`, leftBoundary, 22);
 
       /* reset */
       pdf.setTextColor(0);
