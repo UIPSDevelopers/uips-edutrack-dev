@@ -13,60 +13,71 @@ export default function PrintQR() {
 
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [imagesLoaded, setImagesLoaded] = useState(0);
-
- 
+  const [readyToPrint, setReadyToPrint] = useState(false);
 
   // =========================
-  // GET IDS FROM URL
+  // FETCH + PARSE IDS SAFELY
   // =========================
-  const ids =
-    new URLSearchParams(location.search)
-      .get("ids")
-      ?.split(",")
-      .filter(Boolean) || [];
-
-  // =========================
-  // FETCH ASSETS (DATA ONLY)
-  // =========================
-  const fetchAssets = async () => {
-    try {
-      setLoading(true);
-
-      const results = await Promise.all(
-        ids.map((id) => axiosInstance.get(`/assets/assets/${id}`)),
-      );
-
-      const data = results.map((res) => res.data.asset);
-      setAssets(data);
-    } catch (error) {
-      console.error("Error fetching assets:", error);
-      setAssets([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (ids.length) fetchAssets();
-    else setLoading(false);
+    const fetchAssets = async () => {
+      try {
+        setLoading(true);
+        setReadyToPrint(false);
+
+        const params = new URLSearchParams(location.search);
+        const idsParam = params.get("ids");
+
+        if (!idsParam) {
+          setAssets([]);
+          setLoading(false);
+          return;
+        }
+
+        const ids = idsParam
+          .split(",")
+          .map((id) => id.trim())
+          .filter((id) => id.length === 24); // valid MongoDB ObjectId safety
+
+        if (ids.length === 0) {
+          setAssets([]);
+          setLoading(false);
+          return;
+        }
+
+        const results = await Promise.all(
+          ids.map((id) => axiosInstance.get(`/api/assets/assets/${id}`)),
+        );
+
+        const data = results.map((res) => res.data.asset);
+
+        setAssets(data);
+      } catch (error) {
+        console.error("Error fetching assets:", error);
+        setAssets([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssets();
   }, [location.search]);
 
   // =========================
-  // WAIT FOR IMAGES BEFORE PRINT
+  // TRIGGER PRINT AFTER LOAD
   // =========================
   useEffect(() => {
-    if (!loading && assets.length > 0 && imagesLoaded === assets.length) {
-      window.print();
-    }
-  }, [loading, imagesLoaded, assets]);
+    if (!loading && assets.length > 0) {
+      const timer = setTimeout(() => {
+        setReadyToPrint(true);
+        window.print();
+      }, 500);
 
-  const handleImageLoad = () => {
-    setImagesLoaded((prev) => prev + 1);
-  };
+      return () => clearTimeout(timer);
+    }
+  }, [loading, assets]);
 
   // =========================
-  // UI
+  // UI STATES
   // =========================
   if (loading) {
     return <p className="p-6">Loading QR codes...</p>;
@@ -76,8 +87,9 @@ export default function PrintQR() {
     return <p className="p-6">No assets found.</p>;
   }
 
-  
-
+  // =========================
+  // UI
+  // =========================
   return (
     <div className="p-6">
       {/* HEADER (hidden when printing) */}
@@ -102,11 +114,9 @@ export default function PrintQR() {
           >
             {/* QR CODE */}
             <img
-              src={`${API_BASE}/assets/assets/${asset._id}/qrcode`}
+              src={`${API_BASE}/api/assets/assets/${asset._id}/qrcode`}
               alt="QR Code"
               className="w-40 h-40"
-              onLoad={handleImageLoad}
-              onError={() => console.error("Failed to load QR for:", asset._id)}
             />
 
             {/* LABEL */}
