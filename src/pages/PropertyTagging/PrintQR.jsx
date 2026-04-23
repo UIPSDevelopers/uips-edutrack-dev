@@ -22,13 +22,11 @@ export default function PrintQR() {
     const fetchAssets = async () => {
       try {
         setLoading(true);
-        setReadyToPrint(false);
 
         const params = new URLSearchParams(location.search);
         const idsParam = params.get("ids");
 
-        console.log("ID BEING SENT:", id);
-
+        console.log("RAW IDS STRING:", idsParam);
 
         if (!idsParam) {
           setAssets([]);
@@ -39,7 +37,9 @@ export default function PrintQR() {
         const ids = idsParam
           .split(",")
           .map((id) => id.trim())
-          .filter((id) => id.length === 24); // valid MongoDB ObjectId safety
+          .filter((id) => /^[a-fA-F0-9]{24}$/.test(id)); // strict MongoDB check
+
+        console.log("CLEAN IDS:", ids);
 
         if (ids.length === 0) {
           setAssets([]);
@@ -48,14 +48,16 @@ export default function PrintQR() {
         }
 
         const results = await Promise.all(
-          ids.map((id) => axiosInstance.get(`/api/assets/assets/${id}`)),
+          ids.map((id) => {
+            console.log("REQUESTING:", id);
+
+            return axiosInstance.get(`/api/assets/assets/${id}`);
+          }),
         );
 
-        const data = results.map((res) => res.data.asset);
-
-        setAssets(data);
+        setAssets(results.map((r) => r.data.asset));
       } catch (error) {
-        console.error("Error fetching assets:", error);
+        console.error("Error fetching asset:", error.response?.data || error);
         setAssets([]);
       } finally {
         setLoading(false);
