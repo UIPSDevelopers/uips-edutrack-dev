@@ -17,13 +17,18 @@ export default function PropertyTagging() {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [selectedAssets, setSelectedAssets] = useState([]);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: "asc",
   });
+
+  // =========================
+  // VALIDATE OBJECT ID
+  // =========================
+  const isValidObjectId = (id) =>
+    typeof id === "string" && /^[a-f\d]{24}$/i.test(id);
 
   // =========================
   // ROLE CHECK
@@ -61,7 +66,6 @@ export default function PropertyTagging() {
 
     fetchAssets();
   }, [canView]);
-
 
   // =========================
   // SEARCH FILTER
@@ -103,19 +107,26 @@ export default function PropertyTagging() {
   };
 
   // =========================
-  // CHECKBOX LOGIC
+  // SAFE SELECT TOGGLE
   // =========================
   const toggleSelect = (id) => {
+    if (!isValidObjectId(id)) return;
+
     setSelectedAssets((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
+  // =========================
+  // SAFE SELECT ALL
+  // =========================
   const selectAll = () => {
-    if (selectedAssets.length === sortedAssets.length) {
+    const validIds = sortedAssets.map((a) => a._id).filter(isValidObjectId);
+
+    if (selectedAssets.length === validIds.length) {
       setSelectedAssets([]);
     } else {
-      setSelectedAssets(sortedAssets.map((a) => a._id));
+      setSelectedAssets(validIds);
     }
   };
 
@@ -123,11 +134,18 @@ export default function PropertyTagging() {
   // PRINT QR (FIXED)
   // =========================
   const handlePrintQR = () => {
-    if (selectedAssets.length === 0) return;
+    if (!selectedAssets.length) return;
 
-    const ids = selectedAssets.join(",");
+    const cleanIds = selectedAssets.filter(isValidObjectId);
 
-    window.open(`/property-tagging/print-qr?ids=${ids}`, "_blank");
+    if (!cleanIds.length) return;
+
+    const ids = cleanIds.join(",");
+
+    window.open(
+      `/property-tagging/print-qr?ids=${encodeURIComponent(ids)}`,
+      "_blank",
+    );
   };
 
   // =========================
