@@ -74,6 +74,8 @@ export default function PrintQR() {
     return <p className="p-6">No assets found.</p>;
   }
 
+  console.log("API BASE:", API_BASE);
+
   return (
     <div className="p-6">
       {/* HEADER (hidden when printing) */}
