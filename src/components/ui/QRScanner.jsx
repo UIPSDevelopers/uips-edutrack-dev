@@ -9,24 +9,25 @@ export default function QRScanner({ onScan }) {
       "qr-reader",
       {
         fps: 10,
-        qrbox: 250,
+        qrbox: { width: 250, height: 250 },
         rememberLastUsedCamera: true,
+        facingMode: "environment", // back camera
       },
-      false
+      false,
     );
 
-    scanner.render(
-      (decodedText) => {
-        onScan(decodedText);
-        scanner.clear();
-      },
-      () => {}
-    );
+    const success = (decodedText) => {
+      scanner.clear().then(() => {
+        onScan(decodedText); // instant redirect trigger
+      });
+    };
+
+    scanner.render(success, () => {});
 
     return () => {
       scanner.clear().catch(() => {});
     };
   }, [onScan]);
 
-  return <div id="qr-reader" />;
+  return <div id="qr-reader" className="w-full" />;
 }

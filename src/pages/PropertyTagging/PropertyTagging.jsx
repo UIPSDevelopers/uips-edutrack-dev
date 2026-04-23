@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,9 @@ export default function PropertyTagging() {
 
   const [showPrint, setShowPrint] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+
+  // 🔥 prevent duplicate scans
+  const scanLockRef = useRef(false);
 
   const [sortConfig, setSortConfig] = useState({
     key: null,
@@ -121,11 +124,9 @@ export default function PropertyTagging() {
   const selectAll = () => {
     const validIds = sortedAssets.map((a) => a._id);
 
-    if (selectedAssets.length === validIds.length) {
-      setSelectedAssets([]);
-    } else {
-      setSelectedAssets(validIds);
-    }
+    setSelectedAssets((prev) =>
+      prev.length === validIds.length ? [] : validIds,
+    );
   };
 
   // =========================
@@ -137,12 +138,20 @@ export default function PropertyTagging() {
   };
 
   // =========================
-  // SCAN RESULT
+  // SCAN HANDLER (SAFE + INSTANT)
   // =========================
   const handleScan = (data) => {
+    if (!data || scanLockRef.current) return;
+
+    scanLockRef.current = true;
+
     setShowScanner(false);
-    if (!data) return;
-    navigate(`/property-tagging/${data}`);
+
+    // small delay ensures scanner cleanup
+    setTimeout(() => {
+      navigate(`/property-tagging/${data}`);
+      scanLockRef.current = false;
+    }, 100);
   };
 
   // =========================
@@ -177,7 +186,7 @@ export default function PropertyTagging() {
         <h1 className="text-2xl font-semibold">Property Tagging</h1>
 
         <div className="flex gap-2">
-          {/* SCAN BUTTON (AVAILABLE FOR ALL DEVICES) */}
+          {/* SCAN BUTTON (GLOBAL) */}
           <Button
             onClick={() => setShowScanner(true)}
             className="bg-black text-white"
