@@ -123,7 +123,7 @@ export default function PrintQR() {
           >
             {/* QR CODE */}
             <img
-              src={`${API_BASE}/api/asset/assets/${asset._id}/qrcode`}
+              src={`${API_BASE}/asset/assets/${asset._id}/qrcode`}
               alt="QR Code"
               className="w-40 h-40"
               loading="eager"
