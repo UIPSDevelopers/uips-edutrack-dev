@@ -8,7 +8,11 @@ const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
   "https://uips-edutrack-backend-dev.onrender.com";
 
-export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
+export default function PrintQRModal({
+  open = false,
+  onClose,
+  assetIds = [],
+}) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +27,9 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         setLoading(true);
 
         const results = await Promise.allSettled(
-          assetIds.map((id) => axiosInstance.get(`/asset/assets/${id}`)),
+          assetIds.map((id) =>
+            axiosInstance.get(`/asset/assets/${id}`)
+          )
         );
 
         const valid = results
@@ -44,13 +50,32 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   }, [open, assetIds]);
 
   /* =========================
-     AUTO PRINT
+     WAIT FOR IMAGES (CRITICAL FIX)
+  ========================= */
+  const waitForImages = async () => {
+    const images = document.querySelectorAll(".print-area img");
+
+    await Promise.all(
+      Array.from(images).map((img) => {
+        if (img.complete) return Promise.resolve();
+
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      })
+    );
+  };
+
+  /* =========================
+     AUTO PRINT (SAFE)
   ========================= */
   useEffect(() => {
     if (open && !loading && assets.length > 0) {
-      const t = setTimeout(() => {
+      const t = setTimeout(async () => {
+        await waitForImages();
         window.print();
-      }, 500);
+      }, 600);
 
       return () => clearTimeout(t);
     }
@@ -62,7 +87,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print">
       {/* MODAL */}
       <div className="bg-white w-[95%] max-w-6xl p-4 rounded-lg relative">
-        {/* CLOSE BUTTON */}
+        {/* CLOSE */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500"
@@ -70,7 +95,9 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
           ✕
         </button>
 
-        <h2 className="text-lg font-semibold mb-3">Print QR Labels</h2>
+        <h2 className="text-lg font-semibold mb-3">
+          Print QR Labels
+        </h2>
 
         {/* LOADING */}
         {loading ? (
@@ -101,7 +128,9 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
                 {/* TEXT SIDE */}
                 <div className="w-[55%] h-full flex flex-col justify-center px-1">
-                  <div className="font-bold text-[8px] leading-tight">UIPS</div>
+                  <div className="font-bold text-[8px] leading-tight">
+                    UIPS
+                  </div>
 
                   <div className="text-[6px] leading-tight">
                     <span className="font-semibold">SN:</span>{" "}
@@ -126,27 +155,26 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
             Close
           </Button>
 
-          <Button onClick={() => window.print()}>Print</Button>
+          <Button onClick={() => window.print()}>
+            Print
+          </Button>
         </div>
 
         {/* =========================
-           PRINT CSS FIX
+           PRINT CSS (STABLE VERSION)
         ========================= */}
         <style>{`
           @media print {
 
             /* Hide everything except print area */
-            body * {
-              visibility: hidden !important;
+            body > *:not(.print-area) {
+              display: none !important;
             }
 
-            .print-area,
-            .print-area * {
-              visibility: visible !important;
-            }
-
-            /* Force print layout */
+            /* Ensure print area only */
             .print-area {
+              display: grid !important;
+              grid-template-columns: repeat(4, 1fr);
               position: absolute;
               top: 0;
               left: 0;
@@ -158,7 +186,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
               display: none !important;
             }
 
-            /* Page settings for labels */
+            /* Page size for labels */
             @page {
               size: 50mm 25mm;
               margin: 0;
@@ -166,6 +194,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
             body {
               margin: 0;
+              background: white;
             }
           }
         `}</style>
