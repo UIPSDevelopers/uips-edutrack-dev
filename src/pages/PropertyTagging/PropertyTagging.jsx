@@ -11,7 +11,7 @@ import { Search, Ban, Printer, ScanLine } from "lucide-react";
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
 import axiosInstance from "@/lib/axios";
 import PrintQRModal from "./PrintQRModal";
-import QRScanner from "@/components/QRScanner"; // ✅ ADDED
+import QRScanner from "@/components/ui/QRScanner"; // ✅ ADDED
 
 // =========================
 // MOBILE DETECTION (ADDED ONLY)
