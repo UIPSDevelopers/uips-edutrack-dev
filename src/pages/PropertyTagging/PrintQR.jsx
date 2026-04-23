@@ -59,7 +59,7 @@ export default function PrintQR() {
           ids.map((id) => {
             console.log("REQUESTING ASSET ID:", id);
 
-            return axiosInstance.get(`/api/assets/assets/${id}`);
+            return axiosInstance.get(`/assets/assets/${id}`);
           }),
         );
 
@@ -130,7 +130,7 @@ export default function PrintQR() {
           >
             {/* QR CODE */}
             <img
-              src={`${API_BASE}/api/assets/assets/${asset._id}/qrcode`}
+              src={`${API_BASE}/assets/assets/${asset._id}/qrcode`}
               alt="QR Code"
               className="w-40 h-40"
             />
