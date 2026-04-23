@@ -155,17 +155,48 @@ export default function PropertyTagging() {
   // SCAN HANDLER (INSTANT REDIRECT)
   // =========================
   const handleScan = (data) => {
-    console.log("handleScan called with:", data);
+    console.log("handleScan called with:", data, "Type:", typeof data);
     if (!data || scanLockRef.current) {
       console.log("handleScan blocked: data=", data, "lock=", scanLockRef.current);
       return;
     }
 
+    let assetId = String(data).trim();
+    console.log("Raw scanned data:", assetId);
+
+    // If it's a URL, extract the asset ID from the path
+    if (assetId.includes("/")) {
+      console.log("Detected as URL, extracting asset ID...");
+      // Handle URLs like:
+      // - http://localhost:5173/property-tagging/123abc456
+      // - https://app.com/property-tagging/123abc456
+      // - /property-tagging/123abc456
+      const match = assetId.match(/\/property-tagging\/([a-f\d]{24})/i);
+      if (match && match[1]) {
+        assetId = match[1];
+        console.log("Extracted asset ID from URL:", assetId);
+      } else {
+        console.warn("⚠️ Could not extract valid asset ID from URL:", data);
+        alert(`Invalid QR Code URL format: ${data}`);
+        return;
+      }
+    }
+
+    // Validate if it looks like a MongoDB ID
+    const isValidMongoId = /^[a-f\d]{24}$/i.test(assetId);
+    console.log("Is valid MongoDB ID:", isValidMongoId, "Data:", assetId);
+
+    if (!isValidMongoId) {
+      console.warn("⚠️ QR data is not a valid MongoDB ID:", assetId);
+      alert(`Invalid QR Code format. Expected asset ID, got: ${assetId}`);
+      return;
+    }
+
     scanLockRef.current = true;
-    console.log("Navigating to /property-tagging/" + data);
+    console.log("✅ Navigating to /property-tagging/" + assetId);
 
     setShowScanner(false);
-    navigate(`/property-tagging/${data}`);
+    navigate(`/property-tagging/${assetId}`);
 
     setTimeout(() => {
       scanLockRef.current = false;

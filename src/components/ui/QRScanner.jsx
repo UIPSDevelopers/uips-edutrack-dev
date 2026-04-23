@@ -94,7 +94,10 @@ const QRScanner = forwardRef(({ onScan }, ref) => {
         });
 
         if (code) {
-          console.log("QR Code detected:", code.data);
+          console.log("✅ QR Code detected!");
+          console.log("  Data:", code.data);
+          console.log("  Type:", typeof code.data);
+          console.log("  Length:", code.data.length);
           onScan(code.data);
         }
       }
