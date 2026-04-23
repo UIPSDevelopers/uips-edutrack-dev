@@ -102,7 +102,7 @@ export default function AddAsset() {
 
     try {
       const res = await axiosInstance.post(
-        "assets/asset/create",
+        "asset/assets/create",
         form,
       );
 
