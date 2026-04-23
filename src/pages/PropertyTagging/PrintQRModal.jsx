@@ -68,7 +68,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     });
 
   /* =========================
-     GENERATE PDF (MAX DENSITY LABEL)
+     GENERATE PDF (CORPORATE LABEL)
   ========================= */
   const handleDownloadPDF = async () => {
     if (!assets.length) return;
@@ -86,46 +86,44 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgData = await toBase64(imgUrl);
 
       /* =========================
-       LEFT AREA (QR CENTERED FULLY)
-    ========================= */
+         QR CODE (LEFT AREA CENTERED)
+      ========================= */
+      const qrSize = 21;
+      const leftAreaW = 22;
 
-      const pageW = 50;
-      const pageH = 25;
-
-      const leftAreaW = 22; // reserved space for QR
-      const qrSize = 21; // MAX SAFE SIZE for clean margin
-
-      const qrX = (leftAreaW - qrSize) / 2; // 🔥 horizontal center in left area
-      const qrY = (pageH - qrSize) / 2; // 🔥 vertical center
+      const qrX = (leftAreaW - qrSize) / 2;
+      const qrY = (25 - qrSize) / 2;
 
       pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
       /* =========================
-       RIGHT AREA (TEXT COLUMN)
-    ========================= */
+         RIGHT AREA (TEXT COLUMN - FIXED ALIGNMENT ONLY)
+      ========================= */
 
       const leftBoundary = 24;
       const rightBoundary = 49;
       const centerX = (leftBoundary + rightBoundary) / 2;
 
-      // UIPS (CENTERED BRAND)
+      // ✅ FIXED VERTICAL ALIGNMENT FOR UIPS
+      const brandY = 11;
+
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(20);
 
       const brand = "UIPS";
       const brandWidth = pdf.getTextWidth(brand);
-      pdf.text(brand, centerX - brandWidth / 2, 12);
+      pdf.text(brand, centerX - brandWidth / 2, brandY);
 
-      // Divider line (corporate structure)
+      // ✅ FIXED DIVIDER LINE ALIGNMENT
       pdf.setDrawColor(210);
-      pdf.line(leftBoundary, 9.5, rightBoundary, 9.5);
+      pdf.line(leftBoundary, 13, rightBoundary, 13);
 
-      // SERIAL (PRIMARY DATA)
+      // SERIAL (UNCHANGED)
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(8);
       pdf.text(`${asset.serialNo || "-"}`, leftBoundary, 17);
 
-      // PURCHASE DATE (BLACK AS REQUESTED)
+      // PURCHASE DATE (UNCHANGED - BLACK)
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
@@ -135,12 +133,11 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       pdf.setTextColor(0);
       pdf.text(`PD  ${date}`, leftBoundary, 22);
 
-      /* reset */
       pdf.setTextColor(0);
 
       /* =========================
-       PAGE BREAK
-    ========================= */
+         NEXT PAGE
+      ========================= */
       if (i !== assets.length - 1) {
         pdf.addPage([50, 25], "landscape");
       }
