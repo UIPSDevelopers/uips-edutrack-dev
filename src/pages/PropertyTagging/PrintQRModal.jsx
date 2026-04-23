@@ -110,7 +110,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
       // UIPS (CENTERED BRAND)
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(11);
+      pdf.setFontSize(14);
 
       const brand = "UIPS";
       const brandWidth = pdf.getTextWidth(brand);
@@ -122,7 +122,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
       // SERIAL (PRIMARY DATA)
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(9);
+      pdf.setFontSize(8);
       pdf.text(`${asset.serialNo || "-"}`, leftBoundary, 14);
 
       // PURCHASE DATE (BLACK AS REQUESTED)
@@ -130,7 +130,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
 
-      pdf.setFontSize(7.5);
+      pdf.setFontSize(8);
       pdf.setTextColor(0);
       pdf.text(`PD  ${date}`, leftBoundary, 19);
 
