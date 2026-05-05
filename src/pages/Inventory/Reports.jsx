@@ -10,6 +10,7 @@ import { Download, FileText } from "lucide-react";
 import InventoryTabs from "@/pages/Inventory/InventoryTabs";
 import { generatePDFTemplate } from "@/utils/generatePDFTemplate";
 import axiosInstance from "@/lib/axios";
+import * as XLSX from "xlsx";
 
 export default function Reports() {
   const [from, setFrom] = useState("");
@@ -85,8 +86,8 @@ export default function Reports() {
         const list = Array.isArray(result)
           ? result
           : Array.isArray(result.items)
-          ? result.items
-          : [];
+            ? result.items
+            : [];
 
         setData(list);
         setTotals(null);
@@ -112,6 +113,70 @@ export default function Reports() {
     await fetchReport(1, limit);
   };
 
+  //Export current view to Excel
+  const handleExportCurrentExcel = () => {
+    if (!data.length) {
+      alert("⚠️ No data to export.");
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+    XLSX.writeFile(
+      wb,
+      `${type}_report_current_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
+  };
+
+  //Export ALL to Excel (ignores pagination, respects filters)
+  const handleExportAllExcel = async () => {
+    try {
+      const url = buildUrlForType();
+      const params = { all: true };
+
+      if (from && to) {
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        toDate.setHours(23, 59, 59, 999);
+
+        params.from = fromDate.toISOString();
+        params.to = toDate.toISOString();
+      }
+
+      const res = await axiosInstance.get(url, { params });
+      const result = res.data;
+
+      let list = [];
+
+      if (result.summary && Array.isArray(result.summary)) {
+        list = result.summary;
+      } else if (Array.isArray(result)) {
+        list = result;
+      } else if (Array.isArray(result.items)) {
+        list = result.items;
+      }
+
+      if (!list.length) {
+        alert("⚠️ No data to export.");
+        return;
+      }
+
+      const ws = XLSX.utils.json_to_sheet(list);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+      XLSX.writeFile(
+        wb,
+        `${type}_report_all_${new Date().toISOString().split("T")[0]}.xlsx`,
+      );
+    } catch (err) {
+      console.error("Excel export failed:", err);
+      alert("⚠️ Failed to export Excel file.");
+    }
+  };
+
   // 🧾 Export helper
   const exportRowsToPDF = async (rows, scopeLabel) => {
     if (!rows || rows.length === 0) {
@@ -132,8 +197,8 @@ export default function Reports() {
       tableHeaders.map((col) =>
         typeof item[col] === "object"
           ? JSON.stringify(item[col])
-          : item[col]?.toString() || ""
-      )
+          : item[col]?.toString() || "",
+      ),
     );
 
     const doc = await generatePDFTemplate({
@@ -149,7 +214,7 @@ export default function Reports() {
     doc.save(
       `${type}_report_${scopeLabel}_${
         new Date().toISOString().split("T")[0]
-      }.pdf`
+      }.pdf`,
     );
   };
 
@@ -362,6 +427,21 @@ export default function Reports() {
                     <Download size={16} />
                     Export ALL
                   </Button>
+                  <Button
+                    onClick={handleExportCurrentExcel}
+                    className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                  >
+                    <Download size={16} />
+                    Export Excel (This View)
+                  </Button>
+
+                  <Button
+                    onClick={handleExportAllExcel}
+                    className="bg-green-700 hover:bg-green-800 text-white flex items-center gap-2"
+                  >
+                    <Download size={16} />
+                    Export Excel (ALL)
+                  </Button>
                 </div>
               </div>
             </div>
@@ -391,7 +471,7 @@ export default function Reports() {
                             >
                               {key.replace(/([A-Z])/g, " $1")}
                             </th>
-                          )
+                          ),
                         )}
                         {!Object.keys(data[0]).includes("gradeLevel") &&
                           data.some((r) => r.gradeLevel) && (
