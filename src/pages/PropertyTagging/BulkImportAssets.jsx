@@ -75,8 +75,8 @@ export default function BulkImportAssets() {
       const map = {};
       Object.keys(r).forEach((k) => (map[k.toLowerCase()] = r[k]));
 
-      const category = map.category?.toLowerCase().trim();
-      const location = map.location?.toLowerCase().trim();
+      const category = map.category?.toUpperCase().trim();
+      const location = map.location?.toUpperCase().trim();
 
       const categoryId = categoryMap.get(category) || null;
       const locationId = locationMap.get(location) || null;
