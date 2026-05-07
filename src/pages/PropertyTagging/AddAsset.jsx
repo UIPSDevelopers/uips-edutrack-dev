@@ -11,8 +11,11 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import axiosInstance from "@/lib/axios";
 
 export default function AddAsset() {
@@ -21,7 +24,7 @@ export default function AddAsset() {
     brand: "",
     model: "",
     categoryId: "",
-    locationId: "", // ✅ FIXED (important)
+    locationId: "",
     status: "Active",
     purchaseDate: "",
     serialNo: "",
@@ -29,9 +32,14 @@ export default function AddAsset() {
   });
 
   const [loading, setLoading] = useState(false);
+
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
   const [assets, setAssets] = useState([]);
+
+  // BULK IMPORT STATES
+  const [excelFile, setExcelFile] = useState(null);
+  const [uploadingExcel, setUploadingExcel] = useState(false);
 
   // =========================
   // FETCH CATEGORIES
@@ -82,22 +90,33 @@ export default function AddAsset() {
   }, []);
 
   // =========================
-  // HANDLERS
+  // INPUT HANDLER
   // =========================
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
 
-  const handleSelectChange = (name, value) => {
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // =========================
-  // SUBMIT
+  // SELECT HANDLER
+  // =========================
+  const handleSelectChange = (name, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // =========================
+  // ADD SINGLE ASSET
   // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
 
     try {
@@ -107,7 +126,7 @@ export default function AddAsset() {
 
       alert(`✅ Asset added successfully!\nSerial: ${asset.serialNo}`);
 
-      // reset form
+      // RESET FORM
       setForm({
         assetName: "",
         brand: "",
@@ -123,10 +142,49 @@ export default function AddAsset() {
       fetchAssets();
     } catch (err) {
       console.error(err);
+
       const msg = err.response?.data?.message || "❌ Failed to add asset.";
+
       alert(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // =========================
+  // BULK EXCEL IMPORT
+  // =========================
+  const handleExcelUpload = async () => {
+    if (!excelFile) {
+      return alert("Please select an Excel file.");
+    }
+
+    try {
+      setUploadingExcel(true);
+
+      const formData = new FormData();
+
+      formData.append("file", excelFile);
+
+      const res = await axiosInstance.post("asset/import-excel", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert(`✅ ${res.data.total} assets imported successfully`);
+
+      setExcelFile(null);
+
+      fetchAssets();
+    } catch (err) {
+      console.error(err);
+
+      const msg = err.response?.data?.message || "❌ Failed to import Excel.";
+
+      alert(msg);
+    } finally {
+      setUploadingExcel(false);
     }
   };
 
@@ -134,13 +192,31 @@ export default function AddAsset() {
     <>
       <main className="p-6 space-y-6">
         {/* HEADER */}
-        <div className="flex justify-between items-center mt-4 mb-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 mb-4">
           <h1 className="text-2xl font-semibold text-gray-800">Add Assets</h1>
+
+          {/* BULK IMPORT */}
+          <div className="flex items-center gap-2">
+            <Input
+              type="file"
+              accept=".xlsx,.xls"
+              className="max-w-[250px]"
+              onChange={(e) => setExcelFile(e.target.files[0])}
+            />
+
+            <Button
+              type="button"
+              onClick={handleExcelUpload}
+              disabled={uploadingExcel}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {uploadingExcel ? "Uploading..." : "Bulk Add Assets"}
+            </Button>
+          </div>
         </div>
+
         {/* TABS */}
         <PropertyTaggingTabs />
-
-        {/* HEADER */}
 
         {/* FORM */}
         <Card className="shadow-sm border border-gray-200">
@@ -153,9 +229,10 @@ export default function AddAsset() {
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
               onSubmit={handleSubmit}
             >
-              {/* Asset Name */}
+              {/* ASSET NAME */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Asset Name</label>
+
                 <Input
                   name="assetName"
                   value={form.assetName}
@@ -164,9 +241,10 @@ export default function AddAsset() {
                 />
               </div>
 
-              {/* Brand */}
+              {/* BRAND */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Brand</label>
+
                 <Input
                   name="brand"
                   value={form.brand}
@@ -174,9 +252,10 @@ export default function AddAsset() {
                 />
               </div>
 
-              {/* Model */}
+              {/* MODEL */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Model</label>
+
                 <Input
                   name="model"
                   value={form.model}
@@ -184,9 +263,10 @@ export default function AddAsset() {
                 />
               </div>
 
-              {/* Category */}
+              {/* CATEGORY */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Category</label>
+
                 <Select
                   value={form.categoryId}
                   onValueChange={(val) => handleSelectChange("categoryId", val)}
@@ -194,6 +274,7 @@ export default function AddAsset() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
+
                   <SelectContent>
                     {categories.map((cat) => (
                       <SelectItem key={cat._id} value={cat._id}>
@@ -204,9 +285,10 @@ export default function AddAsset() {
                 </Select>
               </div>
 
-              {/* LOCATION (FIXED → from DB) */}
+              {/* LOCATION */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Location</label>
+
                 <Select
                   value={form.locationId}
                   onValueChange={(val) => handleSelectChange("locationId", val)}
@@ -214,6 +296,7 @@ export default function AddAsset() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select Location" />
                   </SelectTrigger>
+
                   <SelectContent>
                     {locations.map((loc) => (
                       <SelectItem key={loc._id} value={loc._id}>
@@ -224,9 +307,10 @@ export default function AddAsset() {
                 </Select>
               </div>
 
-              {/* Status */}
+              {/* STATUS */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Status</label>
+
                 <Select
                   value={form.status}
                   onValueChange={(val) => handleSelectChange("status", val)}
@@ -234,17 +318,21 @@ export default function AddAsset() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
+
                   <SelectContent>
                     <SelectItem value="Active">Active</SelectItem>
+
                     <SelectItem value="Needs Repair">Needs Repair</SelectItem>
+
                     <SelectItem value="Disposed">Disposed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Purchase Date */}
+              {/* PURCHASE DATE */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Purchase Date</label>
+
                 <Input
                   type="date"
                   name="purchaseDate"
@@ -253,19 +341,10 @@ export default function AddAsset() {
                 />
               </div>
 
-              {/* Serial */}
-              {/* <div className="flex flex-col">
-              <label className="text-sm font-medium">Serial No</label>
-              <Input
-                name="serialNo"
-                value={form.serialNo}
-                onChange={handleChange}
-              />
-            </div> */}
-
-              {/* Remarks */}
+              {/* REMARKS */}
               <div className="flex flex-col md:col-span-2">
                 <label className="text-sm font-medium">Remarks</label>
+
                 <Input
                   name="remarks"
                   value={form.remarks}
@@ -273,7 +352,7 @@ export default function AddAsset() {
                 />
               </div>
 
-              {/* Submit */}
+              {/* SUBMIT */}
               <div className="md:col-span-2 flex justify-end">
                 <Button
                   type="submit"
@@ -298,12 +377,19 @@ export default function AddAsset() {
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border px-2 py-1">Serial</th>
+
                   <th className="border px-2 py-1">Name</th>
+
                   <th className="border px-2 py-1">Category</th>
+
                   <th className="border px-2 py-1">Brand</th>
+
                   <th className="border px-2 py-1">Model</th>
+
                   <th className="border px-2 py-1">Status</th>
+
                   <th className="border px-2 py-1">Purchase Date</th>
+
                   <th className="border px-2 py-1">Location</th>
                 </tr>
               </thead>
@@ -319,18 +405,25 @@ export default function AddAsset() {
                   assets.map((asset) => (
                     <tr key={asset._id}>
                       <td className="border px-2 py-1">{asset.serialNo}</td>
+
                       <td className="border px-2 py-1">{asset.assetName}</td>
+
                       <td className="border px-2 py-1">
                         {asset.categoryId?.name || "-"}
                       </td>
+
                       <td className="border px-2 py-1">{asset.brand || "-"}</td>
+
                       <td className="border px-2 py-1">{asset.model || "-"}</td>
+
                       <td className="border px-2 py-1">{asset.status}</td>
+
                       <td className="border px-2 py-1">
                         {asset.purchaseDate
                           ? new Date(asset.purchaseDate).toLocaleDateString()
                           : "-"}
                       </td>
+
                       <td className="border px-2 py-1">
                         {asset.locationId?.name || "-"}
                       </td>
