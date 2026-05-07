@@ -120,13 +120,24 @@ export default function AddAsset() {
     setLoading(true);
 
     try {
-      const res = await axiosInstance.post("asset/assets", form);
+      const payload = {
+        assetName: form.assetName?.toUpperCase(),
+        brand: form.brand?.toUpperCase(),
+        model: form.model?.toUpperCase(),
+        categoryId: form.categoryId,
+        locationId: form.locationId,
+        status: form.status, // optional: you can also uppercase if you want
+        purchaseDate: form.purchaseDate,
+        serialNo: form.serialNo?.toUpperCase(),
+        remarks: form.remarks?.toUpperCase(),
+      };
+
+      const res = await axiosInstance.post("asset/assets", payload);
 
       const { asset } = res.data;
 
       alert(`✅ Asset added successfully!\nSerial: ${asset.serialNo}`);
 
-      // RESET FORM
       setForm({
         assetName: "",
         brand: "",
@@ -142,10 +153,7 @@ export default function AddAsset() {
       fetchAssets();
     } catch (err) {
       console.error(err);
-
-      const msg = err.response?.data?.message || "❌ Failed to add asset.";
-
-      alert(msg);
+      alert(err.response?.data?.message || "❌ Failed to add asset.");
     } finally {
       setLoading(false);
     }
@@ -320,11 +328,11 @@ export default function AddAsset() {
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Active">ACTIVE</SelectItem>
 
-                    <SelectItem value="Needs Repair">Needs Repair</SelectItem>
+                    <SelectItem value="Needs Repair">BROKEN</SelectItem>
 
-                    <SelectItem value="Disposed">Disposed</SelectItem>
+                    <SelectItem value="Disposed">DISPOSED</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
