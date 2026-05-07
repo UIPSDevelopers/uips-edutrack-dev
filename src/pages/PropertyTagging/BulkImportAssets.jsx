@@ -263,29 +263,72 @@ export default function BulkImportAssets() {
 
           {/* TABLE */}
           {rows.length > 0 && (
-            <div className="border rounded-md overflow-auto max-h-80">
+            <div className="border rounded-md overflow-auto max-h-96">
               <table className="min-w-full text-xs">
-                <thead className="bg-gray-100">
+                <thead className="bg-gray-100 sticky top-0 z-10">
                   <tr>
-                    <th>#</th>
-                    <th>Asset</th>
-                    <th>Category</th>
-                    <th>Location</th>
-                    <th>Status</th>
-                    <th>Errors</th>
+                    <th className="px-2 py-1 border">#</th>
+                    <th className="px-2 py-1 border">Asset Name</th>
+                    <th className="px-2 py-1 border">Brand</th>
+                    <th className="px-2 py-1 border">Model</th>
+                    <th className="px-2 py-1 border">Category</th>
+                    <th className="px-2 py-1 border">Location</th>
+                    <th className="px-2 py-1 border">Status</th>
+                    <th className="px-2 py-1 border">Purchase Date</th>
+                    <th className="px-2 py-1 border">Remarks</th>
+                    <th className="px-2 py-1 border">Validation</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {rows.map((r, i) => (
-                    <tr key={i} className="border-t">
-                      <td>{i + 1}</td>
-                      <td>{r.assetName}</td>
-                      <td>{r.category}</td>
-                      <td>{r.location}</td>
-                      <td>{r.status}</td>
-                      <td className="text-red-600">
-                        {r.__errors.category || r.__errors.location || "OK"}
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="border px-2 py-1">{i + 1}</td>
+
+                      <td className="border px-2 py-1">{r.assetName}</td>
+                      <td className="border px-2 py-1">{r.brand}</td>
+                      <td className="border px-2 py-1">{r.model}</td>
+
+                      {/* CATEGORY */}
+                      <td className="border px-2 py-1">
+                        <span
+                          className={
+                            r.__errors.category
+                              ? "text-red-600"
+                              : "text-green-700"
+                          }
+                        >
+                          {r.category}
+                        </span>
+                      </td>
+
+                      {/* LOCATION */}
+                      <td className="border px-2 py-1">
+                        <span
+                          className={
+                            r.__errors.location
+                              ? "text-red-600"
+                              : "text-green-700"
+                          }
+                        >
+                          {r.location}
+                        </span>
+                      </td>
+
+                      <td className="border px-2 py-1">{r.status}</td>
+                      <td className="border px-2 py-1">{r.purchaseDate}</td>
+                      <td className="border px-2 py-1">{r.remarks}</td>
+
+                      {/* VALIDATION */}
+                      <td className="border px-2 py-1">
+                        {r.__errors.category || r.__errors.location ? (
+                          <div className="text-red-600 space-y-1">
+                            {r.__errors.category && <div>Invalid Category</div>}
+                            {r.__errors.location && <div>Invalid Location</div>}
+                          </div>
+                        ) : (
+                          <span className="text-green-600">Valid</span>
+                        )}
                       </td>
                     </tr>
                   ))}
