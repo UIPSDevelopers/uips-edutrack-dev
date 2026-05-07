@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import axiosInstance from "@/lib/axios";
@@ -36,10 +35,6 @@ export default function AddAsset() {
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
   const [assets, setAssets] = useState([]);
-
-  // BULK IMPORT STATES
-  const [excelFile, setExcelFile] = useState(null);
-  const [uploadingExcel, setUploadingExcel] = useState(false);
 
   // =========================
   // FETCH CATEGORIES
@@ -126,7 +121,7 @@ export default function AddAsset() {
         model: form.model?.toUpperCase(),
         categoryId: form.categoryId,
         locationId: form.locationId,
-        status: form.status, // optional: you can also uppercase if you want
+        status: form.status,
         purchaseDate: form.purchaseDate,
         serialNo: form.serialNo?.toUpperCase(),
         remarks: form.remarks?.toUpperCase(),
@@ -159,68 +154,12 @@ export default function AddAsset() {
     }
   };
 
-  // =========================
-  // BULK EXCEL IMPORT
-  // =========================
-  const handleExcelUpload = async () => {
-    if (!excelFile) {
-      return alert("Please select an Excel file.");
-    }
-
-    try {
-      setUploadingExcel(true);
-
-      const formData = new FormData();
-
-      formData.append("file", excelFile);
-
-      const res = await axiosInstance.post("asset/import-excel", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      alert(`✅ ${res.data.total} assets imported successfully`);
-
-      setExcelFile(null);
-
-      fetchAssets();
-    } catch (err) {
-      console.error(err);
-
-      const msg = err.response?.data?.message || "❌ Failed to import Excel.";
-
-      alert(msg);
-    } finally {
-      setUploadingExcel(false);
-    }
-  };
-
   return (
     <>
       <main className="p-6 space-y-6">
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 mb-4">
           <h1 className="text-2xl font-semibold text-gray-800">Add Assets</h1>
-
-          {/* BULK IMPORT */}
-          <div className="flex items-center gap-2">
-            <Input
-              type="file"
-              accept=".xlsx,.xls"
-              className="max-w-[250px]"
-              onChange={(e) => setExcelFile(e.target.files[0])}
-            />
-
-            <Button
-              type="button"
-              onClick={handleExcelUpload}
-              disabled={uploadingExcel}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {uploadingExcel ? "Uploading..." : "Bulk Add Assets"}
-            </Button>
-          </div>
         </div>
 
         {/* TABS */}
@@ -240,7 +179,6 @@ export default function AddAsset() {
               {/* ASSET NAME */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Asset Name</label>
-
                 <Input
                   name="assetName"
                   value={form.assetName}
@@ -252,7 +190,6 @@ export default function AddAsset() {
               {/* BRAND */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Brand</label>
-
                 <Input
                   name="brand"
                   value={form.brand}
@@ -263,7 +200,6 @@ export default function AddAsset() {
               {/* MODEL */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium">Model</label>
-
                 <Input
                   name="model"
                   value={form.model}
@@ -329,9 +265,7 @@ export default function AddAsset() {
 
                   <SelectContent>
                     <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-
                     <SelectItem value="BROKEN">BROKEN</SelectItem>
-
                     <SelectItem value="DISPOSED">DISPOSED</SelectItem>
                   </SelectContent>
                 </Select>
@@ -385,19 +319,12 @@ export default function AddAsset() {
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border px-2 py-1">Serial</th>
-
                   <th className="border px-2 py-1">Name</th>
-
                   <th className="border px-2 py-1">Category</th>
-
                   <th className="border px-2 py-1">Brand</th>
-
                   <th className="border px-2 py-1">Model</th>
-
                   <th className="border px-2 py-1">Status</th>
-
                   <th className="border px-2 py-1">Purchase Date</th>
-
                   <th className="border px-2 py-1">Location</th>
                 </tr>
               </thead>
@@ -413,25 +340,18 @@ export default function AddAsset() {
                   assets.map((asset) => (
                     <tr key={asset._id}>
                       <td className="border px-2 py-1">{asset.serialNo}</td>
-
                       <td className="border px-2 py-1">{asset.assetName}</td>
-
                       <td className="border px-2 py-1">
                         {asset.categoryId?.name || "-"}
                       </td>
-
                       <td className="border px-2 py-1">{asset.brand || "-"}</td>
-
                       <td className="border px-2 py-1">{asset.model || "-"}</td>
-
                       <td className="border px-2 py-1">{asset.status}</td>
-
                       <td className="border px-2 py-1">
                         {asset.purchaseDate
                           ? new Date(asset.purchaseDate).toLocaleDateString()
                           : "-"}
                       </td>
-
                       <td className="border px-2 py-1">
                         {asset.locationId?.name || "-"}
                       </td>
