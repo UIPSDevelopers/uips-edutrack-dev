@@ -286,9 +286,9 @@ export default function AssetDetails() {
                 onChange={handleEditChange}
                 className="w-full border rounded-md p-2 text-sm"
               >
-                <option value="Active">ACTIVE</option>
-                <option value="Needs Repair">BROKEN</option>
-                <option value="Disposed">DISPOSED</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="BROKEN">BROKEN</option>
+                <option value="DISPOSED">DISPOSED</option>
               </select>
             </div>
 
