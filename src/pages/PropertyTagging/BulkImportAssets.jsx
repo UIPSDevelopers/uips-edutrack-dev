@@ -177,7 +177,7 @@ export default function BulkImportAssets() {
         locationId: r.locationId,
       }));
 
-      const { data } = await axiosInstance.post("/asset/bulk-import", {
+      const { data } = await axiosInstance.post("/assets/bulk-import", {
         assets: payload,
       });
 
