@@ -25,7 +25,7 @@ export default function AddAsset() {
     model: "",
     categoryId: "",
     locationId: "",
-    status: "Active",
+    status: "ACTIVE",
     purchaseDate: "",
     serialNo: "",
     remarks: "",
@@ -144,7 +144,7 @@ export default function AddAsset() {
         model: "",
         categoryId: "",
         locationId: "",
-        status: "Active",
+        status: "ACTIVE",
         purchaseDate: "",
         serialNo: "",
         remarks: "",
@@ -328,11 +328,11 @@ export default function AddAsset() {
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="Active">ACTIVE</SelectItem>
+                    <SelectItem value="ACTIVE">ACTIVE</SelectItem>
 
-                    <SelectItem value="Needs Repair">BROKEN</SelectItem>
+                    <SelectItem value="BROKEN">BROKEN</SelectItem>
 
-                    <SelectItem value="Disposed">DISPOSED</SelectItem>
+                    <SelectItem value="DISPOSED">DISPOSED</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
