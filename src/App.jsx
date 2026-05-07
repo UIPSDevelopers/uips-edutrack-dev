@@ -24,7 +24,7 @@ import AddAsset from "@/pages/PropertyTagging/AddAsset";
 import AddCategory from "@/pages/PropertyTagging/AddCategory";
 import AddLocation from "@/pages/PropertyTagging/AddLocation";
 import AssetDetails from "@/pages/PropertyTagging/AssetDetails";
-import BulkImportAssets from "@/pages/PropertyTagging/BulkImportAssets";
+import BulkImportAssets from "@/pages/PropertyTagging/BulkImportAssets"; //bulk import for assets
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
