@@ -29,6 +29,9 @@ export default function AssetDetails() {
   // =========================
   // EDIT STATES
   // =========================
+  const [editType, setEditType] = useState("");
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   const [editForm, setEditForm] = useState({
     locationId: "",
     status: "",
@@ -73,7 +76,6 @@ export default function AssetDetails() {
           : locationRes.data?.data || [],
       );
 
-      // PREFILL EDIT FORM
       setEditForm({
         locationId: fetchedAsset?.locationId?._id || "",
         status: fetchedAsset?.status || "Active",
@@ -133,6 +135,8 @@ export default function AssetDetails() {
       });
 
       alert("Asset updated successfully");
+
+      setShowEditDialog(false);
 
       fetchAsset();
     } catch (error) {
@@ -225,7 +229,7 @@ export default function AssetDetails() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* VIEW DETAILS */}
+          {/* BASIC INFO */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <strong>Serial:</strong> {asset.serialNo}
@@ -252,66 +256,69 @@ export default function AssetDetails() {
             </div>
           </div>
 
-          {/* EDIT SECTION */}
-          <div className="border rounded-lg p-4 space-y-4">
-            <h2 className="font-semibold text-sm">Edit Asset Information</h2>
-
+          {/* EDITABLE CARDS */}
+          <div className="grid md:grid-cols-3 gap-4">
             {/* LOCATION */}
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Location</label>
+            <div className="border rounded-xl p-4 flex justify-between items-start">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Location</p>
 
-              <select
-                name="locationId"
-                value={editForm.locationId}
-                onChange={handleEditChange}
-                className="w-full border rounded-md p-2 text-sm"
+                <p className="font-medium">{asset.locationId?.name || "-"}</p>
+              </div>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setEditType("location");
+                  setShowEditDialog(true);
+                }}
               >
-                <option value="">Select Location</option>
-
-                {locations.map((loc) => (
-                  <option key={loc._id} value={loc._id}>
-                    {loc.name}
-                  </option>
-                ))}
-              </select>
+                Edit
+              </Button>
             </div>
 
             {/* STATUS */}
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Status</label>
+            <div className="border rounded-xl p-4 flex justify-between items-start">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Status</p>
 
-              <select
-                name="status"
-                value={editForm.status}
-                onChange={handleEditChange}
-                className="w-full border rounded-md p-2 text-sm"
+                <p className="font-medium">{asset.status}</p>
+              </div>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setEditType("status");
+                  setShowEditDialog(true);
+                }}
               >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="BROKEN">BROKEN</option>
-                <option value="DISPOSED">DISPOSED</option>
-              </select>
+                Edit
+              </Button>
             </div>
 
             {/* REMARKS */}
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Remarks</label>
+            <div className="border rounded-xl p-4 flex justify-between items-start">
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1">Remarks</p>
 
-              <textarea
-                name="remarks"
-                value={editForm.remarks}
-                onChange={handleEditChange}
-                className="w-full border rounded-md p-2 text-sm min-h-[100px]"
-                placeholder="Enter remarks..."
-              />
+                <p className="font-medium break-words">
+                  {asset.remarks || "-"}
+                </p>
+              </div>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setEditType("remarks");
+                  setShowEditDialog(true);
+                }}
+              >
+                Edit
+              </Button>
             </div>
-
-            <Button
-              onClick={handleUpdateAsset}
-              disabled={savingEdit}
-              className="bg-[#800000] hover:bg-[#a10000]"
-            >
-              {savingEdit ? "Saving..." : "Save Changes"}
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -364,6 +371,80 @@ export default function AssetDetails() {
         </CardContent>
       </Card>
 
+      {/* EDIT MODAL */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Asset</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* LOCATION */}
+            {editType === "location" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Location</label>
+
+                <select
+                  name="locationId"
+                  value={editForm.locationId}
+                  onChange={handleEditChange}
+                  className="w-full border rounded-md p-2"
+                >
+                  <option value="">Select Location</option>
+
+                  {locations.map((loc) => (
+                    <option key={loc._id} value={loc._id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* STATUS */}
+            {editType === "status" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+
+                <select
+                  name="status"
+                  value={editForm.status}
+                  onChange={handleEditChange}
+                  className="w-full border rounded-md p-2"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Needs Repair">Needs Repair</option>
+                  <option value="Disposed">Disposed</option>
+                </select>
+              </div>
+            )}
+
+            {/* REMARKS */}
+            {editType === "remarks" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Remarks</label>
+
+                <textarea
+                  name="remarks"
+                  value={editForm.remarks}
+                  onChange={handleEditChange}
+                  className="w-full border rounded-md p-2 min-h-[120px]"
+                  placeholder="Enter remarks..."
+                />
+              </div>
+            )}
+
+            <Button
+              onClick={handleUpdateAsset}
+              disabled={savingEdit}
+              className="w-full bg-[#800000] hover:bg-[#a10000]"
+            >
+              {savingEdit ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* ADD SERVICE MODAL */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
@@ -372,7 +453,6 @@ export default function AssetDetails() {
           </DialogHeader>
 
           <div className="space-y-3">
-            {/* SERVICE TYPE */}
             <select
               name="serviceType"
               value={serviceForm.serviceType}
