@@ -55,6 +55,16 @@ export default function PropertyTaggingTabs() {
           <PlusCircle size={16} /> Add Asset
         </TabsTrigger>
 
+        {/* Bulk Import Assets */}
+        <TabsTrigger
+          value="bulk-import"
+          onClick={() => navigate("/property-tagging/bulk-import")}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
+          data-[state=active]:bg-[#800000] data-[state=active]:text-white"
+        >
+          <PlusCircle size={16} /> Bulk Import Assets
+        </TabsTrigger>
+
         {/* Categories (NEW) */}
         <TabsTrigger
           value="categories"

@@ -24,6 +24,7 @@ import AddAsset from "@/pages/PropertyTagging/AddAsset";
 import AddCategory from "@/pages/PropertyTagging/AddCategory";
 import AddLocation from "@/pages/PropertyTagging/AddLocation";
 import AssetDetails from "@/pages/PropertyTagging/AssetDetails";
+import BulkImportAssets from ".@/pages/PropertyTagging/BulkImportAssets";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
@@ -124,6 +125,7 @@ function App() {
             {/* Property Tagging Routes */}
             <Route path="/property-tagging" element={<PropertyTagging />} />
             <Route path="/property-tagging/add-asset" element={<AddAsset />} />
+            <Route path="/property-tagging/bulk-import" element={<BulkImportAssets />} />
             <Route
               path="/property-tagging/add-category"
               element={<AddCategory />}
