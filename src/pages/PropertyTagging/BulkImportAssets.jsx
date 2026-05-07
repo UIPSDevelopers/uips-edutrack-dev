@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import axiosInstance from "@/lib/axios";
+import { toast } from "sonner";
 
 import PropertyTaggingTabs from "@/pages/PropertyTagging/PropertyTaggingTabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -15,7 +16,6 @@ export default function BulkImportAssets() {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [summary, setSummary] = useState(null);
 
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -47,7 +47,7 @@ export default function BulkImportAssets() {
   }, []);
 
   // =========================
-  // MAPS (UPPERCASE MATCHING)
+  // MAPS
   // =========================
   const categoryMap = useMemo(() => {
     const map = new Map();
@@ -66,7 +66,7 @@ export default function BulkImportAssets() {
   }, [locations]);
 
   // =========================
-  // NORMALIZE + VALIDATION (NO ROW SKIP)
+  // NORMALIZE
   // =========================
   const normalize = (data) => {
     return data.map((r, i) => {
@@ -94,7 +94,6 @@ export default function BulkImportAssets() {
 
       return {
         __row: i + 2,
-
         assetName: (map.assetname || "").toString().toUpperCase(),
         brand: (map.brand || "").toString().toUpperCase(),
         model: (map.model || "").toString().toUpperCase(),
@@ -104,7 +103,6 @@ export default function BulkImportAssets() {
 
         category,
         location,
-
         categoryId,
         locationId,
 
@@ -152,7 +150,7 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // IMPORT (ALL ROWS INCLUDED)
+  // IMPORT
   // =========================
   const handleImport = async () => {
     if (!rows.length) return setError("No data");
@@ -181,11 +179,30 @@ export default function BulkImportAssets() {
         assets: payload,
       });
 
-      setSummary(data);
       setRows([]);
       setFileName("");
+
+      // =========================
+      // TOAST SUCCESS
+      // =========================
+      toast.success("Import completed successfully", {
+        description: `${data.count || 0} assets imported.`,
+      });
+
+      // OPTIONAL WARNING
+      if (data.failed > 0) {
+        toast.warning("Some rows failed", {
+          description: `${data.failed} rows were not imported.`,
+        });
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Import failed");
+      const msg = err.response?.data?.message || "Import failed";
+
+      setError(msg);
+
+      toast.error("Import failed", {
+        description: msg,
+      });
     } finally {
       setUploading(false);
     }
@@ -291,7 +308,7 @@ export default function BulkImportAssets() {
 
                 <tbody>
                   {rows.map((r, i) => (
-                    <tr key={i} className="hover:bg-gray-50">
+                    <tr key={i}>
                       <td>{i + 1}</td>
                       <td>{r.assetName}</td>
                       <td>{r.brand}</td>
@@ -341,12 +358,6 @@ export default function BulkImportAssets() {
           >
             {uploading ? "Importing..." : "Import Assets"}
           </Button>
-
-          {summary && (
-            <div className="text-xs text-gray-600">
-              Imported: {summary.count || 0}
-            </div>
-          )}
         </CardContent>
       </Card>
     </main>
