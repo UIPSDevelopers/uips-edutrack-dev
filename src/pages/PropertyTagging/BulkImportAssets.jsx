@@ -57,13 +57,13 @@ export default function BulkImportAssets() {
   // =========================
   const categoryMap = useMemo(() => {
     const map = new Map();
-    categories.forEach((c) => map.set(c.name?.toLowerCase(), c._id));
+    categories.forEach((c) => map.set(c.name?.toUpperCase().trim(), c._id));
     return map;
   }, [categories]);
 
   const locationMap = useMemo(() => {
     const map = new Map();
-    locations.forEach((l) => map.set(l.name?.toLowerCase(), l._id));
+    locations.forEach((l) => map.set(l.name?.toUpperCase().trim(), l._id));
     return map;
   }, [locations]);
 
@@ -75,8 +75,9 @@ export default function BulkImportAssets() {
       const map = {};
       Object.keys(r).forEach((k) => (map[k.toLowerCase()] = r[k]));
 
-      const category = map.category?.toUpperCase().trim();
-      const location = map.location?.toUpperCase().trim();
+      // ✅ FORCE UPPERCASE HERE
+      const category = (map.category || "").toString().toUpperCase().trim();
+      const location = (map.location || "").toString().toUpperCase().trim();
 
       const categoryId = categoryMap.get(category) || null;
       const locationId = locationMap.get(location) || null;
@@ -84,13 +85,14 @@ export default function BulkImportAssets() {
       return {
         __row: i + 2,
 
-        assetName: map.assetname || "",
-        brand: map.brand || "",
-        model: map.model || "",
-        status: map.status || "Active",
+        assetName: (map.assetname || "").toString().toUpperCase(),
+        brand: (map.brand || "").toString().toUpperCase(),
+        model: (map.model || "").toString().toUpperCase(),
+        status: (map.status || "ACTIVE").toString().toUpperCase(),
         purchaseDate: map.purchasedate || "",
-        remarks: map.remarks || "",
+        remarks: (map.remarks || "").toString().toUpperCase(),
 
+        // keep uppercase in table display
         category,
         location,
 
@@ -202,10 +204,10 @@ export default function BulkImportAssets() {
         "Dell",
         "Latitude",
         "IT",
-        "ICT Office",
-        "Active",
+        "ICT OFFICE",
+        "ACTIVE",
         "2026-01-01",
-        "New asset",
+        "NEW ASSET",
       ],
     ]);
 
@@ -230,7 +232,6 @@ export default function BulkImportAssets() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* FILE */}
           <div className="flex gap-3 items-center">
             <label className="cursor-pointer">
               <Input type="file" className="hidden" onChange={handleFile} />
@@ -253,7 +254,6 @@ export default function BulkImportAssets() {
             </Button>
           </div>
 
-          {/* ERROR */}
           {error && (
             <div className="text-xs text-red-600 flex gap-2">
               <AlertTriangle className="w-4 h-4" />
@@ -288,44 +288,15 @@ export default function BulkImportAssets() {
                       <td className="border px-2 py-1">{r.assetName}</td>
                       <td className="border px-2 py-1">{r.brand}</td>
                       <td className="border px-2 py-1">{r.model}</td>
-
-                      {/* CATEGORY */}
-                      <td className="border px-2 py-1">
-                        <span
-                          className={
-                            r.__errors.category
-                              ? "text-red-600"
-                              : "text-green-700"
-                          }
-                        >
-                          {r.category}
-                        </span>
-                      </td>
-
-                      {/* LOCATION */}
-                      <td className="border px-2 py-1">
-                        <span
-                          className={
-                            r.__errors.location
-                              ? "text-red-600"
-                              : "text-green-700"
-                          }
-                        >
-                          {r.location}
-                        </span>
-                      </td>
-
+                      <td className="border px-2 py-1">{r.category}</td>
+                      <td className="border px-2 py-1">{r.location}</td>
                       <td className="border px-2 py-1">{r.status}</td>
                       <td className="border px-2 py-1">{r.purchaseDate}</td>
                       <td className="border px-2 py-1">{r.remarks}</td>
 
-                      {/* VALIDATION */}
                       <td className="border px-2 py-1">
                         {r.__errors.category || r.__errors.location ? (
-                          <div className="text-red-600 space-y-1">
-                            {r.__errors.category && <div>Invalid Category</div>}
-                            {r.__errors.location && <div>Invalid Location</div>}
-                          </div>
+                          <span className="text-red-600">Invalid</span>
                         ) : (
                           <span className="text-green-600">Valid</span>
                         )}
@@ -337,7 +308,6 @@ export default function BulkImportAssets() {
             </div>
           )}
 
-          {/* IMPORT */}
           <Button
             onClick={handleImport}
             disabled={uploading}
@@ -346,7 +316,6 @@ export default function BulkImportAssets() {
             {uploading ? "Importing..." : "Import Assets"}
           </Button>
 
-          {/* SUMMARY */}
           {summary && (
             <div className="text-xs text-gray-600">
               Imported: {summary.count || 0}
