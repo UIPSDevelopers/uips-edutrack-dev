@@ -8,13 +8,7 @@ import PropertyTaggingTabs from "@/pages/PropertyTagging/PropertyTaggingTabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Upload,
-  FileSpreadsheet,
-  AlertTriangle,
-  CheckCircle2,
-  Download,
-} from "lucide-react";
+import { Upload, FileSpreadsheet, AlertTriangle, Download } from "lucide-react";
 
 export default function BulkImportAssets() {
   const [fileName, setFileName] = useState("");
@@ -27,7 +21,7 @@ export default function BulkImportAssets() {
   const [locations, setLocations] = useState([]);
 
   // =========================
-  // SAFE FETCH (FIX .map ERROR)
+  // FETCH DATA
   // =========================
   useEffect(() => {
     const fetchData = async () => {
@@ -53,34 +47,50 @@ export default function BulkImportAssets() {
   }, []);
 
   // =========================
-  // VALIDATION MAPS
+  // MAPS (UPPERCASE MATCHING)
   // =========================
   const categoryMap = useMemo(() => {
     const map = new Map();
-    categories.forEach((c) => map.set(c.name?.toUpperCase().trim(), c._id));
+    categories.forEach((c) =>
+      map.set((c.name || "").toUpperCase().trim(), c._id),
+    );
     return map;
   }, [categories]);
 
   const locationMap = useMemo(() => {
     const map = new Map();
-    locations.forEach((l) => map.set(l.name?.toUpperCase().trim(), l._id));
+    locations.forEach((l) =>
+      map.set((l.name || "").toUpperCase().trim(), l._id),
+    );
     return map;
   }, [locations]);
 
   // =========================
-  // NORMALIZE + REAL-TIME VALIDATION
+  // NORMALIZE + VALIDATION (NO ROW SKIP)
   // =========================
   const normalize = (data) => {
     return data.map((r, i) => {
       const map = {};
       Object.keys(r).forEach((k) => (map[k.toLowerCase()] = r[k]));
 
-      // ✅ FORCE UPPERCASE HERE
       const category = (map.category || "").toString().toUpperCase().trim();
       const location = (map.location || "").toString().toUpperCase().trim();
 
       const categoryId = categoryMap.get(category) || null;
       const locationId = locationMap.get(location) || null;
+
+      const errors = {
+        category: category
+          ? !categoryId
+            ? "Invalid category"
+            : null
+          : "Required",
+        location: location
+          ? !locationId
+            ? "Invalid location"
+            : null
+          : "Required",
+      };
 
       return {
         __row: i + 2,
@@ -92,17 +102,14 @@ export default function BulkImportAssets() {
         purchaseDate: map.purchasedate || "",
         remarks: (map.remarks || "").toString().toUpperCase(),
 
-        // keep uppercase in table display
         category,
         location,
 
         categoryId,
         locationId,
 
-        __errors: {
-          category: !categoryId ? "Invalid category" : null,
-          location: !locationId ? "Invalid location" : null,
-        },
+        __errors: errors,
+        __isValid: !errors.category && !errors.location,
       };
     });
   };
@@ -145,15 +152,15 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // IMPORT (ONLY VALID ROWS)
+  // IMPORT (ALL ROWS INCLUDED)
   // =========================
   const handleImport = async () => {
     if (!rows.length) return setError("No data");
 
-    const invalid = rows.filter((r) => !r.categoryId || !r.locationId);
+    const invalid = rows.filter((r) => !r.__isValid);
 
     if (invalid.length) {
-      return setError("Fix invalid category/location before importing.");
+      return setError("Some rows are invalid. Fix errors before importing.");
     }
 
     try {
@@ -232,6 +239,7 @@ export default function BulkImportAssets() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* FILE */}
           <div className="flex gap-3 items-center">
             <label className="cursor-pointer">
               <Input type="file" className="hidden" onChange={handleFile} />
@@ -254,6 +262,7 @@ export default function BulkImportAssets() {
             </Button>
           </div>
 
+          {/* ERROR */}
           {error && (
             <div className="text-xs text-red-600 flex gap-2">
               <AlertTriangle className="w-4 h-4" />
@@ -267,39 +276,49 @@ export default function BulkImportAssets() {
               <table className="min-w-full text-xs">
                 <thead className="bg-gray-100 sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 py-1 border">#</th>
-                    <th className="px-2 py-1 border">Asset Name</th>
-                    <th className="px-2 py-1 border">Brand</th>
-                    <th className="px-2 py-1 border">Model</th>
-                    <th className="px-2 py-1 border">Category</th>
-                    <th className="px-2 py-1 border">Location</th>
-                    <th className="px-2 py-1 border">Status</th>
-                    <th className="px-2 py-1 border">Purchase Date</th>
-                    <th className="px-2 py-1 border">Remarks</th>
-                    <th className="px-2 py-1 border">Validation</th>
+                    <th>#</th>
+                    <th>Asset</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Purchase</th>
+                    <th>Remarks</th>
+                    <th>Errors</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {rows.map((r, i) => (
                     <tr key={i} className="hover:bg-gray-50">
-                      <td className="border px-2 py-1">{i + 1}</td>
-
-                      <td className="border px-2 py-1">{r.assetName}</td>
-                      <td className="border px-2 py-1">{r.brand}</td>
-                      <td className="border px-2 py-1">{r.model}</td>
-                      <td className="border px-2 py-1">{r.category}</td>
-                      <td className="border px-2 py-1">{r.location}</td>
-                      <td className="border px-2 py-1">{r.status}</td>
-                      <td className="border px-2 py-1">{r.purchaseDate}</td>
-                      <td className="border px-2 py-1">{r.remarks}</td>
-
-                      <td className="border px-2 py-1">
-                        {r.__errors.category || r.__errors.location ? (
-                          <span className="text-red-600">Invalid</span>
-                        ) : (
-                          <span className="text-green-600">Valid</span>
-                        )}
+                      <td>{i + 1}</td>
+                      <td>{r.assetName}</td>
+                      <td>{r.brand}</td>
+                      <td>{r.model}</td>
+                      <td
+                        className={
+                          !r.__errors.category
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {r.category}
+                      </td>
+                      <td
+                        className={
+                          !r.__errors.location
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {r.location}
+                      </td>
+                      <td>{r.status}</td>
+                      <td>{r.purchaseDate}</td>
+                      <td>{r.remarks}</td>
+                      <td className="text-red-600">
+                        {r.__errors.category || r.__errors.location || "OK"}
                       </td>
                     </tr>
                   ))}
@@ -308,6 +327,7 @@ export default function BulkImportAssets() {
             </div>
           )}
 
+          {/* IMPORT */}
           <Button
             onClick={handleImport}
             disabled={uploading}
