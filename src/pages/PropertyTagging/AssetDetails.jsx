@@ -58,7 +58,7 @@ export default function AssetDetails() {
       setLoading(true);
 
       const [assetRes, locationRes] = await Promise.all([
-        axiosInstance.get(`/property-tagging/assets/${id}`),
+        axiosInstance.get(`/asset/assets/${id}`),
         axiosInstance.get("/locations"),
       ]);
 
@@ -126,7 +126,7 @@ export default function AssetDetails() {
     try {
       setSavingEdit(true);
 
-      await axiosInstance.put(`/property-tagging/assets/${id}`, {
+      await axiosInstance.put(`/asset/assets/${id}`, {
         locationId: editForm.locationId,
         status: editForm.status,
         remarks: editForm.remarks,
@@ -159,7 +159,7 @@ export default function AssetDetails() {
         return;
       }
 
-      await axiosInstance.post(`/property-tagging/assets/${id}/service`, {
+      await axiosInstance.post(`/asset/assets/${id}/service`, {
         serviceType: serviceForm.serviceType,
         description: serviceForm.description || "",
         cost: Number(serviceForm.cost || 0),
