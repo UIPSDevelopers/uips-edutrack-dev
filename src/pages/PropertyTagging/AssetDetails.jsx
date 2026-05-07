@@ -24,6 +24,22 @@ export default function AssetDetails() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [locations, setLocations] = useState([]);
+
+  // =========================
+  // EDIT STATES
+  // =========================
+  const [editForm, setEditForm] = useState({
+    locationId: "",
+    status: "",
+    remarks: "",
+  });
+
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // =========================
+  // SERVICE MODAL
+  // =========================
   const [showDialog, setShowDialog] = useState(false);
 
   const [serviceForm, setServiceForm] = useState({
@@ -41,15 +57,34 @@ export default function AssetDetails() {
     try {
       setLoading(true);
 
-      const res = await axiosInstance.get(`/property-tagging/assets/${id}`);
+      const [assetRes, locationRes] = await Promise.all([
+        axiosInstance.get(`/property-tagging/assets/${id}`),
+        axiosInstance.get("/locations"),
+      ]);
 
-      setAsset(res.data.asset || null);
-      setServices(res.data.services || []);
+      const fetchedAsset = assetRes.data.asset || null;
+
+      setAsset(fetchedAsset);
+      setServices(assetRes.data.services || []);
+
+      setLocations(
+        Array.isArray(locationRes.data)
+          ? locationRes.data
+          : locationRes.data?.data || [],
+      );
+
+      // PREFILL EDIT FORM
+      setEditForm({
+        locationId: fetchedAsset?.locationId?._id || "",
+        status: fetchedAsset?.status || "Active",
+        remarks: fetchedAsset?.remarks || "",
+      });
     } catch (error) {
       console.error(
         "Error fetching asset:",
         error?.response?.data || error.message,
       );
+
       setAsset(null);
     } finally {
       setLoading(false);
@@ -73,6 +108,43 @@ export default function AssetDetails() {
   };
 
   // =========================
+  // EDIT HANDLER
+  // =========================
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // =========================
+  // UPDATE ASSET
+  // =========================
+  const handleUpdateAsset = async () => {
+    try {
+      setSavingEdit(true);
+
+      await axiosInstance.put(`/property-tagging/assets/${id}`, {
+        locationId: editForm.locationId,
+        status: editForm.status,
+        remarks: editForm.remarks,
+      });
+
+      alert("Asset updated successfully");
+
+      fetchAsset();
+    } catch (error) {
+      console.error("Update asset error:", error);
+
+      alert(error?.response?.data?.message || "Failed to update asset");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // =========================
   // VALID SERVICE TYPES
   // =========================
   const allowedTypes = ["Cleaning", "Repair", "Maintenance", "Inspection"];
@@ -93,7 +165,6 @@ export default function AssetDetails() {
         cost: Number(serviceForm.cost || 0),
         performedBy: serviceForm.performedBy || "N/A",
 
-        // ✅ FIX DATE HANDLING
         serviceDate: serviceForm.serviceDate
           ? new Date(serviceForm.serviceDate).toISOString()
           : new Date().toISOString(),
@@ -112,6 +183,7 @@ export default function AssetDetails() {
       fetchAsset();
     } catch (error) {
       console.error("Error adding service:", error);
+
       alert(error?.response?.data?.message || "Failed to add service");
     }
   };
@@ -121,7 +193,9 @@ export default function AssetDetails() {
   // =========================
   const formatDate = (date) => {
     if (!date) return "-";
+
     const d = new Date(date);
+
     return isNaN(d.getTime()) ? "-" : d.toLocaleDateString();
   };
 
@@ -130,7 +204,9 @@ export default function AssetDetails() {
   // =========================
   if (loading) return <p className="p-6">Loading asset...</p>;
 
-  if (!asset) return <p className="p-6 text-red-500">Asset not found</p>;
+  if (!asset) {
+    return <p className="p-6 text-red-500">Asset not found</p>;
+  }
 
   // =========================
   // UI
@@ -148,30 +224,94 @@ export default function AssetDetails() {
           <CardTitle>Asset Details</CardTitle>
         </CardHeader>
 
-        <CardContent className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <strong>Serial:</strong> {asset.serialNo}
+        <CardContent className="space-y-6">
+          {/* VIEW DETAILS */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <strong>Serial:</strong> {asset.serialNo}
+            </div>
+
+            <div>
+              <strong>Name:</strong> {asset.assetName}
+            </div>
+
+            <div>
+              <strong>Category:</strong> {asset.categoryId?.name || "-"}
+            </div>
+
+            <div>
+              <strong>Brand:</strong> {asset.brand || "-"}
+            </div>
+
+            <div>
+              <strong>Model:</strong> {asset.model || "-"}
+            </div>
+
+            <div>
+              <strong>Purchase:</strong> {formatDate(asset.purchaseDate)}
+            </div>
           </div>
-          <div>
-            <strong>Name:</strong> {asset.assetName}
-          </div>
-          <div>
-            <strong>Category:</strong> {asset.categoryId?.name || "-"}
-          </div>
-          <div>
-            <strong>Location:</strong> {asset.locationId?.name || "-"}
-          </div>
-          <div>
-            <strong>Brand:</strong> {asset.brand || "-"}
-          </div>
-          <div>
-            <strong>Model:</strong> {asset.model || "-"}
-          </div>
-          <div>
-            <strong>Status:</strong> {asset.status}
-          </div>
-          <div>
-            <strong>Purchase:</strong> {formatDate(asset.purchaseDate)}
+
+          {/* EDIT SECTION */}
+          <div className="border rounded-lg p-4 space-y-4">
+            <h2 className="font-semibold text-sm">Edit Asset Information</h2>
+
+            {/* LOCATION */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium">Location</label>
+
+              <select
+                name="locationId"
+                value={editForm.locationId}
+                onChange={handleEditChange}
+                className="w-full border rounded-md p-2 text-sm"
+              >
+                <option value="">Select Location</option>
+
+                {locations.map((loc) => (
+                  <option key={loc._id} value={loc._id}>
+                    {loc.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* STATUS */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium">Status</label>
+
+              <select
+                name="status"
+                value={editForm.status}
+                onChange={handleEditChange}
+                className="w-full border rounded-md p-2 text-sm"
+              >
+                <option value="Active">Active</option>
+                <option value="Needs Repair">Needs Repair</option>
+                <option value="Disposed">Disposed</option>
+              </select>
+            </div>
+
+            {/* REMARKS */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium">Remarks</label>
+
+              <textarea
+                name="remarks"
+                value={editForm.remarks}
+                onChange={handleEditChange}
+                className="w-full border rounded-md p-2 text-sm min-h-[100px]"
+                placeholder="Enter remarks..."
+              />
+            </div>
+
+            <Button
+              onClick={handleUpdateAsset}
+              disabled={savingEdit}
+              className="bg-[#800000] hover:bg-[#a10000]"
+            >
+              {savingEdit ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -208,9 +348,13 @@ export default function AssetDetails() {
                 {services.map((s) => (
                   <tr key={s._id} className="border-b">
                     <td className="p-3">{s.serviceType}</td>
+
                     <td className="p-3">{s.description}</td>
+
                     <td className="p-3">{s.cost ? `AED ${s.cost}` : "-"}</td>
+
                     <td className="p-3">{s.performedBy}</td>
+
                     <td className="p-3">{formatDate(s.serviceDate)}</td>
                   </tr>
                 ))}
@@ -236,6 +380,7 @@ export default function AssetDetails() {
               className="w-full border p-2 rounded"
             >
               <option value="">Select Service Type</option>
+
               {allowedTypes.map((type) => (
                 <option key={type} value={type}>
                   {type}
