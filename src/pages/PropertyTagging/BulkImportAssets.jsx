@@ -317,7 +317,13 @@ export default function BulkImportAssets() {
                       <td>{r.status}</td>
                       <td>{r.purchaseDate}</td>
                       <td>{r.remarks}</td>
-                      <td className="text-red-600">
+                      <td
+                        className={
+                          r.__errors.category || r.__errors.location
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }
+                      >
                         {r.__errors.category || r.__errors.location || "OK"}
                       </td>
                     </tr>
