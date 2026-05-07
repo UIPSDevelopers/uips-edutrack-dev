@@ -25,6 +25,7 @@ export default function BulkImportAssets() {
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [importSummary, setImportSummary] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // =========================
   // REQUIRED HEADERS
@@ -35,13 +36,10 @@ export default function BulkImportAssets() {
   // NORMALIZE
   // =========================
   const normalizeAndValidate = (rawRows) => {
-    if (!rawRows?.length) {
-      throw new Error("No data rows found.");
-    }
+    if (!rawRows?.length) throw new Error("No data rows found.");
 
     const normalized = rawRows.map((row, idx) => {
       const lower = {};
-
       Object.keys(row || {}).forEach((k) => {
         lower[k.toLowerCase()] = row[k];
       });
@@ -59,9 +57,9 @@ export default function BulkImportAssets() {
       };
     });
 
-    const hasValid = normalized.some((r) => r.categoryCode || r.assetName);
+    const valid = normalized.some((r) => r.categoryCode || r.assetName);
 
-    if (!hasValid) throw new Error("No valid rows found.");
+    if (!valid) throw new Error("No valid rows found.");
 
     return normalized;
   };
@@ -76,6 +74,18 @@ export default function BulkImportAssets() {
 
     if (!json.length) throw new Error("Excel is empty.");
 
+    const headers = Object.keys(json[0]).map((h) =>
+      h?.toString().trim().toLowerCase(),
+    );
+
+    const missing = requiredHeaders.filter(
+      (h) => !headers.includes(h.toLowerCase()),
+    );
+
+    if (missing.length) {
+      throw new Error(`Missing columns: ${missing.join(", ")}`);
+    }
+
     return normalizeAndValidate(json);
   };
 
@@ -83,7 +93,7 @@ export default function BulkImportAssets() {
   // TEMPLATE
   // =========================
   const handleDownloadTemplate = () => {
-    const data = [
+    const wsData = [
       [
         "categoryCode",
         "assetName",
@@ -97,7 +107,7 @@ export default function BulkImportAssets() {
       ["IT", "Laptop", "Dell", "Latitude", "ICT", "2026-01-01", "Active", ""],
     ];
 
-    const ws = XLSX.utils.aoa_to_sheet(data);
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Assets");
 
@@ -105,7 +115,7 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // FILE UPLOAD
+  // FILE CHANGE
   // =========================
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -115,6 +125,7 @@ export default function BulkImportAssets() {
     setRows([]);
     setImportSummary(null);
     setFileName(file.name);
+    setSelectedFile(file);
 
     const reader = new FileReader();
 
@@ -131,7 +142,7 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // IMPORT (REAL BACKEND)
+  // IMPORT
   // =========================
   const handleImport = async () => {
     if (!rows.length) {
@@ -167,10 +178,11 @@ export default function BulkImportAssets() {
         failed: 0,
       });
 
-      alert(`Imported ${data.assets.length} assets`);
+      alert(`Successfully imported ${data.assets.length} assets`);
 
       setRows([]);
       setFileName("");
+      setSelectedFile(null);
     } catch (err) {
       setError(err.response?.data?.message || "Import failed");
     } finally {
@@ -179,25 +191,26 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // CLEAN TABLE STYLE
+  // TABLE STYLE (MATCH INVENTORY LOOK)
   // =========================
-  const tableCell = "px-3 py-2 border-b text-xs text-gray-700";
-  const headerCell =
-    "px-3 py-2 text-left text-xs font-semibold text-gray-600 bg-gray-100";
+  const th = "border px-2 py-1 text-left bg-gray-100 text-xs";
+  const td = "border px-2 py-1 text-xs";
 
   return (
     <main className="p-6 space-y-6">
-      <div className="flex justify-between">
-        <h1 className="text-2xl font-semibold">Bulk Import Assets</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Bulk Import Assets
+        </h1>
       </div>
 
       <PropertyTaggingTabs />
 
-      <Card>
+      <Card className="border border-gray-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
+          <CardTitle className="text-sm text-gray-500 flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4" />
-            Upload Excel
+            Upload Excel File
           </CardTitle>
         </CardHeader>
 
@@ -206,7 +219,7 @@ export default function BulkImportAssets() {
           <div className="space-y-2">
             <p className="text-xs text-gray-500">Required columns:</p>
 
-            <div className="text-[11px] bg-gray-100 p-2 rounded font-mono">
+            <div className="bg-gray-100 p-2 text-[11px] font-mono rounded">
               categoryCode, assetName, brand, model, locationName, purchaseDate,
               status, remarks
             </div>
@@ -217,7 +230,7 @@ export default function BulkImportAssets() {
               className="bg-white border text-xs"
             >
               <Download className="w-3 h-3 mr-1" />
-              Template
+              Download Template
             </Button>
           </div>
 
@@ -225,7 +238,7 @@ export default function BulkImportAssets() {
           <Input type="file" accept=".xlsx,.xls" onChange={handleFileChange} />
 
           {fileName && (
-            <p className="text-xs text-gray-600">File: {fileName}</p>
+            <p className="text-xs text-gray-600">Selected: {fileName}</p>
           )}
 
           {/* ERROR */}
@@ -238,34 +251,34 @@ export default function BulkImportAssets() {
 
           {/* TABLE */}
           {rows.length > 0 && (
-            <div className="border rounded-md overflow-hidden">
+            <div className="border rounded-md overflow-auto max-h-80">
               <table className="w-full">
                 <thead>
                   <tr>
-                    <th className={headerCell}>#</th>
-                    <th className={headerCell}>Category</th>
-                    <th className={headerCell}>Asset</th>
-                    <th className={headerCell}>Brand</th>
-                    <th className={headerCell}>Model</th>
-                    <th className={headerCell}>Location</th>
-                    <th className={headerCell}>Purchase</th>
-                    <th className={headerCell}>Status</th>
-                    <th className={headerCell}>Remarks</th>
+                    <th className={th}>#</th>
+                    <th className={th}>Category</th>
+                    <th className={th}>Asset</th>
+                    <th className={th}>Brand</th>
+                    <th className={th}>Model</th>
+                    <th className={th}>Location</th>
+                    <th className={th}>Purchase</th>
+                    <th className={th}>Status</th>
+                    <th className={th}>Remarks</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {rows.map((r, i) => (
-                    <tr key={i} className="hover:bg-gray-50">
-                      <td className={tableCell}>{i + 1}</td>
-                      <td className={tableCell}>{r.categoryCode}</td>
-                      <td className={tableCell}>{r.assetName}</td>
-                      <td className={tableCell}>{r.brand}</td>
-                      <td className={tableCell}>{r.model}</td>
-                      <td className={tableCell}>{r.locationName}</td>
-                      <td className={tableCell}>{r.purchaseDate}</td>
-                      <td className={tableCell}>{r.status}</td>
-                      <td className={tableCell}>{r.remarks}</td>
+                    <tr key={i}>
+                      <td className={td}>{i + 1}</td>
+                      <td className={td}>{r.categoryCode}</td>
+                      <td className={td}>{r.assetName}</td>
+                      <td className={td}>{r.brand}</td>
+                      <td className={td}>{r.model}</td>
+                      <td className={td}>{r.locationName}</td>
+                      <td className={td}>{r.purchaseDate}</td>
+                      <td className={td}>{r.status}</td>
+                      <td className={td}>{r.remarks}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -273,7 +286,7 @@ export default function BulkImportAssets() {
             </div>
           )}
 
-          {/* IMPORT */}
+          {/* IMPORT BUTTON */}
           {rows.length > 0 && (
             <Button
               onClick={handleImport}
