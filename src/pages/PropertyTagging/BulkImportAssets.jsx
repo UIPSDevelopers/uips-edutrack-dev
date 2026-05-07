@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 
-import PropertyTaggingTabs from "@pages/PropertyTagging/PropertyTaggingTabs";
+import PropertyTaggingTabs from "@/pages/PropertyTagging/PropertyTaggingTabs";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
