@@ -27,16 +27,16 @@ export default function BulkImportAssets() {
   const [importSummary, setImportSummary] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // REQUIRED HEADERS (NO quantity anymore)
+  // REQUIRED HEADERS (NO quantity)
   const requiredHeaders = ["categoryCode", "assetName"];
 
   // =========================
   // NORMALIZE DATA
   // =========================
   const normalizeAndValidate = (rawRows) => {
-    if (!rawRows?.length) throw new Error("No data found.");
+    if (!rawRows?.length) throw new Error("No data rows found.");
 
-    const normalized = rawRows.map((row, idx) => {
+    return rawRows.map((row, idx) => {
       const map = {};
 
       Object.keys(row || {}).forEach((k) => {
@@ -55,11 +55,6 @@ export default function BulkImportAssets() {
         remarks: map["remarks"] || "",
       };
     });
-
-    const hasValid = normalized.some((r) => r.categoryCode || r.assetName);
-    if (!hasValid) throw new Error("No valid rows found.");
-
-    return normalized;
   };
 
   // =========================
@@ -70,7 +65,7 @@ export default function BulkImportAssets() {
     const sheet = wb.Sheets[wb.SheetNames[0]];
     const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-    if (!json.length) throw new Error("Excel is empty.");
+    if (!json.length) throw new Error("Excel sheet is empty.");
 
     const headers = Object.keys(json[0]).map((h) => h.toLowerCase());
 
@@ -115,7 +110,7 @@ export default function BulkImportAssets() {
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Assets");
-    XLSX.writeFile(wb, "assets_template.xlsx");
+    XLSX.writeFile(wb, "edutrack_assets_template.xlsx");
   };
 
   // =========================
@@ -135,8 +130,7 @@ export default function BulkImportAssets() {
 
     reader.onload = (ev) => {
       try {
-        const parsed = parseExcel(ev.target.result);
-        setRows(parsed);
+        setRows(parseExcel(ev.target.result));
       } catch (err) {
         setError(err.message);
       }
@@ -169,11 +163,11 @@ export default function BulkImportAssets() {
         failed: 0,
       });
 
-      setRows([]);
-      setSelectedFile(null);
-      setFileName("");
-
       alert(`Imported ${data.total || rows.length} assets`);
+
+      setRows([]);
+      setFileName("");
+      setSelectedFile(null);
     } catch (err) {
       setError(err.response?.data?.message || "Import failed");
     } finally {
@@ -182,12 +176,11 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // UI
+  // UI (COPY INVENTORY STYLE EXACTLY)
   // =========================
   return (
     <main className="p-6 space-y-6">
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-800">
           Bulk Import Assets
         </h1>
@@ -195,28 +188,29 @@ export default function BulkImportAssets() {
 
       <PropertyTaggingTabs />
 
-      <Card className="border border-gray-200 shadow-sm">
+      <Card className="border border-gray-200 shadow-sm mt-4">
         <CardHeader>
           <CardTitle className="text-sm text-gray-500 flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4" />
-            Upload Excel File
+            Upload CSV / Excel File
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-4">
           {/* TEMPLATE */}
-          <div className="flex items-center justify-between">
+          <div className="space-y-2">
             <p className="text-xs text-gray-500">
-              Required: categoryCode, assetName
+              Required columns: categoryCode, assetName
             </p>
 
             <Button
-              onClick={handleDownloadTemplate}
+              type="button"
               size="sm"
-              className="bg-white border text-gray-700 hover:bg-gray-50 flex items-center gap-1"
+              onClick={handleDownloadTemplate}
+              className="bg-white border text-xs flex items-center gap-1 hover:bg-gray-50 text-gray-700"
             >
               <Download className="w-3 h-3" />
-              Template
+              Download Template
             </Button>
           </div>
 
@@ -225,10 +219,12 @@ export default function BulkImportAssets() {
             <label className="cursor-pointer">
               <Input
                 type="file"
+                accept=".xlsx,.xls"
                 className="hidden"
                 onChange={handleFileChange}
               />
-              <span className="px-3 py-2 border rounded-md text-sm flex items-center gap-2 hover:bg-gray-50">
+
+              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white text-sm hover:bg-gray-50">
                 <Upload className="w-4 h-4" />
                 Choose File
               </span>
@@ -251,9 +247,7 @@ export default function BulkImportAssets() {
           {rows.length > 0 && (
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <p className="text-xs text-gray-600">
-                  {rows.length} row(s) ready
-                </p>
+                <p className="text-xs text-gray-600">{rows.length} row(s)</p>
 
                 <Button
                   onClick={handleImport}
@@ -261,13 +255,13 @@ export default function BulkImportAssets() {
                   className="bg-[#800000] hover:bg-[#a10000] text-white"
                 >
                   <CheckCircle2 className="w-4 h-4 mr-1" />
-                  {uploading ? "Importing..." : "Import"}
+                  {uploading ? "Importing..." : "Import Assets"}
                 </Button>
               </div>
 
-              {/* TABLE (clean UI) */}
+              {/* TABLE (SAME STYLE AS INVENTORY) */}
               <div className="border rounded-md overflow-auto max-h-80">
-                <table className="w-full text-xs">
+                <table className="min-w-full text-xs">
                   <thead className="bg-gray-100">
                     <tr>
                       <th className="p-2 text-left">#</th>
