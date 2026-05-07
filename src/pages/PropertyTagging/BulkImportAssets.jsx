@@ -175,39 +175,44 @@ export default function BulkImportAssets() {
         locationId: r.locationId,
       }));
 
-      const { data } = await axiosInstance.post("/asset/assets/bulk-create", {
+      const res = await axiosInstance.post("/asset/assets/bulk-create", {
         assets: payload,
       });
 
+      const data = res.data; // 👈 IMPORTANT FIX
+
       setRows([]);
       setFileName("");
+      setError("");
 
-      // =========================
-      // TOAST SUCCESS
-      // =========================
+      // DEBUG (optional but helpful)
+      console.log("IMPORT RESPONSE:", data);
+
+      // SUCCESS TOAST (always fires if request succeeds)
       toast.success("Import completed successfully", {
-        description: `${data.count || 0} assets imported.`,
+        description: `${data?.count ?? 0} assets imported.`,
       });
 
-      // OPTIONAL WARNING
-      if (data.failed > 0) {
+      // WARNINGS
+      if (data?.failed > 0) {
         toast.warning("Some rows failed", {
           description: `${data.failed} rows were not imported.`,
         });
       }
     } catch (err) {
-      const msg = err.response?.data?.message || "Import failed";
+      const msg = err?.response?.data?.message || "Import failed";
 
       setError(msg);
 
       toast.error("Import failed", {
         description: msg,
       });
+
+      console.error("IMPORT ERROR:", err);
     } finally {
       setUploading(false);
     }
   };
-
   // =========================
   // TEMPLATE
   // =========================
