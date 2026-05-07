@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import axiosInstance from "@/lib/axios";
 
@@ -8,10 +8,13 @@ import PropertyTaggingTabs from "@/pages/PropertyTagging/PropertyTaggingTabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-import { Upload, FileSpreadsheet, AlertTriangle, Download } from "lucide-react";
-
-const STATUS_OPTIONS = ["Active", "Needs Repair", "Disposed"];
+import {
+  Upload,
+  FileSpreadsheet,
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+} from "lucide-react";
 
 export default function BulkImportAssets() {
   const [fileName, setFileName] = useState("");
@@ -23,21 +26,8 @@ export default function BulkImportAssets() {
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
 
-  const [hasErrors, setHasErrors] = useState(false);
-
-  const requiredHeaders = [
-    "assetname",
-    "brand",
-    "model",
-    "category",
-    "location",
-    "status",
-    "purchasedate",
-    "remarks",
-  ];
-
   // =========================
-  // FETCH CATEGORY + LOCATION
+  // SAFE FETCH (FIX .map ERROR)
   // =========================
   useEffect(() => {
     const fetchData = async () => {
@@ -46,76 +36,77 @@ export default function BulkImportAssets() {
           axiosInstance.get("/categories"),
           axiosInstance.get("/locations"),
         ]);
-        setCategories(catRes.data || []);
-        setLocations(locRes.data || []);
-      } catch (e) {
-        console.error(e);
+
+        setCategories(
+          Array.isArray(catRes.data) ? catRes.data : catRes.data?.data || [],
+        );
+
+        setLocations(
+          Array.isArray(locRes.data) ? locRes.data : locRes.data?.data || [],
+        );
+      } catch (err) {
+        console.error("Fetch error:", err);
       }
     };
+
     fetchData();
   }, []);
 
   // =========================
-  // NORMALIZE + VALIDATE
+  // VALIDATION MAPS
   // =========================
-  const validateRows = (data) => {
-    const categoryNames = categories.map((c) => (c.name || "").toLowerCase());
+  const categoryMap = useMemo(() => {
+    const map = new Map();
+    categories.forEach((c) => map.set(c.name?.toLowerCase(), c._id));
+    return map;
+  }, [categories]);
 
-    const locationNames = locations.map((l) => (l.name || "").toLowerCase());
+  const locationMap = useMemo(() => {
+    const map = new Map();
+    locations.forEach((l) => map.set(l.name?.toLowerCase(), l._id));
+    return map;
+  }, [locations]);
 
-    let errorFound = false;
-
-    const validated = data.map((r, i) => {
-      const errors = [];
-
-      if (!r.assetName) errors.push("Missing asset name");
-
-      if (!categoryNames.includes((r.category || "").toLowerCase())) {
-        errors.push("Invalid category");
-      }
-
-      if (!locationNames.includes((r.location || "").toLowerCase())) {
-        errors.push("Invalid location");
-      }
-
-      if (!STATUS_OPTIONS.includes(r.status)) {
-        errors.push("Invalid status");
-      }
-
-      if (errors.length) errorFound = true;
-
-      return {
-        ...r,
-        __row: i + 2,
-        __errors: errors,
-        __valid: errors.length === 0,
-      };
-    });
-
-    setHasErrors(errorFound);
-    return validated;
-  };
-
+  // =========================
+  // NORMALIZE + REAL-TIME VALIDATION
+  // =========================
   const normalize = (data) => {
-    return data.map((r) => {
+    return data.map((r, i) => {
       const map = {};
       Object.keys(r).forEach((k) => (map[k.toLowerCase()] = r[k]));
 
+      const category = map.category?.toLowerCase().trim();
+      const location = map.location?.toLowerCase().trim();
+
+      const categoryId = categoryMap.get(category) || null;
+      const locationId = locationMap.get(location) || null;
+
       return {
+        __row: i + 2,
+
         assetName: map.assetname || "",
         brand: map.brand || "",
         model: map.model || "",
-        category: map.category || "",
-        location: map.location || "",
         status: map.status || "Active",
         purchaseDate: map.purchasedate || "",
         remarks: map.remarks || "",
+
+        category,
+        location,
+
+        categoryId,
+        locationId,
+
+        __errors: {
+          category: !categoryId ? "Invalid category" : null,
+          location: !locationId ? "Invalid location" : null,
+        },
       };
     });
   };
 
   // =========================
-  // PARSE EXCEL
+  // EXCEL PARSER
   // =========================
   const parseExcel = (buffer) => {
     const wb = XLSX.read(buffer, { type: "array" });
@@ -124,18 +115,11 @@ export default function BulkImportAssets() {
 
     if (!json.length) throw new Error("Empty file");
 
-    const headers = Object.keys(json[0]).map((h) => h.toLowerCase());
-
-    const missing = requiredHeaders.filter((h) => !headers.includes(h));
-    if (missing.length) {
-      throw new Error("Missing: " + missing.join(", "));
-    }
-
     return normalize(json);
   };
 
   // =========================
-  // FILE UPLOAD
+  // FILE HANDLER
   // =========================
   const handleFile = (e) => {
     const file = e.target.files?.[0];
@@ -143,16 +127,13 @@ export default function BulkImportAssets() {
 
     setFileName(file.name);
     setError("");
-    setRows([]);
-    setSummary(null);
 
     const reader = new FileReader();
 
     reader.onload = (ev) => {
       try {
         const parsed = parseExcel(ev.target.result);
-        const validated = validateRows(parsed);
-        setRows(validated);
+        setRows(parsed);
       } catch (err) {
         setError(err.message);
       }
@@ -162,10 +143,16 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // IMPORT
+  // IMPORT (ONLY VALID ROWS)
   // =========================
   const handleImport = async () => {
     if (!rows.length) return setError("No data");
+
+    const invalid = rows.filter((r) => !r.categoryId || !r.locationId);
+
+    if (invalid.length) {
+      return setError("Fix invalid category/location before importing.");
+    }
 
     try {
       setUploading(true);
@@ -174,11 +161,11 @@ export default function BulkImportAssets() {
         assetName: r.assetName,
         brand: r.brand,
         model: r.model,
-        category: r.category,
-        location: r.location,
         status: r.status,
         purchaseDate: r.purchaseDate,
         remarks: r.remarks,
+        categoryId: r.categoryId,
+        locationId: r.locationId,
       }));
 
       const { data } = await axiosInstance.post("/asset/bulk-import", {
@@ -188,7 +175,6 @@ export default function BulkImportAssets() {
       setSummary(data);
       setRows([]);
       setFileName("");
-      setHasErrors(false);
     } catch (err) {
       setError(err.response?.data?.message || "Import failed");
     } finally {
@@ -201,7 +187,16 @@ export default function BulkImportAssets() {
   // =========================
   const handleTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
-      requiredHeaders,
+      [
+        "assetName",
+        "brand",
+        "model",
+        "category",
+        "location",
+        "status",
+        "purchaseDate",
+        "remarks",
+      ],
       [
         "Laptop",
         "Dell",
@@ -210,13 +205,13 @@ export default function BulkImportAssets() {
         "ICT Office",
         "Active",
         "2026-01-01",
-        "New",
+        "New asset",
       ],
     ]);
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template");
-    XLSX.writeFile(wb, "asset_bulk_template.xlsx");
+    XLSX.writeFile(wb, "asset_template.xlsx");
   };
 
   // =========================
@@ -226,7 +221,7 @@ export default function BulkImportAssets() {
     <main className="p-6 space-y-6">
       <PropertyTaggingTabs />
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm text-gray-600">
             <FileSpreadsheet className="w-4 h-4" />
@@ -261,7 +256,8 @@ export default function BulkImportAssets() {
           {/* ERROR */}
           {error && (
             <div className="text-xs text-red-600 flex gap-2">
-              <AlertTriangle className="w-4 h-4" /> {error}
+              <AlertTriangle className="w-4 h-4" />
+              {error}
             </div>
           )}
 
@@ -273,14 +269,10 @@ export default function BulkImportAssets() {
                   <tr>
                     <th>#</th>
                     <th>Asset</th>
-                    <th>Brand</th>
-                    <th>Model</th>
                     <th>Category</th>
                     <th>Location</th>
                     <th>Status</th>
-                    <th>Purchase</th>
-                    <th>Remarks</th>
-                    <th>Validation</th>
+                    <th>Errors</th>
                   </tr>
                 </thead>
 
@@ -289,24 +281,11 @@ export default function BulkImportAssets() {
                     <tr key={i} className="border-t">
                       <td>{i + 1}</td>
                       <td>{r.assetName}</td>
-                      <td>{r.brand}</td>
-                      <td>{r.model}</td>
                       <td>{r.category}</td>
                       <td>{r.location}</td>
                       <td>{r.status}</td>
-                      <td>{r.purchaseDate}</td>
-                      <td>{r.remarks}</td>
-
-                      <td>
-                        {r.__valid ? (
-                          <span className="text-green-600">VALID</span>
-                        ) : (
-                          <div className="text-red-600 text-[11px]">
-                            {r.__errors.map((e, idx) => (
-                              <div key={idx}>• {e}</div>
-                            ))}
-                          </div>
-                        )}
+                      <td className="text-red-600">
+                        {r.__errors.category || r.__errors.location || "OK"}
                       </td>
                     </tr>
                   ))}
@@ -315,17 +294,13 @@ export default function BulkImportAssets() {
             </div>
           )}
 
-          {/* IMPORT BUTTON */}
+          {/* IMPORT */}
           <Button
             onClick={handleImport}
-            disabled={uploading || hasErrors}
+            disabled={uploading}
             className="bg-[#800000] text-white"
           >
-            {hasErrors
-              ? "Fix Errors First"
-              : uploading
-                ? "Importing..."
-                : "Import Assets"}
+            {uploading ? "Importing..." : "Import Assets"}
           </Button>
 
           {/* SUMMARY */}
