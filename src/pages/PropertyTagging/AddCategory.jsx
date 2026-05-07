@@ -47,8 +47,8 @@ export default function AddCategory() {
 
     try {
       const payload = {
-        name: form.name,
-        code: form.code,
+        name: form.name.toUpperCase(),
+        code: form.code.toUpperCase(),
       };
 
       const res = await axiosInstance.post("/categories", payload);
@@ -74,9 +74,7 @@ export default function AddCategory() {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Add Category
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Add Category</h1>
       </div>
 
       <PropertyTaggingTabs />

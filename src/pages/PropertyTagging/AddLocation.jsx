@@ -73,7 +73,14 @@ export default function AddLocation() {
     setLoading(true);
 
     try {
-      const res = await axiosInstance.post("/locations", form);
+      const payload = {
+        name: form.name.toUpperCase(),
+        building: form.building.toUpperCase(),
+        floor: form.floor.toUpperCase(),
+        description: form.description.toUpperCase(),
+      };
+
+      const res = await axiosInstance.post("/locations", payload);
 
       alert(`✅ Location added: ${res.data.data.name}`);
 
@@ -147,8 +154,8 @@ export default function AddLocation() {
                   <SelectValue placeholder="Select Building" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Block A">Block A</SelectItem>
-                  <SelectItem value="Block B">Block B</SelectItem>
+                  <SelectItem value="Block A">BLOCK A</SelectItem>
+                  <SelectItem value="Block B">BLOCK B</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -164,8 +171,8 @@ export default function AddLocation() {
                   <SelectValue placeholder="Select Floor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1st Floor">1st Floor</SelectItem>
-                  <SelectItem value="2nd Floor">2nd Floor</SelectItem>
+                  <SelectItem value="1st Floor">GROUND FLOOR</SelectItem>
+                  <SelectItem value="2nd Floor">2ND FLOOR</SelectItem>
                 </SelectContent>
               </Select>
             </div>
