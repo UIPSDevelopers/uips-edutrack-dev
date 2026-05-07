@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
+import axiosInstance from "@/lib/axios";
 
 import PropertyTaggingTabs from "@/pages/PropertyTagging/PropertyTaggingTabs";
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
+import { Textarea } from "@/components/ui/textarea";
 import {
   Upload,
   FileSpreadsheet,
@@ -17,157 +17,122 @@ import {
   Download,
 } from "lucide-react";
 
-import axiosInstance from "@/lib/axios";
-
 export default function BulkImportAssets() {
-  const [rows, setRows] = useState([]);
   const [fileName, setFileName] = useState("");
+  const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [importSummary, setImportSummary] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [summary, setSummary] = useState(null);
 
-  // REQUIRED HEADERS (NO quantity)
-  const requiredHeaders = ["categoryCode", "assetName"];
+  const [categories, setCategories] = useState([]);
+  const [locations, setLocations] = useState([]);
 
-  // =========================
-  // NORMALIZE DATA
-  // =========================
-  const normalizeAndValidate = (rawRows) => {
-    if (!rawRows?.length) throw new Error("No data rows found.");
+  const requiredHeaders = [
+    "assetname",
+    "brand",
+    "model",
+    "category",
+    "location",
+    "status",
+    "purchasedate",
+    "remarks",
+  ];
 
-    return rawRows.map((row, idx) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, locRes] = await Promise.all([
+          axiosInstance.get("/categories"),
+          axiosInstance.get("/locations"),
+        ]);
+        setCategories(catRes.data || []);
+        setLocations(locRes.data || []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const normalize = (data) => {
+    return data.map((r, i) => {
       const map = {};
-
-      Object.keys(row || {}).forEach((k) => {
-        map[k.toLowerCase()] = row[k];
-      });
+      Object.keys(r).forEach((k) => (map[k.toLowerCase()] = r[k]));
 
       return {
-        __row: idx + 2,
-        categoryCode: map["categorycode"] || "",
-        assetName: map["assetname"] || "",
-        brand: map["brand"] || "",
-        model: map["model"] || "",
-        locationName: map["locationname"] || "",
-        purchaseDate: map["purchasedate"] || "",
-        status: map["status"] || "Active",
-        remarks: map["remarks"] || "",
+        __row: i + 2,
+        assetName: map.assetname || "",
+        brand: map.brand || "",
+        model: map.model || "",
+        category: map.category || "",
+        location: map.location || "",
+        status: map.status || "Active",
+        purchaseDate: map.purchasedate || "",
+        remarks: map.remarks || "",
       };
     });
   };
 
-  // =========================
-  // EXCEL PARSE
-  // =========================
   const parseExcel = (buffer) => {
     const wb = XLSX.read(buffer, { type: "array" });
     const sheet = wb.Sheets[wb.SheetNames[0]];
     const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-    if (!json.length) throw new Error("Excel sheet is empty.");
+    if (!json.length) throw new Error("Empty file");
 
     const headers = Object.keys(json[0]).map((h) => h.toLowerCase());
 
-    const missing = requiredHeaders.filter(
-      (h) => !headers.includes(h.toLowerCase()),
-    );
-
+    const missing = requiredHeaders.filter((h) => !headers.includes(h));
     if (missing.length) {
-      throw new Error(`Missing columns: ${missing.join(", ")}`);
+      throw new Error("Missing: " + missing.join(", "));
     }
 
-    return normalizeAndValidate(json);
+    return normalize(json);
   };
 
-  // =========================
-  // TEMPLATE
-  // =========================
-  const handleDownloadTemplate = () => {
-    const data = [
-      [
-        "categoryCode",
-        "assetName",
-        "brand",
-        "model",
-        "locationName",
-        "purchaseDate",
-        "status",
-        "remarks",
-      ],
-      [
-        "IT",
-        "Laptop",
-        "Dell",
-        "Latitude 5420",
-        "ICT Office",
-        "2026-05-01",
-        "Active",
-        "New",
-      ],
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Assets");
-    XLSX.writeFile(wb, "edutrack_assets_template.xlsx");
-  };
-
-  // =========================
-  // FILE HANDLER
-  // =========================
-  const handleFileChange = (e) => {
+  const handleFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setError("");
-    setRows([]);
-    setImportSummary(null);
     setFileName(file.name);
-    setSelectedFile(file);
+    setError("");
 
     const reader = new FileReader();
-
     reader.onload = (ev) => {
       try {
-        setRows(parseExcel(ev.target.result));
+        const data = parseExcel(ev.target.result);
+        setRows(data);
       } catch (err) {
         setError(err.message);
       }
     };
-
     reader.readAsArrayBuffer(file);
   };
 
-  // =========================
-  // IMPORT
-  // =========================
   const handleImport = async () => {
-    if (!selectedFile) return setError("Please upload file.");
+    if (!rows.length) return setError("No data");
 
     try {
       setUploading(true);
 
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+      const payload = rows.map((r) => ({
+        assetName: r.assetName,
+        brand: r.brand,
+        model: r.model,
+        category: r.category,
+        location: r.location,
+        status: r.status,
+        purchaseDate: r.purchaseDate,
+        remarks: r.remarks,
+      }));
 
-      const { data } = await axiosInstance.post(
-        "/asset/import-excel",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } },
-      );
-
-      setImportSummary({
-        total: data.total || rows.length,
-        success: data.total || rows.length,
-        failed: 0,
+      const { data } = await axiosInstance.post("/asset/bulk-import", {
+        assets: payload,
       });
 
-      alert(`Imported ${data.total || rows.length} assets`);
-
+      setSummary(data);
       setRows([]);
       setFileName("");
-      setSelectedFile(null);
     } catch (err) {
       setError(err.response?.data?.message || "Import failed");
     } finally {
@@ -175,120 +140,113 @@ export default function BulkImportAssets() {
     }
   };
 
-  // =========================
-  // UI (COPY INVENTORY STYLE EXACTLY)
-  // =========================
+  const handleTemplate = () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      requiredHeaders,
+      [
+        "Laptop",
+        "Dell",
+        "Latitude",
+        "IT",
+        "ICT Office",
+        "Active",
+        "2026-01-01",
+        "New",
+      ],
+    ]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, "asset_bulk_template.xlsx");
+  };
+
   return (
     <main className="p-6 space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Bulk Import Assets
-        </h1>
-      </div>
-
       <PropertyTaggingTabs />
 
-      <Card className="border border-gray-200 shadow-sm mt-4">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-sm text-gray-500 flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm text-gray-600">
             <FileSpreadsheet className="w-4 h-4" />
-            Upload CSV / Excel File
+            Bulk Import Assets
           </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* TEMPLATE */}
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500">
-              Required columns: categoryCode, assetName
-            </p>
-
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleDownloadTemplate}
-              className="bg-white border text-xs flex items-center gap-1 hover:bg-gray-50 text-gray-700"
-            >
-              <Download className="w-3 h-3" />
-              Download Template
-            </Button>
-          </div>
-
-          {/* FILE */}
-          <div className="flex items-center gap-3">
+          <div className="flex gap-3 items-center">
             <label className="cursor-pointer">
-              <Input
-                type="file"
-                accept=".xlsx,.xls"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-white text-sm hover:bg-gray-50">
+              <Input type="file" className="hidden" onChange={handleFile} />
+              <span className="px-3 py-2 border rounded-md flex items-center gap-2 text-sm">
                 <Upload className="w-4 h-4" />
                 Choose File
               </span>
             </label>
 
-            {fileName && (
-              <span className="text-xs text-gray-600">{fileName}</span>
-            )}
+            {fileName && <span className="text-xs">{fileName}</span>}
+
+            <Button
+              onClick={handleTemplate}
+              variant="outline"
+              size="sm"
+              className="ml-auto flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Template
+            </Button>
           </div>
 
-          {/* ERROR */}
           {error && (
-            <div className="text-xs text-red-600 flex items-center gap-2 bg-red-50 p-2 rounded-md border border-red-200">
-              <AlertTriangle className="w-4 h-4" />
-              {error}
+            <div className="text-xs text-red-600 flex gap-2">
+              <AlertTriangle className="w-4 h-4" /> {error}
             </div>
           )}
 
-          {/* PREVIEW */}
           {rows.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <p className="text-xs text-gray-600">{rows.length} row(s)</p>
-
-                <Button
-                  onClick={handleImport}
-                  disabled={uploading}
-                  className="bg-[#800000] hover:bg-[#a10000] text-white"
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-1" />
-                  {uploading ? "Importing..." : "Import Assets"}
-                </Button>
-              </div>
-
-              {/* TABLE (SAME STYLE AS INVENTORY) */}
-              <div className="border rounded-md overflow-auto max-h-80">
-                <table className="min-w-full text-xs">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="p-2 text-left">#</th>
-                      <th className="p-2 text-left">Category</th>
-                      <th className="p-2 text-left">Asset Name</th>
-                      <th className="p-2 text-left">Brand</th>
-                      <th className="p-2 text-left">Model</th>
-                      <th className="p-2 text-left">Location</th>
-                      <th className="p-2 text-left">Status</th>
+            <div className="border rounded-md overflow-auto max-h-80">
+              <table className="min-w-full text-xs">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th>#</th>
+                    <th>Asset</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Purchase</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
+                    <tr key={i} className="border-t">
+                      <td>{i + 1}</td>
+                      <td>{r.assetName}</td>
+                      <td>{r.brand}</td>
+                      <td>{r.model}</td>
+                      <td>{r.category}</td>
+                      <td>{r.location}</td>
+                      <td>{r.status}</td>
+                      <td>{r.purchaseDate}</td>
+                      <td>{r.remarks}</td>
                     </tr>
-                  </thead>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-                  <tbody>
-                    {rows.map((r, i) => (
-                      <tr key={i} className="border-t hover:bg-gray-50">
-                        <td className="p-2">{i + 1}</td>
-                        <td className="p-2">{r.categoryCode}</td>
-                        <td className="p-2">{r.assetName}</td>
-                        <td className="p-2">{r.brand}</td>
-                        <td className="p-2">{r.model}</td>
-                        <td className="p-2">{r.locationName}</td>
-                        <td className="p-2">{r.status}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          <Button
+            onClick={handleImport}
+            disabled={uploading}
+            className="bg-[#800000] text-white"
+          >
+            {uploading ? "Importing..." : "Import Assets"}
+          </Button>
+
+          {summary && (
+            <div className="text-xs text-gray-600">
+              Imported: {summary.count || 0}
             </div>
           )}
         </CardContent>
