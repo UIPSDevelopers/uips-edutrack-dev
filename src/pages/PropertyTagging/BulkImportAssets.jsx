@@ -8,14 +8,10 @@ import PropertyTaggingTabs from "@/pages/PropertyTagging/PropertyTaggingTabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Upload,
-  FileSpreadsheet,
-  AlertTriangle,
-  CheckCircle2,
-  Download,
-} from "lucide-react";
+
+import { Upload, FileSpreadsheet, AlertTriangle, Download } from "lucide-react";
+
+const STATUS_OPTIONS = ["Active", "Needs Repair", "Disposed"];
 
 export default function BulkImportAssets() {
   const [fileName, setFileName] = useState("");
@@ -26,6 +22,8 @@ export default function BulkImportAssets() {
 
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
+
+  const [hasErrors, setHasErrors] = useState(false);
 
   const requiredHeaders = [
     "assetname",
@@ -38,6 +36,9 @@ export default function BulkImportAssets() {
     "remarks",
   ];
 
+  // =========================
+  // FETCH CATEGORY + LOCATION
+  // =========================
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -54,13 +55,53 @@ export default function BulkImportAssets() {
     fetchData();
   }, []);
 
+  // =========================
+  // NORMALIZE + VALIDATE
+  // =========================
+  const validateRows = (data) => {
+    const categoryNames = categories.map((c) => (c.name || "").toLowerCase());
+
+    const locationNames = locations.map((l) => (l.name || "").toLowerCase());
+
+    let errorFound = false;
+
+    const validated = data.map((r, i) => {
+      const errors = [];
+
+      if (!r.assetName) errors.push("Missing asset name");
+
+      if (!categoryNames.includes((r.category || "").toLowerCase())) {
+        errors.push("Invalid category");
+      }
+
+      if (!locationNames.includes((r.location || "").toLowerCase())) {
+        errors.push("Invalid location");
+      }
+
+      if (!STATUS_OPTIONS.includes(r.status)) {
+        errors.push("Invalid status");
+      }
+
+      if (errors.length) errorFound = true;
+
+      return {
+        ...r,
+        __row: i + 2,
+        __errors: errors,
+        __valid: errors.length === 0,
+      };
+    });
+
+    setHasErrors(errorFound);
+    return validated;
+  };
+
   const normalize = (data) => {
-    return data.map((r, i) => {
+    return data.map((r) => {
       const map = {};
       Object.keys(r).forEach((k) => (map[k.toLowerCase()] = r[k]));
 
       return {
-        __row: i + 2,
         assetName: map.assetname || "",
         brand: map.brand || "",
         model: map.model || "",
@@ -73,6 +114,9 @@ export default function BulkImportAssets() {
     });
   };
 
+  // =========================
+  // PARSE EXCEL
+  // =========================
   const parseExcel = (buffer) => {
     const wb = XLSX.read(buffer, { type: "array" });
     const sheet = wb.Sheets[wb.SheetNames[0]];
@@ -90,25 +134,36 @@ export default function BulkImportAssets() {
     return normalize(json);
   };
 
+  // =========================
+  // FILE UPLOAD
+  // =========================
   const handleFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setFileName(file.name);
     setError("");
+    setRows([]);
+    setSummary(null);
 
     const reader = new FileReader();
+
     reader.onload = (ev) => {
       try {
-        const data = parseExcel(ev.target.result);
-        setRows(data);
+        const parsed = parseExcel(ev.target.result);
+        const validated = validateRows(parsed);
+        setRows(validated);
       } catch (err) {
         setError(err.message);
       }
     };
+
     reader.readAsArrayBuffer(file);
   };
 
+  // =========================
+  // IMPORT
+  // =========================
   const handleImport = async () => {
     if (!rows.length) return setError("No data");
 
@@ -133,6 +188,7 @@ export default function BulkImportAssets() {
       setSummary(data);
       setRows([]);
       setFileName("");
+      setHasErrors(false);
     } catch (err) {
       setError(err.response?.data?.message || "Import failed");
     } finally {
@@ -140,6 +196,9 @@ export default function BulkImportAssets() {
     }
   };
 
+  // =========================
+  // TEMPLATE
+  // =========================
   const handleTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
       requiredHeaders,
@@ -160,6 +219,9 @@ export default function BulkImportAssets() {
     XLSX.writeFile(wb, "asset_bulk_template.xlsx");
   };
 
+  // =========================
+  // UI
+  // =========================
   return (
     <main className="p-6 space-y-6">
       <PropertyTaggingTabs />
@@ -173,6 +235,7 @@ export default function BulkImportAssets() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* FILE */}
           <div className="flex gap-3 items-center">
             <label className="cursor-pointer">
               <Input type="file" className="hidden" onChange={handleFile} />
@@ -195,12 +258,14 @@ export default function BulkImportAssets() {
             </Button>
           </div>
 
+          {/* ERROR */}
           {error && (
             <div className="text-xs text-red-600 flex gap-2">
               <AlertTriangle className="w-4 h-4" /> {error}
             </div>
           )}
 
+          {/* TABLE */}
           {rows.length > 0 && (
             <div className="border rounded-md overflow-auto max-h-80">
               <table className="min-w-full text-xs">
@@ -215,8 +280,10 @@ export default function BulkImportAssets() {
                     <th>Status</th>
                     <th>Purchase</th>
                     <th>Remarks</th>
+                    <th>Validation</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {rows.map((r, i) => (
                     <tr key={i} className="border-t">
@@ -229,6 +296,18 @@ export default function BulkImportAssets() {
                       <td>{r.status}</td>
                       <td>{r.purchaseDate}</td>
                       <td>{r.remarks}</td>
+
+                      <td>
+                        {r.__valid ? (
+                          <span className="text-green-600">VALID</span>
+                        ) : (
+                          <div className="text-red-600 text-[11px]">
+                            {r.__errors.map((e, idx) => (
+                              <div key={idx}>• {e}</div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -236,14 +315,20 @@ export default function BulkImportAssets() {
             </div>
           )}
 
+          {/* IMPORT BUTTON */}
           <Button
             onClick={handleImport}
-            disabled={uploading}
+            disabled={uploading || hasErrors}
             className="bg-[#800000] text-white"
           >
-            {uploading ? "Importing..." : "Import Assets"}
+            {hasErrors
+              ? "Fix Errors First"
+              : uploading
+                ? "Importing..."
+                : "Import Assets"}
           </Button>
 
+          {/* SUMMARY */}
           {summary && (
             <div className="text-xs text-gray-600">
               Imported: {summary.count || 0}
