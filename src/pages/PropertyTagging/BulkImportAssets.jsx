@@ -27,45 +27,43 @@ export default function BulkImportAssets() {
   const [importSummary, setImportSummary] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // =========================
-  // REQUIRED HEADERS
-  // =========================
+  // REQUIRED HEADERS (NO quantity anymore)
   const requiredHeaders = ["categoryCode", "assetName"];
 
   // =========================
-  // NORMALIZE
+  // NORMALIZE DATA
   // =========================
   const normalizeAndValidate = (rawRows) => {
-    if (!rawRows?.length) throw new Error("No data rows found.");
+    if (!rawRows?.length) throw new Error("No data found.");
 
     const normalized = rawRows.map((row, idx) => {
-      const lower = {};
+      const map = {};
+
       Object.keys(row || {}).forEach((k) => {
-        lower[k.toLowerCase()] = row[k];
+        map[k.toLowerCase()] = row[k];
       });
 
       return {
         __row: idx + 2,
-        categoryCode: lower["categorycode"] || "",
-        assetName: lower["assetname"] || "",
-        brand: lower["brand"] || "",
-        model: lower["model"] || "",
-        locationName: lower["locationname"] || "",
-        purchaseDate: lower["purchasedate"] || "",
-        status: lower["status"] || "Active",
-        remarks: lower["remarks"] || "",
+        categoryCode: map["categorycode"] || "",
+        assetName: map["assetname"] || "",
+        brand: map["brand"] || "",
+        model: map["model"] || "",
+        locationName: map["locationname"] || "",
+        purchaseDate: map["purchasedate"] || "",
+        status: map["status"] || "Active",
+        remarks: map["remarks"] || "",
       };
     });
 
-    const valid = normalized.some((r) => r.categoryCode || r.assetName);
-
-    if (!valid) throw new Error("No valid rows found.");
+    const hasValid = normalized.some((r) => r.categoryCode || r.assetName);
+    if (!hasValid) throw new Error("No valid rows found.");
 
     return normalized;
   };
 
   // =========================
-  // PARSE EXCEL
+  // EXCEL PARSE
   // =========================
   const parseExcel = (buffer) => {
     const wb = XLSX.read(buffer, { type: "array" });
@@ -74,9 +72,7 @@ export default function BulkImportAssets() {
 
     if (!json.length) throw new Error("Excel is empty.");
 
-    const headers = Object.keys(json[0]).map((h) =>
-      h?.toString().trim().toLowerCase(),
-    );
+    const headers = Object.keys(json[0]).map((h) => h.toLowerCase());
 
     const missing = requiredHeaders.filter(
       (h) => !headers.includes(h.toLowerCase()),
@@ -93,7 +89,7 @@ export default function BulkImportAssets() {
   // TEMPLATE
   // =========================
   const handleDownloadTemplate = () => {
-    const wsData = [
+    const data = [
       [
         "categoryCode",
         "assetName",
@@ -104,18 +100,26 @@ export default function BulkImportAssets() {
         "status",
         "remarks",
       ],
-      ["IT", "Laptop", "Dell", "Latitude", "ICT", "2026-01-01", "Active", ""],
+      [
+        "IT",
+        "Laptop",
+        "Dell",
+        "Latitude 5420",
+        "ICT Office",
+        "2026-05-01",
+        "Active",
+        "New",
+      ],
     ];
 
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Assets");
-
     XLSX.writeFile(wb, "assets_template.xlsx");
   };
 
   // =========================
-  // FILE CHANGE
+  // FILE HANDLER
   // =========================
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -129,9 +133,9 @@ export default function BulkImportAssets() {
 
     const reader = new FileReader();
 
-    reader.onload = (event) => {
+    reader.onload = (ev) => {
       try {
-        const parsed = parseExcel(event.target.result);
+        const parsed = parseExcel(ev.target.result);
         setRows(parsed);
       } catch (err) {
         setError(err.message);
@@ -145,44 +149,31 @@ export default function BulkImportAssets() {
   // IMPORT
   // =========================
   const handleImport = async () => {
-    if (!rows.length) {
-      setError("No data to import.");
-      return;
-    }
-
-    setUploading(true);
-    setError("");
+    if (!selectedFile) return setError("Please upload file.");
 
     try {
-      const payload = {
-        assets: rows.map((r) => ({
-          categoryCode: r.categoryCode,
-          assetName: r.assetName,
-          brand: r.brand,
-          model: r.model,
-          locationName: r.locationName,
-          purchaseDate: r.purchaseDate,
-          status: r.status,
-          remarks: r.remarks,
-        })),
-      };
+      setUploading(true);
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
       const { data } = await axiosInstance.post(
-        "/asset/assets/bulk-create",
-        payload,
+        "/asset/import-excel",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
 
       setImportSummary({
-        total: data.assets.length,
-        success: data.assets.length,
+        total: data.total || rows.length,
+        success: data.total || rows.length,
         failed: 0,
       });
 
-      alert(`Successfully imported ${data.assets.length} assets`);
-
       setRows([]);
-      setFileName("");
       setSelectedFile(null);
+      setFileName("");
+
+      alert(`Imported ${data.total || rows.length} assets`);
     } catch (err) {
       setError(err.response?.data?.message || "Import failed");
     } finally {
@@ -191,13 +182,11 @@ export default function BulkImportAssets() {
   };
 
   // =========================
-  // TABLE STYLE (MATCH INVENTORY LOOK)
+  // UI
   // =========================
-  const th = "border px-2 py-1 text-left bg-gray-100 text-xs";
-  const td = "border px-2 py-1 text-xs";
-
   return (
     <main className="p-6 space-y-6">
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-800">
           Bulk Import Assets
@@ -214,94 +203,98 @@ export default function BulkImportAssets() {
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           {/* TEMPLATE */}
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500">Required columns:</p>
-
-            <div className="bg-gray-100 p-2 text-[11px] font-mono rounded">
-              categoryCode, assetName, brand, model, locationName, purchaseDate,
-              status, remarks
-            </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Required: categoryCode, assetName
+            </p>
 
             <Button
-              size="sm"
               onClick={handleDownloadTemplate}
-              className="bg-white border text-xs"
+              size="sm"
+              className="bg-white border text-gray-700 hover:bg-gray-50 flex items-center gap-1"
             >
-              <Download className="w-3 h-3 mr-1" />
-              Download Template
+              <Download className="w-3 h-3" />
+              Template
             </Button>
           </div>
 
           {/* FILE */}
-          <Input type="file" accept=".xlsx,.xls" onChange={handleFileChange} />
+          <div className="flex items-center gap-3">
+            <label className="cursor-pointer">
+              <Input
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <span className="px-3 py-2 border rounded-md text-sm flex items-center gap-2 hover:bg-gray-50">
+                <Upload className="w-4 h-4" />
+                Choose File
+              </span>
+            </label>
 
-          {fileName && (
-            <p className="text-xs text-gray-600">Selected: {fileName}</p>
-          )}
+            {fileName && (
+              <span className="text-xs text-gray-600">{fileName}</span>
+            )}
+          </div>
 
           {/* ERROR */}
           {error && (
-            <div className="text-xs text-red-600 flex gap-2">
+            <div className="text-xs text-red-600 flex items-center gap-2 bg-red-50 p-2 rounded-md border border-red-200">
               <AlertTriangle className="w-4 h-4" />
               {error}
             </div>
           )}
 
-          {/* TABLE */}
+          {/* PREVIEW */}
           {rows.length > 0 && (
-            <div className="border rounded-md overflow-auto max-h-80">
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className={th}>#</th>
-                    <th className={th}>Category</th>
-                    <th className={th}>Asset</th>
-                    <th className={th}>Brand</th>
-                    <th className={th}>Model</th>
-                    <th className={th}>Location</th>
-                    <th className={th}>Purchase</th>
-                    <th className={th}>Status</th>
-                    <th className={th}>Remarks</th>
-                  </tr>
-                </thead>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <p className="text-xs text-gray-600">
+                  {rows.length} row(s) ready
+                </p>
 
-                <tbody>
-                  {rows.map((r, i) => (
-                    <tr key={i}>
-                      <td className={td}>{i + 1}</td>
-                      <td className={td}>{r.categoryCode}</td>
-                      <td className={td}>{r.assetName}</td>
-                      <td className={td}>{r.brand}</td>
-                      <td className={td}>{r.model}</td>
-                      <td className={td}>{r.locationName}</td>
-                      <td className={td}>{r.purchaseDate}</td>
-                      <td className={td}>{r.status}</td>
-                      <td className={td}>{r.remarks}</td>
+                <Button
+                  onClick={handleImport}
+                  disabled={uploading}
+                  className="bg-[#800000] hover:bg-[#a10000] text-white"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-1" />
+                  {uploading ? "Importing..." : "Import"}
+                </Button>
+              </div>
+
+              {/* TABLE (clean UI) */}
+              <div className="border rounded-md overflow-auto max-h-80">
+                <table className="w-full text-xs">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-2 text-left">#</th>
+                      <th className="p-2 text-left">Category</th>
+                      <th className="p-2 text-left">Asset Name</th>
+                      <th className="p-2 text-left">Brand</th>
+                      <th className="p-2 text-left">Model</th>
+                      <th className="p-2 text-left">Location</th>
+                      <th className="p-2 text-left">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
 
-          {/* IMPORT BUTTON */}
-          {rows.length > 0 && (
-            <Button
-              onClick={handleImport}
-              disabled={uploading}
-              className="bg-[#800000] text-white"
-            >
-              <CheckCircle2 className="w-4 h-4 mr-1" />
-              {uploading ? "Importing..." : "Import Assets"}
-            </Button>
-          )}
-
-          {/* SUMMARY */}
-          {importSummary && (
-            <div className="text-xs text-gray-600">
-              Imported: {importSummary.total}
+                  <tbody>
+                    {rows.map((r, i) => (
+                      <tr key={i} className="border-t hover:bg-gray-50">
+                        <td className="p-2">{i + 1}</td>
+                        <td className="p-2">{r.categoryCode}</td>
+                        <td className="p-2">{r.assetName}</td>
+                        <td className="p-2">{r.brand}</td>
+                        <td className="p-2">{r.model}</td>
+                        <td className="p-2">{r.locationName}</td>
+                        <td className="p-2">{r.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </CardContent>
