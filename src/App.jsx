@@ -25,6 +25,7 @@ import AddCategory from "@/pages/PropertyTagging/AddCategory";
 import AddLocation from "@/pages/PropertyTagging/AddLocation";
 import AssetDetails from "@/pages/PropertyTagging/AssetDetails";
 import BulkImportAssets from "@/pages/PropertyTagging/BulkImportAssets"; //bulk import for assets
+import { Toaster } from "sonner";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
@@ -54,6 +55,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster richColors position="top-right" />
       <main className="relative min-h-screen">
         {/* � Validating session on app load */}
         {isValidating && (
