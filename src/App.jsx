@@ -128,7 +128,10 @@ function App() {
             {/* Property Tagging Routes */}
             <Route path="/property-tagging" element={<PropertyTagging />} />
             <Route path="/property-tagging/add-asset" element={<AddAsset />} />
-            <Route path="/property-tagging/bulk-import" element={<BulkImportAssets />} />
+            <Route
+              path="/property-tagging/bulk-import"
+              element={<BulkImportAssets />}
+            />
             <Route
               path="/property-tagging/add-category"
               element={<AddCategory />}
@@ -136,6 +139,10 @@ function App() {
             <Route
               path="/property-tagging/add-location"
               element={<AddLocation />}
+            />
+            <Route
+              path="/property-tagging/asset-reports"
+              element={<AssetReports />}
             />
           </Route>
           {/* 🖨️ Print Barcodes (NO layout) */}
@@ -147,11 +154,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-              path="/property-tagging/asset-reports"
-              element={<AssetReports />}
-            />
-          
 
           {/* �️ Print QR codes (NO layout) */}
           <Route
