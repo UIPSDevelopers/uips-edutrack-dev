@@ -187,103 +187,105 @@ export default function AssetReports() {
   // UI (FULL RESPONSIVE LAYOUT FIX)
   // =========================
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* SIDEBAR */}
-      <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
+    <>
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        {/* SIDEBAR */}
+        <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
 
-      {/* MAIN WRAPPER */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* TOPBAR */}
-        <Topbar onToggleSidebar={handleToggleSidebar} />
+        {/* MAIN WRAPPER */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* TOPBAR */}
+          <Topbar onToggleSidebar={handleToggleSidebar} />
 
-        {/* CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          <h1 className="text-2xl font-semibold">Property Tagging Reports</h1>
+          {/* CONTENT */}
+          <main className="flex-1 overflow-y-auto p-6 space-y-6">
+            <h1 className="text-2xl font-semibold">Property Tagging Reports</h1>
 
-          {/* FILTERS */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm text-gray-500">
-                Report Filters
-              </CardTitle>
-            </CardHeader>
+            {/* FILTERS */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm text-gray-500">
+                  Report Filters
+                </CardTitle>
+              </CardHeader>
 
-            <CardContent>
-              <div className="flex flex-wrap gap-4 items-center">
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="border p-2 rounded"
-                >
-                  <option value="assets">Assets</option>
-                  <option value="history">History</option>
-                  <option value="services">Services</option>
-                </select>
+              <CardContent>
+                <div className="flex flex-wrap gap-4 items-center">
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="border p-2 rounded"
+                  >
+                    <option value="assets">Assets</option>
+                    <option value="history">History</option>
+                    <option value="services">Services</option>
+                  </select>
 
-                <Input
-                  type="date"
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                />
-                <Input
-                  type="date"
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                />
+                  <Input
+                    type="date"
+                    value={from}
+                    onChange={(e) => setFrom(e.target.value)}
+                  />
+                  <Input
+                    type="date"
+                    value={to}
+                    onChange={(e) => setTo(e.target.value)}
+                  />
 
+                  <Button
+                    onClick={handleGenerate}
+                    className="bg-[#800000] hover:bg-[#a10000] flex items-center gap-2"
+                  >
+                    <FileText size={16} />
+                    {loading ? "Loading..." : "Generate"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* TABLE */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm text-gray-500">
+                  Results ({totalRecords})
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="overflow-x-auto">
+                {data.length === 0 ? (
+                  <p className="text-gray-500">No data</p>
+                ) : (
+                  <table className="w-full text-sm border-collapse min-w-[600px]">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        {renderHeaders().map((h) => (
+                          <th key={h} className="p-2 text-left">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>{renderRows()}</tbody>
+                  </table>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* EXPORT */}
+            {data.length > 0 && (
+              <div>
                 <Button
-                  onClick={handleGenerate}
-                  className="bg-[#800000] hover:bg-[#a10000] flex items-center gap-2"
+                  onClick={exportExcel}
+                  className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
                 >
-                  <FileText size={16} />
-                  {loading ? "Loading..." : "Generate"}
+                  <Download size={16} />
+                  Export Excel
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* TABLE */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm text-gray-500">
-                Results ({totalRecords})
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent className="overflow-x-auto">
-              {data.length === 0 ? (
-                <p className="text-gray-500">No data</p>
-              ) : (
-                <table className="w-full text-sm border-collapse min-w-[600px]">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      {renderHeaders().map((h) => (
-                        <th key={h} className="p-2 text-left">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>{renderRows()}</tbody>
-                </table>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* EXPORT */}
-          {data.length > 0 && (
-            <div>
-              <Button
-                onClick={exportExcel}
-                className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
-              >
-                <Download size={16} />
-                Export Excel
-              </Button>
-            </div>
-          )}
-        </main>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
