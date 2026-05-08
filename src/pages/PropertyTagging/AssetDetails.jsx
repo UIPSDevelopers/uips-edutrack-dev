@@ -69,6 +69,7 @@ export default function AssetDetails() {
 
       setAsset(fetchedAsset);
       setServices(assetRes.data.services || []);
+      setHistory(assetRes.data.history || []);
 
       setLocations(
         Array.isArray(locationRes.data)
@@ -203,6 +204,9 @@ export default function AssetDetails() {
     return isNaN(d.getTime()) ? "-" : d.toLocaleDateString();
   };
 
+  const [history, setHistory] = useState([]);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+
   // =========================
   // LOADING STATES
   // =========================
@@ -224,8 +228,12 @@ export default function AssetDetails() {
 
       {/* ASSET INFO */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Asset Details</CardTitle>
+
+          <Button variant="outline" onClick={() => setShowHistoryDialog(true)}>
+            View History
+          </Button>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -503,6 +511,98 @@ export default function AssetDetails() {
             >
               Save Service
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* HISTORY MODAL */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Asset History</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {history.length === 0 ? (
+              <p className="text-sm text-gray-500">No history records found.</p>
+            ) : (
+              history.map((item) => (
+                <div
+                  key={item._id}
+                  className="border rounded-xl p-4 bg-gray-50"
+                >
+                  {/* HEADER */}
+                  <div className="flex justify-between items-center mb-3">
+                    <div>
+                      <p className="font-semibold text-sm">
+                        {item.actionType?.replaceAll("_", " ").toUpperCase()}
+                      </p>
+
+                      <p className="text-xs text-gray-500">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* LOCATION */}
+                  {item.changes?.location && (
+                    <div className="text-sm mb-2">
+                      <span className="font-medium">Location:</span>
+
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
+                          {item.changes.location.old || "None"}
+                        </span>
+
+                        <span>→</span>
+
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                          {item.changes.location.new || "None"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STATUS */}
+                  {item.changes?.status && (
+                    <div className="text-sm mb-2">
+                      <span className="font-medium">Status:</span>
+
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
+                          {item.changes.status.old || "None"}
+                        </span>
+
+                        <span>→</span>
+
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                          {item.changes.status.new || "None"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* REMARKS */}
+                  {item.changes?.remarks && (
+                    <div className="text-sm">
+                      <span className="font-medium">Remarks:</span>
+
+                      <div className="mt-1 flex flex-col gap-2">
+                        <div className="bg-red-100 text-red-700 p-2 rounded">
+                          <strong>Old:</strong>{" "}
+                          {item.changes.remarks.old || "-"}
+                        </div>
+
+                        <div className="bg-green-100 text-green-700 p-2 rounded">
+                          <strong>New:</strong>{" "}
+                          {item.changes.remarks.new || "-"}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </DialogContent>
       </Dialog>
