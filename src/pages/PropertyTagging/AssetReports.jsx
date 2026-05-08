@@ -5,8 +5,10 @@ import React, { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 
-import { Button } from "@/components/ui/button";
+import PropertyTaggingTabs from "./PropertyTaggingTabs";
+
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Download, FileText } from "lucide-react";
@@ -21,28 +23,14 @@ export default function AssetReports() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-
-  const isAll = limit === 0;
-
-  // =========================
-  // SIDEBAR STATE (FIXED RESPONSIVE LAYOUT)
-  // =========================
+  // sidebar state (IMPORTANT for responsiveness)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const handleToggleSidebar = () => {
-    setIsSidebarOpen((prev) => !prev);
-  };
-
-  const handleCloseSidebar = () => {
-    setIsSidebarOpen(false);
-  };
+  const toggleSidebar = () => setIsSidebarOpen((p) => !p);
+  const closeSidebar = () => setIsSidebarOpen(false);
 
   // =========================
-  // API ROUTE
+  // API
   // =========================
   const buildUrl = () => {
     if (type === "assets") return "/reports/assets";
@@ -52,13 +40,14 @@ export default function AssetReports() {
   };
 
   // =========================
-  // FETCH REPORT
+  // FETCH
   // =========================
-  const fetchReport = async (pageOverride = page, limitOverride = limit) => {
+  const fetchReport = async () => {
     setLoading(true);
 
     try {
       const url = buildUrl();
+
       const params = {};
 
       if (from && to) {
@@ -70,43 +59,29 @@ export default function AssetReports() {
         params.to = toDate.toISOString();
       }
 
-      if (limitOverride === 0) {
-        params.all = true;
-      } else {
-        params.page = pageOverride;
-        params.limit = limitOverride;
-      }
-
       const res = await axiosInstance.get(url, { params });
+
       const result = res.data;
 
       const list = Array.isArray(result)
         ? result
         : Array.isArray(result.data)
-          ? result.data
-          : Array.isArray(result.items)
-            ? result.items
-            : [];
+        ? result.data
+        : Array.isArray(result.items)
+        ? result.items
+        : [];
 
       setData(list);
-      setTotalRecords(result.total || list.length || 0);
-      setTotalPages(result.pages || 1);
-      setPage(result.page || pageOverride);
     } catch (err) {
-      console.error("Report error:", err);
+      console.error(err);
       alert("Failed to load report");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGenerate = async () => {
-    setPage(1);
-    await fetchReport(1, limit);
-  };
-
   // =========================
-  // EXPORT EXCEL
+  // EXPORT
   // =========================
   const exportExcel = () => {
     if (!data.length) return alert("No data to export");
@@ -125,19 +100,20 @@ export default function AssetReports() {
   // =========================
   // TABLE HEADERS
   // =========================
-  const renderHeaders = () => {
+  const headers = () => {
     if (type === "assets")
       return ["Serial", "Name", "Category", "Location", "Status"];
     if (type === "history")
       return ["Asset", "Name", "Action", "Location Change", "Date"];
-    if (type === "services") return ["Asset", "Name", "Service", "Cost", "By"];
+    if (type === "services")
+      return ["Asset", "Name", "Service", "Cost", "By"];
     return [];
   };
 
   // =========================
-  // TABLE ROWS
+  // ROWS
   // =========================
-  const renderRows = () => {
+  const rows = () => {
     return data.map((row, i) => {
       if (type === "assets") {
         return (
@@ -162,7 +138,9 @@ export default function AssetReports() {
                 ? `${row.changes.location.old || "-"} → ${row.changes.location.new || "-"}`
                 : "-"}
             </td>
-            <td className="p-2">{new Date(row.createdAt).toLocaleString()}</td>
+            <td className="p-2">
+              {new Date(row.createdAt).toLocaleString()}
+            </td>
           </tr>
         );
       }
@@ -184,108 +162,121 @@ export default function AssetReports() {
   };
 
   // =========================
-  // UI (FULL RESPONSIVE LAYOUT FIX)
+  // UI (MATCHED DESIGN)
   // =========================
   return (
-    <>
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
-        {/* SIDEBAR */}
-        <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
+    <div className="flex h-screen bg-gray-50">
 
-        {/* MAIN WRAPPER */}
-        <div className="flex flex-col flex-1 overflow-hidden">
-          {/* TOPBAR */}
-          <Topbar onToggleSidebar={handleToggleSidebar} />
+      {/* SIDEBAR (FIXED RESPONSIVE FRAME) */}
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
-          {/* CONTENT */}
-          <main className="flex-1 overflow-y-auto p-6 space-y-6">
-            <h1 className="text-2xl font-semibold">Property Tagging Reports</h1>
+      {/* MAIN AREA */}
+      <div className="flex flex-col flex-1 overflow-hidden">
 
-            {/* FILTERS */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm text-gray-500">
-                  Report Filters
-                </CardTitle>
-              </CardHeader>
+        {/* TOPBAR */}
+        <Topbar onToggleSidebar={toggleSidebar} />
 
-              <CardContent>
-                <div className="flex flex-wrap gap-4 items-center">
-                  <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    className="border p-2 rounded"
-                  >
-                    <option value="assets">Assets</option>
-                    <option value="history">History</option>
-                    <option value="services">Services</option>
-                  </select>
+        {/* CONTENT */}
+        <main className="p-6 space-y-6 overflow-y-auto">
 
-                  <Input
-                    type="date"
-                    value={from}
-                    onChange={(e) => setFrom(e.target.value)}
-                  />
-                  <Input
-                    type="date"
-                    value={to}
-                    onChange={(e) => setTo(e.target.value)}
-                  />
+          {/* TITLE (same style as AddLocation) */}
+          <div className="mt-2">
+            <h1 className="text-2xl font-semibold text-gray-800">
+              Asset Reports
+            </h1>
+          </div>
 
-                  <Button
-                    onClick={handleGenerate}
-                    className="bg-[#800000] hover:bg-[#a10000] flex items-center gap-2"
-                  >
-                    <FileText size={16} />
-                    {loading ? "Loading..." : "Generate"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          {/* TABS (consistent with your system UI) */}
+          <PropertyTaggingTabs />
 
-            {/* TABLE */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm text-gray-500">
-                  Results ({totalRecords})
-                </CardTitle>
-              </CardHeader>
+          {/* FILTER CARD */}
+          <Card className="shadow-sm border border-gray-200">
+            <CardHeader>
+              <CardTitle>Report Filters</CardTitle>
+            </CardHeader>
 
-              <CardContent className="overflow-x-auto">
-                {data.length === 0 ? (
-                  <p className="text-gray-500">No data</p>
-                ) : (
-                  <table className="w-full text-sm border-collapse min-w-[600px]">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        {renderHeaders().map((h) => (
-                          <th key={h} className="p-2 text-left">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>{renderRows()}</tbody>
-                  </table>
-                )}
-              </CardContent>
-            </Card>
+            <CardContent>
+              <div className="flex gap-4 flex-wrap items-center">
 
-            {/* EXPORT */}
-            {data.length > 0 && (
-              <div>
-                <Button
-                  onClick={exportExcel}
-                  className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="border p-2 rounded"
                 >
-                  <Download size={16} />
-                  Export Excel
+                  <option value="assets">Assets</option>
+                  <option value="history">History</option>
+                  <option value="services">Services</option>
+                </select>
+
+                <Input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+
+                <Input
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+
+                <Button
+                  onClick={fetchReport}
+                  className="bg-[#800000] hover:bg-[#a10000] text-white flex gap-2"
+                >
+                  <FileText size={16} />
+                  {loading ? "Loading..." : "Generate"}
                 </Button>
               </div>
-            )}
-          </main>
-        </div>
+            </CardContent>
+          </Card>
+
+          {/* TABLE CARD */}
+          <Card className="shadow-sm border border-gray-200">
+            <CardHeader>
+              <CardTitle>Results ({data.length})</CardTitle>
+            </CardHeader>
+
+            <CardContent className="overflow-x-auto">
+
+              {data.length === 0 ? (
+                <p className="text-center text-gray-500 py-6">
+                  No data found
+                </p>
+              ) : (
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100 text-left">
+                      {headers().map((h) => (
+                        <th key={h} className="p-3">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+
+                  <tbody>{rows()}</tbody>
+                </table>
+              )}
+
+            </CardContent>
+          </Card>
+
+          {/* EXPORT */}
+          {data.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                onClick={exportExcel}
+                className="bg-green-600 hover:bg-green-700 flex gap-2"
+              >
+                <Download size={16} />
+                Export Excel
+              </Button>
+            </div>
+          )}
+
+        </main>
       </div>
-    </>
+    </div>
   );
 }
