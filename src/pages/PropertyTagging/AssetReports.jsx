@@ -28,10 +28,18 @@ export default function AssetReports() {
 
   const isAll = limit === 0;
 
-  // Sidebar
+  // =========================
+  // SIDEBAR STATE (FIXED RESPONSIVE LAYOUT)
+  // =========================
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const handleToggleSidebar = () => setIsSidebarOpen((p) => !p);
-  const handleCloseSidebar = () => setIsSidebarOpen(false);
+
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
+  };
+
+  const handleCloseSidebar = () => {
+    setIsSidebarOpen(false);
+  };
 
   // =========================
   // API ROUTE
@@ -75,10 +83,10 @@ export default function AssetReports() {
       const list = Array.isArray(result)
         ? result
         : Array.isArray(result.data)
-        ? result.data
-        : Array.isArray(result.items)
-        ? result.items
-        : [];
+          ? result.data
+          : Array.isArray(result.items)
+            ? result.items
+            : [];
 
       setData(list);
       setTotalRecords(result.total || list.length || 0);
@@ -110,7 +118,7 @@ export default function AssetReports() {
 
     XLSX.writeFile(
       wb,
-      `${type}_report_${new Date().toISOString().split("T")[0]}.xlsx`
+      `${type}_report_${new Date().toISOString().split("T")[0]}.xlsx`,
     );
   };
 
@@ -122,8 +130,7 @@ export default function AssetReports() {
       return ["Serial", "Name", "Category", "Location", "Status"];
     if (type === "history")
       return ["Asset", "Name", "Action", "Location Change", "Date"];
-    if (type === "services")
-      return ["Asset", "Name", "Service", "Cost", "By"];
+    if (type === "services") return ["Asset", "Name", "Service", "Cost", "By"];
     return [];
   };
 
@@ -134,7 +141,7 @@ export default function AssetReports() {
     return data.map((row, i) => {
       if (type === "assets") {
         return (
-          <tr key={i} className="border-b">
+          <tr key={i} className="border-b hover:bg-gray-50">
             <td className="p-2">{row.serialNo}</td>
             <td className="p-2">{row.assetName}</td>
             <td className="p-2">{row.categoryId?.name || "-"}</td>
@@ -146,7 +153,7 @@ export default function AssetReports() {
 
       if (type === "history") {
         return (
-          <tr key={i} className="border-b">
+          <tr key={i} className="border-b hover:bg-gray-50">
             <td className="p-2">{row.assetId?.serialNo}</td>
             <td className="p-2">{row.assetId?.assetName}</td>
             <td className="p-2">{row.actionType}</td>
@@ -155,16 +162,14 @@ export default function AssetReports() {
                 ? `${row.changes.location.old || "-"} → ${row.changes.location.new || "-"}`
                 : "-"}
             </td>
-            <td className="p-2">
-              {new Date(row.createdAt).toLocaleString()}
-            </td>
+            <td className="p-2">{new Date(row.createdAt).toLocaleString()}</td>
           </tr>
         );
       }
 
       if (type === "services") {
         return (
-          <tr key={i} className="border-b">
+          <tr key={i} className="border-b hover:bg-gray-50">
             <td className="p-2">{row.assetId?.serialNo}</td>
             <td className="p-2">{row.assetId?.assetName}</td>
             <td className="p-2">{row.serviceType}</td>
@@ -179,23 +184,21 @@ export default function AssetReports() {
   };
 
   // =========================
-  // UI (MATCHED INVENTORY LAYOUT)
+  // UI (FULL RESPONSIVE LAYOUT FIX)
   // =========================
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* SIDEBAR */}
       <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Topbar */}
+      {/* MAIN WRAPPER */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* TOPBAR */}
         <Topbar onToggleSidebar={handleToggleSidebar} />
 
-        {/* Content */}
-        <main className="p-6 space-y-6 overflow-y-auto">
-          <h1 className="text-2xl font-semibold">
-            Property Tagging Reports
-          </h1>
+        {/* CONTENT */}
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+          <h1 className="text-2xl font-semibold">Property Tagging Reports</h1>
 
           {/* FILTERS */}
           <Card>
@@ -206,7 +209,7 @@ export default function AssetReports() {
             </CardHeader>
 
             <CardContent>
-              <div className="flex gap-4 flex-wrap items-center">
+              <div className="flex flex-wrap gap-4 items-center">
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
@@ -230,7 +233,7 @@ export default function AssetReports() {
 
                 <Button
                   onClick={handleGenerate}
-                  className="bg-[#800000] hover:bg-[#a10000] text-white flex items-center gap-2"
+                  className="bg-[#800000] hover:bg-[#a10000] flex items-center gap-2"
                 >
                   <FileText size={16} />
                   {loading ? "Loading..." : "Generate"}
@@ -247,11 +250,11 @@ export default function AssetReports() {
               </CardTitle>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="overflow-x-auto">
               {data.length === 0 ? (
                 <p className="text-gray-500">No data</p>
               ) : (
-                <table className="w-full text-sm border-collapse">
+                <table className="w-full text-sm border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-gray-100">
                       {renderHeaders().map((h) => (
