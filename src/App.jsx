@@ -26,6 +26,7 @@ import AddLocation from "@/pages/PropertyTagging/AddLocation";
 import AssetDetails from "@/pages/PropertyTagging/AssetDetails";
 import BulkImportAssets from "@/pages/PropertyTagging/BulkImportAssets"; //bulk import for assets
 import { Toaster } from "sonner";
+import AssetReports from "@/pages/PropertyTagging/AssetReports";
 
 import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
@@ -146,6 +147,11 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+              path="/property-tagging/asset-reports"
+              element={<AssetReports />}
+            />
+          
 
           {/* �️ Print QR codes (NO layout) */}
           <Route
