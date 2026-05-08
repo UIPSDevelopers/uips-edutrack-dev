@@ -2,52 +2,54 @@
 
 import React, { useState } from "react";
 
-import Sidebar from "@/components/Sidebar";
-import Topbar from "@/components/Topbar";
-
-import PropertyTaggingTabs from "./PropertyTaggingTabs";
-
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Download, FileText } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import * as XLSX from "xlsx";
 
-export default function AssetReports() {
+import InventoryTabs from "@/pages/Inventory/InventoryTabs";
+
+export default function Reports() {
+  // =========================
+  // STATE
+  // =========================
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [type, setType] = useState("assets");
+  const [type, setType] = useState("delivery");
 
   const [data, setData] = useState([]);
+  const [totals, setTotals] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // sidebar state (IMPORTANT for responsiveness)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const toggleSidebar = () => setIsSidebarOpen((p) => !p);
-  const closeSidebar = () => setIsSidebarOpen(false);
+  const isAll = limit === 0;
 
   // =========================
-  // API
+  // API ROUTE
   // =========================
   const buildUrl = () => {
-    if (type === "assets") return "/reports/assets";
-    if (type === "history") return "/reports/history";
-    if (type === "services") return "/reports/services";
-    return "/reports/assets";
+    if (type === "delivery") return "/reports/delivery";
+    if (type === "checkout") return "/reports/checkout";
+    if (type === "returns") return "/reports/returns";
+    if (type === "summary") return "/reports/summary";
+    return "/reports/delivery";
   };
 
   // =========================
   // FETCH
   // =========================
-  const fetchReport = async () => {
+  const fetchReport = async (pageOverride = page, limitOverride = limit) => {
     setLoading(true);
 
     try {
       const url = buildUrl();
-
       const params = {};
 
       if (from && to) {
@@ -59,19 +61,25 @@ export default function AssetReports() {
         params.to = toDate.toISOString();
       }
 
-      const res = await axiosInstance.get(url, { params });
+      if (limitOverride === 0) {
+        params.all = true;
+      } else {
+        params.page = pageOverride;
+        params.limit = limitOverride;
+      }
 
+      const res = await axiosInstance.get(url, { params });
       const result = res.data;
 
       const list = Array.isArray(result)
         ? result
-        : Array.isArray(result.data)
-        ? result.data
-        : Array.isArray(result.items)
-        ? result.items
-        : [];
+        : result.items || result.summary || [];
 
       setData(list);
+      setTotals(result.totals || null);
+      setTotalRecords(result.total || list.length || 0);
+      setTotalPages(result.pages || 1);
+      setPage(result.page || pageOverride);
     } catch (err) {
       console.error(err);
       alert("Failed to load report");
@@ -80,8 +88,13 @@ export default function AssetReports() {
     }
   };
 
+  const handleGenerate = async () => {
+    setPage(1);
+    await fetchReport(1, limit);
+  };
+
   // =========================
-  // EXPORT
+  // EXPORT EXCEL
   // =========================
   const exportExcel = () => {
     if (!data.length) return alert("No data to export");
@@ -97,186 +110,137 @@ export default function AssetReports() {
     );
   };
 
-  // =========================
-  // TABLE HEADERS
-  // =========================
-  const headers = () => {
-    if (type === "assets")
-      return ["Serial", "Name", "Category", "Location", "Status"];
-    if (type === "history")
-      return ["Asset", "Name", "Action", "Location Change", "Date"];
-    if (type === "services")
-      return ["Asset", "Name", "Service", "Cost", "By"];
-    return [];
-  };
+  const headers = data.length ? Object.keys(data[0]) : [];
 
   // =========================
-  // ROWS
-  // =========================
-  const rows = () => {
-    return data.map((row, i) => {
-      if (type === "assets") {
-        return (
-          <tr key={i} className="border-b hover:bg-gray-50">
-            <td className="p-2">{row.serialNo}</td>
-            <td className="p-2">{row.assetName}</td>
-            <td className="p-2">{row.categoryId?.name || "-"}</td>
-            <td className="p-2">{row.locationId?.name || "-"}</td>
-            <td className="p-2">{row.status}</td>
-          </tr>
-        );
-      }
-
-      if (type === "history") {
-        return (
-          <tr key={i} className="border-b hover:bg-gray-50">
-            <td className="p-2">{row.assetId?.serialNo}</td>
-            <td className="p-2">{row.assetId?.assetName}</td>
-            <td className="p-2">{row.actionType}</td>
-            <td className="p-2">
-              {row.changes?.location
-                ? `${row.changes.location.old || "-"} → ${row.changes.location.new || "-"}`
-                : "-"}
-            </td>
-            <td className="p-2">
-              {new Date(row.createdAt).toLocaleString()}
-            </td>
-          </tr>
-        );
-      }
-
-      if (type === "services") {
-        return (
-          <tr key={i} className="border-b hover:bg-gray-50">
-            <td className="p-2">{row.assetId?.serialNo}</td>
-            <td className="p-2">{row.assetId?.assetName}</td>
-            <td className="p-2">{row.serviceType}</td>
-            <td className="p-2">AED {row.cost}</td>
-            <td className="p-2">{row.performedBy}</td>
-          </tr>
-        );
-      }
-
-      return null;
-    });
-  };
-
-  // =========================
-  // UI (MATCHED DESIGN)
+  // UI
   // =========================
   return (
-    <div className="flex h-screen bg-gray-50">
+    <main className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* HEADER */}
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Inventory Reports
+        </h1>
+        <p className="text-sm text-gray-500">
+          Generate, filter, and export system reports
+        </p>
+      </div>
 
-      {/* SIDEBAR (FIXED RESPONSIVE FRAME) */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      {/* TABS */}
+      <InventoryTabs />
 
-      {/* MAIN AREA */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      {/* FILTER CARD */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm text-gray-500">
+            Report Filters
+          </CardTitle>
+        </CardHeader>
 
-        {/* TOPBAR */}
-        <Topbar onToggleSidebar={toggleSidebar} />
+        <CardContent className="space-y-4">
+          {/* ROW 1 */}
+          <div className="flex flex-wrap gap-4 items-center">
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm"
+            >
+              <option value="delivery">Delivery</option>
+              <option value="checkout">Checkout</option>
+              <option value="returns">Returns</option>
+              <option value="summary">Summary</option>
+            </select>
 
-        {/* CONTENT */}
-        <main className="p-6 space-y-6 overflow-y-auto">
+            <Input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="w-auto"
+            />
 
-          {/* TITLE (same style as AddLocation) */}
-          <div className="mt-2">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              Asset Reports
-            </h1>
+            <span className="text-gray-400 text-sm">to</span>
+
+            <Input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="w-auto"
+            />
+
+            <Button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="bg-[#800000] hover:bg-[#a10000] flex items-center gap-2"
+            >
+              <FileText size={16} />
+              {loading ? "Loading..." : "Generate"}
+            </Button>
           </div>
 
-          {/* TABS (consistent with your system UI) */}
-          <PropertyTaggingTabs />
+          {/* ROW 2 (EXPORT + PAGINATION INFO) */}
+          {data.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t">
+              <p className="text-sm text-gray-500">
+                {isAll
+                  ? `Total records: ${totalRecords}`
+                  : `Page ${page} of ${totalPages} • ${data.length}/${totalRecords}`}
+              </p>
 
-          {/* FILTER CARD */}
-          <Card className="shadow-sm border border-gray-200">
-            <CardHeader>
-              <CardTitle>Report Filters</CardTitle>
-            </CardHeader>
-
-            <CardContent>
-              <div className="flex gap-4 flex-wrap items-center">
-
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="border p-2 rounded"
-                >
-                  <option value="assets">Assets</option>
-                  <option value="history">History</option>
-                  <option value="services">Services</option>
-                </select>
-
-                <Input
-                  type="date"
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                />
-
-                <Input
-                  type="date"
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                />
-
+              <div className="flex gap-2 flex-wrap">
                 <Button
-                  onClick={fetchReport}
-                  className="bg-[#800000] hover:bg-[#a10000] text-white flex gap-2"
+                  onClick={exportExcel}
+                  className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
                 >
-                  <FileText size={16} />
-                  {loading ? "Loading..." : "Generate"}
+                  <Download size={16} />
+                  Export Excel
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* TABLE CARD */}
-          <Card className="shadow-sm border border-gray-200">
-            <CardHeader>
-              <CardTitle>Results ({data.length})</CardTitle>
-            </CardHeader>
-
-            <CardContent className="overflow-x-auto">
-
-              {data.length === 0 ? (
-                <p className="text-center text-gray-500 py-6">
-                  No data found
-                </p>
-              ) : (
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100 text-left">
-                      {headers().map((h) => (
-                        <th key={h} className="p-3">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>{rows()}</tbody>
-                </table>
-              )}
-
-            </CardContent>
-          </Card>
-
-          {/* EXPORT */}
-          {data.length > 0 && (
-            <div className="flex justify-end">
-              <Button
-                onClick={exportExcel}
-                className="bg-green-600 hover:bg-green-700 flex gap-2"
-              >
-                <Download size={16} />
-                Export Excel
-              </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
 
-        </main>
-      </div>
-    </div>
+      {/* TABLE CARD */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm text-gray-500">
+            Report Results
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="overflow-x-auto">
+          {data.length === 0 ? (
+            <p className="text-center text-gray-500 py-6">No data available</p>
+          ) : (
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  {headers.map((h) => (
+                    <th key={h} className="p-2 border-b capitalize">
+                      {h.replace(/([A-Z])/g, " $1")}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {data.map((row, i) => (
+                  <tr key={i} className="hover:bg-gray-50">
+                    {headers.map((h) => (
+                      <td key={h} className="p-2 border-b text-gray-700">
+                        {typeof row[h] === "object"
+                          ? JSON.stringify(row[h])
+                          : row[h]?.toString() || "-"}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
+    </main>
   );
 }
