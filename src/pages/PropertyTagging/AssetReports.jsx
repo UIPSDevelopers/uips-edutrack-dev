@@ -28,13 +28,13 @@ export default function AssetReports() {
 
   const isAll = limit === 0;
 
-  // Sidebar state
+  // Sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const handleToggleSidebar = () => setIsSidebarOpen((p) => !p);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
   // =========================
-  // API ROUTES
+  // API ROUTE
   // =========================
   const buildUrl = () => {
     if (type === "assets") return "/reports/assets";
@@ -75,17 +75,17 @@ export default function AssetReports() {
       const list = Array.isArray(result)
         ? result
         : Array.isArray(result.data)
-          ? result.data
-          : Array.isArray(result.items)
-            ? result.items
-            : [];
+        ? result.data
+        : Array.isArray(result.items)
+        ? result.items
+        : [];
 
       setData(list);
-      setTotalRecords(result.total || list.length);
+      setTotalRecords(result.total || list.length || 0);
       setTotalPages(result.pages || 1);
       setPage(result.page || pageOverride);
     } catch (err) {
-      console.error(err);
+      console.error("Report error:", err);
       alert("Failed to load report");
     } finally {
       setLoading(false);
@@ -98,7 +98,7 @@ export default function AssetReports() {
   };
 
   // =========================
-  // EXPORT
+  // EXPORT EXCEL
   // =========================
   const exportExcel = () => {
     if (!data.length) return alert("No data to export");
@@ -110,22 +110,26 @@ export default function AssetReports() {
 
     XLSX.writeFile(
       wb,
-      `${type}_report_${new Date().toISOString().split("T")[0]}.xlsx`,
+      `${type}_report_${new Date().toISOString().split("T")[0]}.xlsx`
     );
   };
 
   // =========================
-  // TABLE
+  // TABLE HEADERS
   // =========================
   const renderHeaders = () => {
     if (type === "assets")
       return ["Serial", "Name", "Category", "Location", "Status"];
     if (type === "history")
       return ["Asset", "Name", "Action", "Location Change", "Date"];
-    if (type === "services") return ["Asset", "Name", "Service", "Cost", "By"];
+    if (type === "services")
+      return ["Asset", "Name", "Service", "Cost", "By"];
     return [];
   };
 
+  // =========================
+  // TABLE ROWS
+  // =========================
   const renderRows = () => {
     return data.map((row, i) => {
       if (type === "assets") {
@@ -151,7 +155,9 @@ export default function AssetReports() {
                 ? `${row.changes.location.old || "-"} → ${row.changes.location.new || "-"}`
                 : "-"}
             </td>
-            <td className="p-2">{new Date(row.createdAt).toLocaleString()}</td>
+            <td className="p-2">
+              {new Date(row.createdAt).toLocaleString()}
+            </td>
           </tr>
         );
       }
@@ -173,22 +179,30 @@ export default function AssetReports() {
   };
 
   // =========================
-  // UI LAYOUT (FIXED)
+  // UI (MATCHED INVENTORY LAYOUT)
   // =========================
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
 
+      {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
         <Topbar onToggleSidebar={handleToggleSidebar} />
 
+        {/* Content */}
         <main className="p-6 space-y-6 overflow-y-auto">
-          <h1 className="text-2xl font-semibold">Property Tagging Reports</h1>
+          <h1 className="text-2xl font-semibold">
+            Property Tagging Reports
+          </h1>
 
           {/* FILTERS */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm text-gray-500">Filters</CardTitle>
+              <CardTitle className="text-sm text-gray-500">
+                Report Filters
+              </CardTitle>
             </CardHeader>
 
             <CardContent>
@@ -214,7 +228,10 @@ export default function AssetReports() {
                   onChange={(e) => setTo(e.target.value)}
                 />
 
-                <Button onClick={handleGenerate} className="bg-[#800000]">
+                <Button
+                  onClick={handleGenerate}
+                  className="bg-[#800000] hover:bg-[#a10000] text-white flex items-center gap-2"
+                >
                   <FileText size={16} />
                   {loading ? "Loading..." : "Generate"}
                 </Button>
@@ -234,7 +251,7 @@ export default function AssetReports() {
               {data.length === 0 ? (
                 <p className="text-gray-500">No data</p>
               ) : (
-                <table className="w-full text-sm">
+                <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="bg-gray-100">
                       {renderHeaders().map((h) => (
@@ -255,7 +272,7 @@ export default function AssetReports() {
             <div>
               <Button
                 onClick={exportExcel}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 flex items-center gap-2"
               >
                 <Download size={16} />
                 Export Excel
