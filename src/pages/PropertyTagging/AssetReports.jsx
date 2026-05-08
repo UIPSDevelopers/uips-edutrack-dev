@@ -1,9 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+
+import Sidebar from "@/components/Sidebar";
+import Topbar from "@/components/Topbar";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Download, FileText } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import * as XLSX from "xlsx";
@@ -23,6 +28,11 @@ export default function AssetReports() {
 
   const isAll = limit === 0;
 
+  // Sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const handleCloseSidebar = () => setIsSidebarOpen(false);
+
   // =========================
   // API ROUTES
   // =========================
@@ -41,7 +51,6 @@ export default function AssetReports() {
 
     try {
       const url = buildUrl();
-
       const params = {};
 
       if (from && to) {
@@ -83,57 +92,18 @@ export default function AssetReports() {
     }
   };
 
-  // =========================
-  // GENERATE
-  // =========================
   const handleGenerate = async () => {
     setPage(1);
     await fetchReport(1, limit);
   };
 
   // =========================
-  // EXPORT EXCEL
+  // EXPORT
   // =========================
   const exportExcel = () => {
     if (!data.length) return alert("No data to export");
 
-    const cleaned = data.map((row) => {
-      if (type === "assets") {
-        return {
-          Serial: row.serialNo,
-          Name: row.assetName,
-          Category: row.categoryId?.name || "-",
-          Location: row.locationId?.name || "-",
-          Status: row.status,
-        };
-      }
-
-      if (type === "history") {
-        return {
-          Asset: row.assetId?.serialNo,
-          Name: row.assetId?.assetName,
-          Action: row.actionType,
-          LocationChange: row.changes?.location
-            ? `${row.changes.location.old || "-"} → ${row.changes.location.new || "-"}`
-            : "-",
-          Date: new Date(row.createdAt).toLocaleString(),
-        };
-      }
-
-      if (type === "services") {
-        return {
-          Asset: row.assetId?.serialNo,
-          Name: row.assetId?.assetName,
-          Service: row.serviceType,
-          Cost: row.cost,
-          PerformedBy: row.performedBy,
-        };
-      }
-
-      return row;
-    });
-
-    const ws = XLSX.utils.json_to_sheet(cleaned);
+    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(wb, ws, "Report");
@@ -145,24 +115,17 @@ export default function AssetReports() {
   };
 
   // =========================
-  // TABLE HEADERS
+  // TABLE
   // =========================
   const renderHeaders = () => {
-    if (type === "assets") {
+    if (type === "assets")
       return ["Serial", "Name", "Category", "Location", "Status"];
-    }
-    if (type === "history") {
+    if (type === "history")
       return ["Asset", "Name", "Action", "Location Change", "Date"];
-    }
-    if (type === "services") {
-      return ["Asset", "Name", "Service", "Cost", "Performed By"];
-    }
+    if (type === "services") return ["Asset", "Name", "Service", "Cost", "By"];
     return [];
   };
 
-  // =========================
-  // ROWS
-  // =========================
   const renderRows = () => {
     return data.map((row, i) => {
       if (type === "assets") {
@@ -210,89 +173,97 @@ export default function AssetReports() {
   };
 
   // =========================
-  // UI
+  // UI LAYOUT (FIXED)
   // =========================
   return (
-    <main className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Property Tagging Reports</h1>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
 
-      {/* FILTERS */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm text-gray-500">Filters</CardTitle>
-        </CardHeader>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Topbar onToggleSidebar={handleToggleSidebar} />
 
-        <CardContent>
-          <div className="flex gap-4 flex-wrap items-center">
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="border p-2 rounded"
-            >
-              <option value="assets">Assets</option>
-              <option value="history">History</option>
-              <option value="services">Services</option>
-            </select>
+        <main className="p-6 space-y-6 overflow-y-auto">
+          <h1 className="text-2xl font-semibold">Property Tagging Reports</h1>
 
-            <Input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-            />
-            <Input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-            />
+          {/* FILTERS */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm text-gray-500">Filters</CardTitle>
+            </CardHeader>
 
-            <Button onClick={handleGenerate} className="bg-[#800000]">
-              <FileText size={16} />
-              {loading ? "Loading..." : "Generate"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <CardContent>
+              <div className="flex gap-4 flex-wrap items-center">
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="border p-2 rounded"
+                >
+                  <option value="assets">Assets</option>
+                  <option value="history">History</option>
+                  <option value="services">Services</option>
+                </select>
 
-      {/* TABLE */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm text-gray-500">
-            Results ({totalRecords})
-          </CardTitle>
-        </CardHeader>
+                <Input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+                <Input
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                />
 
-        <CardContent>
-          {data.length === 0 ? (
-            <p className="text-gray-500">No data</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100">
-                  {renderHeaders().map((h) => (
-                    <th key={h} className="p-2 text-left">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>{renderRows()}</tbody>
-            </table>
+                <Button onClick={handleGenerate} className="bg-[#800000]">
+                  <FileText size={16} />
+                  {loading ? "Loading..." : "Generate"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* TABLE */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm text-gray-500">
+                Results ({totalRecords})
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              {data.length === 0 ? (
+                <p className="text-gray-500">No data</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      {renderHeaders().map((h) => (
+                        <th key={h} className="p-2 text-left">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>{renderRows()}</tbody>
+                </table>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* EXPORT */}
+          {data.length > 0 && (
+            <div>
+              <Button
+                onClick={exportExcel}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Download size={16} />
+                Export Excel
+              </Button>
+            </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* EXPORT */}
-      {data.length > 0 && (
-        <div>
-          <Button
-            onClick={exportExcel}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <Download size={16} />
-            Export Excel
-          </Button>
-        </div>
-      )}
-    </main>
+        </main>
+      </div>
+    </div>
   );
 }
