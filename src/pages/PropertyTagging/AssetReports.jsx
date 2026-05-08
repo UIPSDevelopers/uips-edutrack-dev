@@ -160,16 +160,6 @@ export default function AssetReports() {
   // UI
   // =========================
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* SIDEBAR */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-
-      {/* MAIN */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* TOPBAR */}
-        <Topbar onToggleSidebar={toggleSidebar} />
-
-        {/* CONTENT */}
         <main className="p-6 space-y-6 overflow-y-auto">
           {/* HEADER */}
           <div>
@@ -275,7 +265,5 @@ export default function AssetReports() {
             </CardContent>
           </Card>
         </main>
-      </div>
-    </div>
   );
 }
