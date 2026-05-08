@@ -89,7 +89,7 @@ export default function PropertyTaggingTabs() {
         {/* Reports */}
         <TabsTrigger
           value="reports"
-          onClick={() => navigate("/property-tagging/reports")}
+          onClick={() => navigate("/property-tagging/asset-reports")}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
           data-[state=active]:bg-[#800000] data-[state=active]:text-white"
         >
