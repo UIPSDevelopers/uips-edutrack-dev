@@ -6,12 +6,25 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Ban, Printer, ScanLine } from "lucide-react";
+
+import {
+  Search,
+  Ban,
+  Printer,
+  ScanLine,
+  FileSpreadsheet,
+  FileText,
+} from "lucide-react";
 
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
 import axiosInstance from "@/lib/axios";
 import PrintQRModal from "./PrintQRModal";
 import QRScanner from "@/components/ui/QRScanner";
+
+import * as XLSX from "xlsx";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function PropertyTagging() {
   const navigate = useNavigate();
@@ -47,6 +60,7 @@ export default function PropertyTagging() {
       : null;
 
   const role = user?.role;
+
   const canView = ["IT", "InventoryStaff", "InventoryAdmin"].includes(role);
 
   // =========================
@@ -61,7 +75,9 @@ export default function PropertyTagging() {
     const fetchAssets = async () => {
       try {
         setLoading(true);
+
         const res = await axiosInstance.get("/asset/assets");
+
         setAssets(res.data.assets || []);
       } catch (error) {
         console.error(error);
@@ -99,6 +115,7 @@ export default function PropertyTagging() {
 
       if (A < B) return sortConfig.direction === "asc" ? -1 : 1;
       if (A > B) return sortConfig.direction === "asc" ? 1 : -1;
+
       return 0;
     });
   }, [filteredAssets, sortConfig]);
@@ -134,16 +151,181 @@ export default function PropertyTagging() {
   // =========================
   const handlePrintQR = () => {
     if (!selectedAssets.length) return;
+
     setShowPrint(true);
   };
 
   // =========================
-  // SCANNER OPEN (AUTO CAMERA START)
+  // EXPORT EXCEL
+  // =========================
+  const exportExcel = () => {
+    if (!sortedAssets.length) {
+      return alert("No assets to export");
+    }
+
+    const excelData = sortedAssets.map((asset, index) => ({
+      "#": index + 1,
+      Serial: asset.serialNo || "-",
+      Asset: asset.assetName || "-",
+      Category: asset.categoryId?.name || "-",
+      Brand: asset.brand || "-",
+      Model: asset.model || "-",
+      Status: asset.status || "-",
+      Location: asset.locationId?.name || "-",
+      Building: asset.locationId?.building || "-",
+      Floor: asset.locationId?.floor || "-",
+      PurchaseDate: asset.purchaseDate
+        ? new Date(asset.purchaseDate).toLocaleDateString()
+        : "-",
+      Remarks: asset.remarks || "-",
+      CreatedAt: asset.createdAt
+        ? new Date(asset.createdAt).toLocaleString()
+        : "-",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "Assets");
+
+    XLSX.writeFile(
+      wb,
+      `ASSET_LIST_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
+  };
+
+  // =========================
+  // EXPORT PDF
+  // =========================
+  const exportPDF = () => {
+    if (!sortedAssets.length) {
+      return alert("No assets to export");
+    }
+
+    const doc = new jsPDF("landscape");
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // COLORS
+    const primary = [128, 0, 0];
+
+    // HEADER
+    doc.setFillColor(...primary);
+    doc.rect(0, 0, pageWidth, 28, "F");
+
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+
+    doc.text("PROPERTY TAGGING ASSET REPORT", 14, 18);
+
+    doc.setFontSize(10);
+
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 75, 18);
+
+    // REPORT DETAILS
+    doc.setTextColor(0, 0, 0);
+
+    doc.setFontSize(10);
+
+    doc.text(`Total Assets: ${sortedAssets.length}`, 14, 40);
+
+    // TABLE
+    const tableData = sortedAssets.map((asset, index) => [
+      index + 1,
+      asset.serialNo || "-",
+      asset.assetName || "-",
+      asset.categoryId?.name || "-",
+      asset.brand || "-",
+      asset.model || "-",
+      asset.status || "-",
+      asset.locationId?.name || "-",
+      asset.locationId?.building || "-",
+      asset.locationId?.floor || "-",
+      asset.purchaseDate
+        ? new Date(asset.purchaseDate).toLocaleDateString()
+        : "-",
+      asset.remarks || "-",
+    ]);
+
+    autoTable(doc, {
+      startY: 48,
+
+      head: [
+        [
+          "#",
+          "Serial",
+          "Asset",
+          "Category",
+          "Brand",
+          "Model",
+          "Status",
+          "Location",
+          "Building",
+          "Floor",
+          "Purchase Date",
+          "Remarks",
+        ],
+      ],
+
+      body: tableData,
+
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+        overflow: "linebreak",
+      },
+
+      headStyles: {
+        fillColor: primary,
+        textColor: 255,
+        halign: "center",
+        fontStyle: "bold",
+      },
+
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+
+      margin: {
+        left: 10,
+        right: 10,
+      },
+
+      didDrawPage: (data) => {
+        const pageCount = doc.internal.getNumberOfPages();
+
+        const pageHeight = doc.internal.pageSize.height;
+
+        doc.setFontSize(8);
+
+        doc.setTextColor(100);
+
+        doc.text(
+          `Page ${data.pageNumber} of ${pageCount}`,
+          pageWidth - 30,
+          pageHeight - 10,
+        );
+
+        doc.text(
+          "Generated by EduTrack Property Tagging System",
+          14,
+          pageHeight - 10,
+        );
+      },
+    });
+
+    doc.save(
+      `PROPERTY_TAGGING_REPORT_${new Date().toISOString().split("T")[0]}.pdf`,
+    );
+  };
+
+  // =========================
+  // SCANNER OPEN
   // =========================
   const openScanner = () => {
     setShowScanner(true);
 
-    // small delay ensures camera initializes properly
     setTimeout(() => {
       if (scannerRef.current?.startCamera) {
         scannerRef.current.startCamera();
@@ -152,50 +334,35 @@ export default function PropertyTagging() {
   };
 
   // =========================
-  // SCAN HANDLER (INSTANT REDIRECT)
+  // SCAN HANDLER
   // =========================
   const handleScan = (data) => {
-    console.log("handleScan called with:", data, "Type:", typeof data);
-    if (!data || scanLockRef.current) {
-      console.log("handleScan blocked: data=", data, "lock=", scanLockRef.current);
-      return;
-    }
+    if (!data || scanLockRef.current) return;
 
     let assetId = String(data).trim();
-    console.log("Raw scanned data:", assetId);
 
-    // If it's a URL, extract the asset ID from the path
     if (assetId.includes("/")) {
-      console.log("Detected as URL, extracting asset ID...");
-      // Handle URLs like:
-      // - http://localhost:5173/property-tagging/123abc456
-      // - https://app.com/property-tagging/123abc456
-      // - /property-tagging/123abc456
       const match = assetId.match(/\/property-tagging\/([a-f\d]{24})/i);
+
       if (match && match[1]) {
         assetId = match[1];
-        console.log("Extracted asset ID from URL:", assetId);
       } else {
-        console.warn("⚠️ Could not extract valid asset ID from URL:", data);
-        alert(`Invalid QR Code URL format: ${data}`);
+        alert(`Invalid QR Code URL format`);
         return;
       }
     }
 
-    // Validate if it looks like a MongoDB ID
     const isValidMongoId = /^[a-f\d]{24}$/i.test(assetId);
-    console.log("Is valid MongoDB ID:", isValidMongoId, "Data:", assetId);
 
     if (!isValidMongoId) {
-      console.warn("⚠️ QR data is not a valid MongoDB ID:", assetId);
-      alert(`Invalid QR Code format. Expected asset ID, got: ${assetId}`);
+      alert(`Invalid QR Code format`);
       return;
     }
 
     scanLockRef.current = true;
-    console.log("✅ Navigating to /property-tagging/" + assetId);
 
     setShowScanner(false);
+
     navigate(`/property-tagging/${assetId}`);
 
     setTimeout(() => {
@@ -208,6 +375,7 @@ export default function PropertyTagging() {
   // =========================
   const handleRowClick = (e, id) => {
     if (e.target.type === "checkbox") return;
+
     navigate(`/property-tagging/${id}`);
   };
 
@@ -231,11 +399,29 @@ export default function PropertyTagging() {
   return (
     <main className="p-6 space-y-6">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Property Tagging</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Property Tagging</h1>
 
-        <div className="flex gap-2">
-          {/* SCAN BUTTON (AUTO CAMERA) */}
+          <p className="text-sm text-gray-500 mt-1">
+            Manage tagged assets, QR printing, and exports
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={exportExcel}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-2" />
+            Export Excel
+          </Button>
+
+          <Button onClick={exportPDF} className="bg-red-600 hover:bg-red-700">
+            <FileText className="w-4 h-4 mr-2" />
+            Export PDF
+          </Button>
+
           <Button onClick={openScanner} className="bg-black text-white">
             <ScanLine className="w-4 h-4 mr-2" />
             Scan QR
@@ -257,6 +443,7 @@ export default function PropertyTagging() {
       {/* SEARCH */}
       <div className="flex items-center gap-2 w-full md:w-1/3">
         <Search className="w-4 h-4 text-gray-500" />
+
         <Input
           placeholder="Search assets..."
           value={searchTerm}
@@ -267,10 +454,10 @@ export default function PropertyTagging() {
       {/* TABLE */}
       <Card>
         <CardHeader>
-          <CardTitle>Assets List</CardTitle>
+          <CardTitle>Assets List ({sortedAssets.length})</CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           {loading ? (
             <p className="text-center py-6">Loading...</p>
           ) : sortedAssets.length === 0 ? (
@@ -328,11 +515,17 @@ export default function PropertyTagging() {
                     <td className="p-3 font-medium text-[#800000]">
                       {asset.serialNo}
                     </td>
+
                     <td className="p-3">{asset.assetName}</td>
+
                     <td className="p-3">{asset.categoryId?.name || "-"}</td>
+
                     <td className="p-3">{asset.brand || "-"}</td>
+
                     <td className="p-3">{asset.model || "-"}</td>
+
                     <td className="p-3">{asset.status}</td>
+
                     <td className="p-3">{asset.locationId?.name || "-"}</td>
                   </tr>
                 ))}
@@ -354,6 +547,7 @@ export default function PropertyTagging() {
           <div className="bg-white w-full h-full md:w-[90vw] md:h-[90vh] md:rounded-lg flex flex-col">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold">Scan QR Code</h3>
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -362,12 +556,9 @@ export default function PropertyTagging() {
                 ✕
               </Button>
             </div>
-            
+
             <div className="flex-1 overflow-hidden">
-              <QRScanner
-                ref={scannerRef}
-                onScan={handleScan}
-              />
+              <QRScanner ref={scannerRef} onScan={handleScan} />
             </div>
 
             <div className="p-4 border-t">
