@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
 
 import { Input } from "@/components/ui/input";
@@ -18,21 +17,10 @@ export default function AssetReports() {
   // =========================
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [type, setType] = useState("ASSETS");
+  const [type, setType] = useState("SUMMARY");
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // =========================
-  // BACKEND TYPE MAPPING
-  // =========================
-  const mapType = () => {
-    if (type === "ASSETS") return "ASSETS";
-    if (type === "MOVEMENT") return "MOVEMENT";
-    if (type === "STATUS") return "STATUS";
-    if (type === "SERVICE") return "SERVICE";
-    return "ASSETS";
-  };
 
   // =========================
   // FETCH REPORT
@@ -42,7 +30,7 @@ export default function AssetReports() {
 
     try {
       const params = {
-        type: mapType(),
+        type,
       };
 
       if (from && to) {
@@ -74,7 +62,7 @@ export default function AssetReports() {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(wb, ws, "Report");
+    XLSX.utils.book_append_sheet(wb, ws, "Asset Report");
 
     XLSX.writeFile(
       wb,
@@ -83,22 +71,25 @@ export default function AssetReports() {
   };
 
   // =========================
-  // TABLE HEADERS (BASED ON BACKEND)
+  // HEADERS
   // =========================
   const getHeaders = () => {
-    if (type === "ASSETS") {
-      return ["Asset", "Serial", "Category", "Location"];
-    }
+    switch (type) {
+      case "SUMMARY":
+        return ["Asset", "Serial", "Category", "Location", "Status"];
 
-    if (type === "MOVEMENT" || type === "STATUS") {
-      return ["Asset", "Serial", "Action", "Old", "New", "Date"];
-    }
+      case "MOVEMENT":
+        return ["Asset", "Serial", "Old Location", "New Location", "Date"];
 
-    if (type === "SERVICE") {
-      return ["Asset", "Serial", "Service Type", "Cost", "By"];
-    }
+      case "STATUS":
+        return ["Asset", "Serial", "Old Status", "New Status", "Date"];
 
-    return [];
+      case "SERVICE":
+        return ["Asset", "Serial", "Service Type", "Cost", "Performed By"];
+
+      default:
+        return [];
+    }
   };
 
   // =========================
@@ -107,32 +98,54 @@ export default function AssetReports() {
   const renderRow = (row, i) => {
     const asset = row.assetId;
 
-    if (type === "ASSETS") {
+    // =========================
+    // SUMMARY (ASSETS)
+    // =========================
+    if (type === "SUMMARY") {
       return (
         <tr key={i} className="border-b hover:bg-gray-50">
           <td className="p-3">{asset?.assetName}</td>
           <td className="p-3 font-medium text-[#800000]">{asset?.serialNo}</td>
           <td className="p-3">{asset?.categoryId?.name || "-"}</td>
           <td className="p-3">{asset?.locationId?.name || "-"}</td>
+          <td className="p-3">{asset?.status || "-"}</td>
         </tr>
       );
     }
 
-    if (type === "MOVEMENT" || type === "STATUS") {
-      const changeKey = type === "MOVEMENT" ? "location" : "status";
-
+    // =========================
+    // MOVEMENT
+    // =========================
+    if (type === "MOVEMENT") {
       return (
         <tr key={i} className="border-b hover:bg-gray-50">
           <td className="p-3">{asset?.assetName}</td>
           <td className="p-3">{asset?.serialNo}</td>
-          <td className="p-3">{row.actionType}</td>
-          <td className="p-3">{row.changes?.[changeKey]?.old || "-"}</td>
-          <td className="p-3">{row.changes?.[changeKey]?.new || "-"}</td>
+          <td className="p-3">{row.changes?.location?.old || "-"}</td>
+          <td className="p-3">{row.changes?.location?.new || "-"}</td>
           <td className="p-3">{new Date(row.createdAt).toLocaleString()}</td>
         </tr>
       );
     }
 
+    // =========================
+    // STATUS
+    // =========================
+    if (type === "STATUS") {
+      return (
+        <tr key={i} className="border-b hover:bg-gray-50">
+          <td className="p-3">{asset?.assetName}</td>
+          <td className="p-3">{asset?.serialNo}</td>
+          <td className="p-3">{row.changes?.status?.old || "-"}</td>
+          <td className="p-3">{row.changes?.status?.new || "-"}</td>
+          <td className="p-3">{new Date(row.createdAt).toLocaleString()}</td>
+        </tr>
+      );
+    }
+
+    // =========================
+    // SERVICE
+    // =========================
     if (type === "SERVICE") {
       return (
         <tr key={i} className="border-b hover:bg-gray-50">
@@ -157,15 +170,15 @@ export default function AssetReports() {
       <div>
         <h1 className="text-2xl font-semibold text-gray-800">Asset Reports</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Generate asset movement, status, service, and asset reports
+          Generate asset summary, movement, status, and service reports
         </p>
       </div>
 
       {/* TABS */}
       <PropertyTaggingTabs />
 
-      {/* FILTER CARD */}
-      <Card className="border border-gray-200 shadow-sm">
+      {/* FILTER */}
+      <Card>
         <CardHeader>
           <CardTitle className="text-sm text-gray-500">
             Report Filters
@@ -180,7 +193,7 @@ export default function AssetReports() {
               onChange={(e) => setType(e.target.value)}
               className="border rounded-md px-3 py-2 text-sm"
             >
-              <option value="ASSETS">Assets</option>
+              <option value="SUMMARY">Summary</option>
               <option value="MOVEMENT">Movement</option>
               <option value="STATUS">Status</option>
               <option value="SERVICE">Service</option>
@@ -192,7 +205,9 @@ export default function AssetReports() {
               value={from}
               onChange={(e) => setFrom(e.target.value)}
             />
+
             <span className="text-gray-400 text-sm">to</span>
+
             <Input
               type="date"
               value={to}
@@ -226,7 +241,7 @@ export default function AssetReports() {
       </Card>
 
       {/* TABLE */}
-      <Card className="border border-gray-200 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="text-sm text-gray-500">
             Results ({data.length})
