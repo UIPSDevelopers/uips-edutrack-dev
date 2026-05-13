@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Download, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import * as XLSX from "xlsx";
 
@@ -46,7 +46,6 @@ export default function AssetReports() {
       }
 
       const res = await axiosInstance.get("/reports/asset", { params });
-
       setData(res.data?.data || []);
     } catch (err) {
       console.error(err);
@@ -57,12 +56,37 @@ export default function AssetReports() {
   };
 
   // =========================
-  // EXPORT EXCEL
+  // EXPORT EXCEL (FULL DATA)
   // =========================
   const exportExcel = () => {
     if (!data.length) return alert("No data to export");
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const formatted = data.map((row) => {
+      const asset = row.assetId;
+
+      return {
+        Asset: asset?.assetName,
+        Serial: asset?.serialNo,
+        Category: asset?.categoryId?.name,
+        Location: asset?.locationId?.name,
+        Status: asset?.status,
+
+        ActionType: row.actionType || row.serviceType || "ASSET",
+        ServiceType: row.serviceType || "-",
+        Cost: row.cost || "-",
+        PerformedBy: row.performedBy || "-",
+
+        OldLocation: row.changes?.location?.old || "-",
+        NewLocation: row.changes?.location?.new || "-",
+
+        OldStatus: row.changes?.status?.old || "-",
+        NewStatus: row.changes?.status?.new || "-",
+
+        Date: row.createdAt ? new Date(row.createdAt).toLocaleString() : "-",
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(formatted);
     const wb = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(wb, ws, "Asset Report");
@@ -74,7 +98,7 @@ export default function AssetReports() {
   };
 
   // =========================
-  // EXPORT PDF
+  // EXPORT PDF (FULL DATA)
   // =========================
   const exportPDF = () => {
     if (!data.length) return alert("No data to export");
@@ -84,51 +108,43 @@ export default function AssetReports() {
     const tableData = data.map((row) => {
       const asset = row.assetId;
 
-      if (type === "SUMMARY") {
-        return [
-          asset?.assetName,
-          asset?.serialNo,
-          asset?.categoryId?.name,
-          asset?.locationId?.name,
-          asset?.status,
-        ];
-      }
-
-      if (type === "MOVEMENT") {
-        return [
-          asset?.assetName,
-          asset?.serialNo,
-          row.changes?.location?.old,
-          row.changes?.location?.new,
-          new Date(row.createdAt).toLocaleString(),
-        ];
-      }
-
-      if (type === "STATUS") {
-        return [
-          asset?.assetName,
-          asset?.serialNo,
-          row.changes?.status?.old,
-          row.changes?.status?.new,
-          new Date(row.createdAt).toLocaleString(),
-        ];
-      }
-
-      if (type === "SERVICE") {
-        return [
-          asset?.assetName,
-          asset?.serialNo,
-          row.serviceType,
-          row.cost,
-          row.performedBy,
-        ];
-      }
-
-      return [];
+      return [
+        asset?.assetName,
+        asset?.serialNo,
+        asset?.categoryId?.name || "-",
+        asset?.locationId?.name || "-",
+        asset?.status || "-",
+        row.actionType || row.serviceType || "-",
+        row.serviceType || "-",
+        row.cost || "-",
+        row.performedBy || "-",
+        row.changes?.location?.old || "-",
+        row.changes?.location?.new || "-",
+        row.changes?.status?.old || "-",
+        row.changes?.status?.new || "-",
+        row.createdAt ? new Date(row.createdAt).toLocaleString() : "-",
+      ];
     });
 
     autoTable(doc, {
-      head: [getHeaders()],
+      head: [
+        [
+          "Asset",
+          "Serial",
+          "Category",
+          "Location",
+          "Status",
+          "Action",
+          "Service",
+          "Cost",
+          "By",
+          "Old Loc",
+          "New Loc",
+          "Old Status",
+          "New Status",
+          "Date",
+        ],
+      ],
       body: tableData,
     });
 
@@ -136,78 +152,60 @@ export default function AssetReports() {
   };
 
   // =========================
-  // HEADERS
-  // =========================
-  const getHeaders = () => {
-    switch (type) {
-      case "SUMMARY":
-        return ["Asset", "Serial", "Category", "Location", "Status"];
-      case "MOVEMENT":
-        return ["Asset", "Serial", "Old Location", "New Location", "Date"];
-      case "STATUS":
-        return ["Asset", "Serial", "Old Status", "New Status", "Date"];
-      case "SERVICE":
-        return ["Asset", "Serial", "Service Type", "Cost", "Performed By"];
-      default:
-        return [];
-    }
-  };
-
-  // =========================
-  // ROW RENDER
+  // ROW RENDER (FULL DETAILS)
   // =========================
   const renderRow = (row, i) => {
     const asset = row.assetId;
 
-    if (type === "SUMMARY") {
-      return (
-        <tr key={i} className="border-b hover:bg-gray-50">
-          <td className="p-3">{asset?.assetName}</td>
-          <td className="p-3 text-[#800000] font-medium">{asset?.serialNo}</td>
-          <td className="p-3">{asset?.categoryId?.name || "-"}</td>
-          <td className="p-3">{asset?.locationId?.name || "-"}</td>
-          <td className="p-3">{asset?.status || "-"}</td>
-        </tr>
-      );
-    }
+    return (
+      <tr key={i} className="border-b hover:bg-gray-50 align-top">
+        {/* ASSET */}
+        <td className="p-3">
+          <div className="font-semibold">{asset?.assetName}</div>
+          <div className="text-[#800000] font-medium">{asset?.serialNo}</div>
+          <div className="text-xs text-gray-500">
+            {asset?.categoryId?.name} | {asset?.locationId?.name}
+          </div>
+          <div className="text-xs">Status: {asset?.status}</div>
+        </td>
 
-    if (type === "MOVEMENT") {
-      return (
-        <tr key={i} className="border-b hover:bg-gray-50">
-          <td className="p-3">{asset?.assetName}</td>
-          <td className="p-3">{asset?.serialNo}</td>
-          <td className="p-3">{row.changes?.location?.old || "-"}</td>
-          <td className="p-3">{row.changes?.location?.new || "-"}</td>
-          <td className="p-3">{new Date(row.createdAt).toLocaleString()}</td>
-        </tr>
-      );
-    }
+        {/* REPORT TYPE */}
+        <td className="p-3">
+          <div className="font-semibold">
+            {row.actionType || row.serviceType || "ASSET"}
+          </div>
 
-    if (type === "STATUS") {
-      return (
-        <tr key={i} className="border-b hover:bg-gray-50">
-          <td className="p-3">{asset?.assetName}</td>
-          <td className="p-3">{asset?.serialNo}</td>
-          <td className="p-3">{row.changes?.status?.old || "-"}</td>
-          <td className="p-3">{row.changes?.status?.new || "-"}</td>
-          <td className="p-3">{new Date(row.createdAt).toLocaleString()}</td>
-        </tr>
-      );
-    }
+          {row.serviceType && <div>Service: {row.serviceType}</div>}
 
-    if (type === "SERVICE") {
-      return (
-        <tr key={i} className="border-b hover:bg-gray-50">
-          <td className="p-3">{asset?.assetName}</td>
-          <td className="p-3">{asset?.serialNo}</td>
-          <td className="p-3">{row.serviceType}</td>
-          <td className="p-3">AED {row.cost}</td>
-          <td className="p-3">{row.performedBy}</td>
-        </tr>
-      );
-    }
+          {row.cost !== undefined && <div>Cost: AED {row.cost}</div>}
 
-    return null;
+          {row.performedBy && <div>By: {row.performedBy}</div>}
+        </td>
+
+        {/* CHANGES */}
+        <td className="p-3 text-sm space-y-2">
+          {row.changes?.location && (
+            <div>
+              <b>Location:</b> {row.changes.location.old} →{" "}
+              {row.changes.location.new}
+            </div>
+          )}
+
+          {row.changes?.status && (
+            <div>
+              <b>Status:</b> {row.changes.status.old} → {row.changes.status.new}
+            </div>
+          )}
+
+          {!row.changes && <span>-</span>}
+        </td>
+
+        {/* DATE */}
+        <td className="p-3 whitespace-nowrap">
+          {row.createdAt ? new Date(row.createdAt).toLocaleString() : "-"}
+        </td>
+      </tr>
+    );
   };
 
   // =========================
@@ -265,25 +263,24 @@ export default function AssetReports() {
         </div>
       )}
 
-      {/* TABLE ONLY AFTER GENERATE */}
+      {/* TABLE */}
       {hasGenerated && (
         <Card>
           <CardHeader>
             <CardTitle>Results ({data.length})</CardTitle>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             {data.length === 0 ? (
               <p className="text-center text-gray-500">No data found</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-100">
-                    {getHeaders().map((h) => (
-                      <th key={h} className="p-3 text-left">
-                        {h}
-                      </th>
-                    ))}
+                    <th className="p-3 text-left">Asset</th>
+                    <th className="p-3 text-left">Report</th>
+                    <th className="p-3 text-left">Changes</th>
+                    <th className="p-3 text-left">Date</th>
                   </tr>
                 </thead>
                 <tbody>{data.map(renderRow)}</tbody>
