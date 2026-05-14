@@ -310,70 +310,97 @@ export default function AssetReports() {
   // =========================
   return (
     <main className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Asset Reports</h1>
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+              Property Tagging
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+              Asset Reports
+            </h1>
+            <p className="max-w-2xl text-sm text-slate-500">
+              Generate filtered asset reports and export them with a clean, modern layout.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">Report Type</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{type}</p>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">Records</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{data.length}</p>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">Date Range</p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">
+                {from || "Any"} → {to || "Any"}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <PropertyTaggingTabs />
 
-      {/* FILTER */}
-      <Card>
-        <CardContent className="p-4 flex flex-wrap gap-3 items-center">
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="border px-3 py-2 rounded-md"
-          >
-            <option value="SUMMARY">Summary</option>
-            <option value="MOVEMENT">Movement</option>
-            <option value="STATUS">Status</option>
-            <option value="SERVICE">Service</option>
-          </select>
+      <Card className="overflow-hidden shadow-sm border border-gray-200">
+        <CardHeader className="items-center gap-4">
+          <div>
+            <CardTitle>Report Filters</CardTitle>
+            <p className="text-sm text-slate-500">Choose a report type and optional date range.</p>
+          </div>
+        </CardHeader>
 
-          <Input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-          />
-          <Input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-          />
+        <CardContent className="p-4 grid gap-4 lg:grid-cols-[1.4fr_1fr] items-center">
+          <div className="grid gap-3 md:grid-cols-3">
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none"
+            >
+              <option value="SUMMARY">Summary</option>
+              <option value="MOVEMENT">Movement</option>
+              <option value="STATUS">Status</option>
+              <option value="SERVICE">Service</option>
+            </select>
 
-          <Button onClick={fetchReport} disabled={loading}>
-            {loading ? "Loading..." : "Generate"}
-          </Button>
+            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <Button onClick={fetchReport} disabled={loading} className="h-11">
+              {loading ? "Loading..." : "Generate"}
+            </Button>
+            {hasGenerated && data.length > 0 && (
+              <div className="flex flex-wrap gap-2 justify-end">
+                <Button onClick={exportExcel} className="bg-green-600">
+                  <Download size={16} /> Excel
+                </Button>
+                <Button onClick={exportPDF} className="bg-red-600">
+                  PDF
+                </Button>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* EXPORT */}
-      {hasGenerated && data.length > 0 && (
-        <div className="flex gap-2 justify-end">
-          <Button onClick={exportExcel} className="bg-green-600">
-            <Download size={16} /> Excel
-          </Button>
-
-          <Button onClick={exportPDF} className="bg-red-600">
-            PDF
-          </Button>
-        </div>
-      )}
-
-      {/* TABLE */}
       {hasGenerated && (
-        <Card>
+        <Card className="overflow-hidden shadow-sm border border-gray-200">
           <CardHeader>
             <CardTitle>Results ({data.length})</CardTitle>
           </CardHeader>
 
           <CardContent className="overflow-x-auto">
             {data.length === 0 ? (
-              <p className="text-center text-gray-500">No data found</p>
+              <p className="text-center text-slate-500">No data found</p>
             ) : (
-              <table className="w-full text-sm">
+              <table className="min-w-full text-sm border-separate border-spacing-0">
                 <thead>
-                  <tr className="bg-gray-100">
+                  <tr className="bg-slate-100 text-slate-700">
                     <th className="p-3 text-left">Asset</th>
                     <th className="p-3 text-left">Report</th>
                     <th className="p-3 text-left">Changes</th>

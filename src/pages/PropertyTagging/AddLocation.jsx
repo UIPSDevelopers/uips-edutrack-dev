@@ -102,148 +102,123 @@ export default function AddLocation() {
 
   return (
     <>
-      {/* ======================
-          HEADER
-      ====================== */}
-      <div className="mt-4 mb-3">
-        <h1 className="text-2xl font-semibold text-gray-800">Add Location</h1>
-      </div>
-
-      {/* ======================
-          TABS
-      ====================== */}
-      <PropertyTaggingTabs />
-
-      {/* ======================
-          FORM CARD
-      ====================== */}
-      <Card className="shadow-sm border border-gray-200">
-        <CardHeader>
-          <CardTitle>Create New Location</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            {/* NAME */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Location Name *
-              </label>
-              <Input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="e.g. Room 101"
-                required
-              />
+      <main className="p-6 space-y-6">
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+                Property Tagging
+              </p>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+                Add Location
+              </h1>
+              <p className="max-w-2xl text-sm text-slate-500">
+                Add a new location and keep your asset tagging geography organized.
+              </p>
             </div>
 
-            {/* BUILDING */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">
-                Building
-              </label>
-              <Select
-                value={form.building}
-                onValueChange={(val) => handleSelectChange("building", val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Building" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Block A">BLOCK A</SelectItem>
-                  <SelectItem value="Block B">BLOCK B</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">Known Locations</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{locations.length}</p>
             </div>
+          </div>
+        </div>
 
-            {/* FLOOR */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700">Floor</label>
-              <Select
-                value={form.floor}
-                onValueChange={(val) => handleSelectChange("floor", val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Floor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1st Floor">GROUND FLOOR</SelectItem>
-                  <SelectItem value="2nd Floor">2ND FLOOR</SelectItem>
-                </SelectContent>
-              </Select>
+        <PropertyTaggingTabs />
+
+        <Card className="overflow-hidden shadow-sm border border-gray-200">
+          <CardHeader className="items-center gap-4">
+            <div>
+              <CardTitle>Create New Location</CardTitle>
+              <p className="text-sm text-slate-500">Add the location details for the tagged asset inventory.</p>
             </div>
+          </CardHeader>
 
-            {/* DESCRIPTION */}
-            <div className="flex flex-col md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <Input
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="Optional description"
-              />
-            </div>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-slate-700">Location Name *</label>
+                <Input name="name" value={form.name} onChange={handleChange} placeholder="e.g. Room 101" required />
+              </div>
 
-            {/* SUBMIT */}
-            <div className="md:col-span-2 flex justify-end">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-[#800000] hover:bg-[#a10000] text-white"
-              >
-                {loading ? "Saving..." : "Add Location"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-slate-700">Building</label>
+                <Select value={form.building} onValueChange={(val) => handleSelectChange("building", val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Block A">BLOCK A</SelectItem>
+                    <SelectItem value="Block B">BLOCK B</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* ======================
-          TABLE CARD
-      ====================== */}
-      <Card className="shadow-sm border border-gray-200 mt-6">
-        <CardHeader>
-          <CardTitle>Locations List</CardTitle>
-        </CardHeader>
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-slate-700">Floor</label>
+                <Select value={form.floor} onValueChange={(val) => handleSelectChange("floor", val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Floor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1st Floor">GROUND FLOOR</SelectItem>
+                    <SelectItem value="2nd Floor">2ND FLOOR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        <CardContent className="overflow-x-auto">
-          <table className="w-full border border-gray-300 text-sm">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Building</th>
-                <th className="p-2 border">Floor</th>
-                <th className="p-2 border">Description</th>
-              </tr>
-            </thead>
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-slate-700">Description</label>
+                <Input name="description" value={form.description} onChange={handleChange} placeholder="Optional description" />
+              </div>
 
-            <tbody>
-              {locations.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="text-center p-3">
-                    No locations found
-                  </td>
+              <div className="md:col-span-2 flex justify-end">
+                <Button type="submit" disabled={loading} className="bg-[#800000] hover:bg-[#a10000] text-white">
+                  {loading ? "Saving..." : "Add Location"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden shadow-sm border border-gray-200">
+          <CardHeader>
+            <CardTitle>Locations List</CardTitle>
+          </CardHeader>
+
+          <CardContent className="overflow-x-auto">
+            <table className="min-w-full text-sm border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-slate-100 text-slate-700">
+                  <th className="p-3 text-left">Name</th>
+                  <th className="p-3 text-left">Building</th>
+                  <th className="p-3 text-left">Floor</th>
+                  <th className="p-3 text-left">Description</th>
                 </tr>
-              ) : (
-                locations.map((loc) => (
-                  <tr key={loc._id} className="hover:bg-gray-50">
-                    <td className="p-2 border">{loc.name}</td>
-                    <td className="p-2 border">{loc.building || "-"}</td>
-                    <td className="p-2 border">{loc.floor || "-"}</td>
-                    <td className="p-2 border">{loc.description || "-"}</td>
+              </thead>
+
+              <tbody>
+                {locations.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-slate-500">
+                      No locations found
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+                ) : (
+                  locations.map((loc) => (
+                    <tr key={loc._id} className="border-b bg-white transition hover:bg-slate-50">
+                      <td className="p-3">{loc.name}</td>
+                      <td className="p-3">{loc.building || "-"}</td>
+                      <td className="p-3">{loc.floor || "-"}</td>
+                      <td className="p-3">{loc.description || "-"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      </main>
     </>
   );
 }

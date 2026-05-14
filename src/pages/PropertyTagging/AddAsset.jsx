@@ -157,64 +157,67 @@ export default function AddAsset() {
   return (
     <>
       <main className="p-6 space-y-6">
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 mb-4">
-          <h1 className="text-2xl font-semibold text-gray-800">Add Assets</h1>
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+                Property Tagging
+              </p>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+                Add Asset
+              </h1>
+              <p className="max-w-2xl text-sm text-slate-500">
+                Add a new tagged asset and keep your inventory data accurate and up to date.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm text-slate-500">Categories</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{categories.length}</p>
+              </div>
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm text-slate-500">Locations</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{locations.length}</p>
+              </div>
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm text-slate-500">Existing Assets</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{assets.length}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* TABS */}
         <PropertyTaggingTabs />
 
-        {/* FORM */}
-        <Card className="shadow-sm border border-gray-200">
-          <CardHeader>
-            <CardTitle>Add New Asset</CardTitle>
+        <Card className="overflow-hidden shadow-sm border border-gray-200">
+          <CardHeader className="items-center gap-4">
+            <div>
+              <CardTitle>Add New Asset</CardTitle>
+              <p className="text-sm text-slate-500">Enter the details for the tagged asset you want to add.</p>
+            </div>
           </CardHeader>
 
-          <CardContent>
-            <form
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-              onSubmit={handleSubmit}
-            >
-              {/* ASSET NAME */}
+          <CardContent className="space-y-4">
+            <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Asset Name</label>
-                <Input
-                  name="assetName"
-                  value={form.assetName}
-                  onChange={handleChange}
-                  required
-                />
+                <label className="text-sm font-medium text-slate-700">Asset Name</label>
+                <Input name="assetName" value={form.assetName} onChange={handleChange} required />
               </div>
 
-              {/* BRAND */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Brand</label>
-                <Input
-                  name="brand"
-                  value={form.brand}
-                  onChange={handleChange}
-                />
+                <label className="text-sm font-medium text-slate-700">Brand</label>
+                <Input name="brand" value={form.brand} onChange={handleChange} />
               </div>
 
-              {/* MODEL */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Model</label>
-                <Input
-                  name="model"
-                  value={form.model}
-                  onChange={handleChange}
-                />
+                <label className="text-sm font-medium text-slate-700">Model</label>
+                <Input name="model" value={form.model} onChange={handleChange} />
               </div>
 
-              {/* CATEGORY */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Category</label>
-
-                <Select
-                  value={form.categoryId}
-                  onValueChange={(val) => handleSelectChange("categoryId", val)}
-                >
+                <label className="text-sm font-medium text-slate-700">Category</label>
+                <Select value={form.categoryId} onValueChange={(val) => handleSelectChange("categoryId", val)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
@@ -229,14 +232,9 @@ export default function AddAsset() {
                 </Select>
               </div>
 
-              {/* LOCATION */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Location</label>
-
-                <Select
-                  value={form.locationId}
-                  onValueChange={(val) => handleSelectChange("locationId", val)}
-                >
+                <label className="text-sm font-medium text-slate-700">Location</label>
+                <Select value={form.locationId} onValueChange={(val) => handleSelectChange("locationId", val)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Location" />
                   </SelectTrigger>
@@ -251,14 +249,9 @@ export default function AddAsset() {
                 </Select>
               </div>
 
-              {/* STATUS */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Status</label>
-
-                <Select
-                  value={form.status}
-                  onValueChange={(val) => handleSelectChange("status", val)}
-                >
+                <label className="text-sm font-medium text-slate-700">Status</label>
+                <Select value={form.status} onValueChange={(val) => handleSelectChange("status", val)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
@@ -271,36 +264,18 @@ export default function AddAsset() {
                 </Select>
               </div>
 
-              {/* PURCHASE DATE */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Purchase Date</label>
-
-                <Input
-                  type="date"
-                  name="purchaseDate"
-                  value={form.purchaseDate}
-                  onChange={handleChange}
-                />
+                <label className="text-sm font-medium text-slate-700">Purchase Date</label>
+                <Input type="date" name="purchaseDate" value={form.purchaseDate} onChange={handleChange} />
               </div>
 
-              {/* REMARKS */}
               <div className="flex flex-col md:col-span-2">
-                <label className="text-sm font-medium">Remarks</label>
-
-                <Input
-                  name="remarks"
-                  value={form.remarks}
-                  onChange={handleChange}
-                />
+                <label className="text-sm font-medium text-slate-700">Remarks</label>
+                <Input name="remarks" value={form.remarks} onChange={handleChange} />
               </div>
 
-              {/* SUBMIT */}
               <div className="md:col-span-2 flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-[#800000] hover:bg-[#a10000] text-white"
-                >
+                <Button type="submit" disabled={loading} className="bg-[#800000] hover:bg-[#a10000] text-white">
                   {loading ? "Saving..." : "Add Asset"}
                 </Button>
               </div>
@@ -308,53 +283,46 @@ export default function AddAsset() {
           </CardContent>
         </Card>
 
-        {/* TABLE */}
-        <Card className="shadow-sm border border-gray-200 mt-6">
+        <Card className="overflow-hidden shadow-sm border border-gray-200">
           <CardHeader>
             <CardTitle>Assets List</CardTitle>
           </CardHeader>
 
           <CardContent className="overflow-x-auto">
-            <table className="w-full border border-gray-300">
+            <table className="min-w-full text-sm border-separate border-spacing-0">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="border px-2 py-1">Serial</th>
-                  <th className="border px-2 py-1">Name</th>
-                  <th className="border px-2 py-1">Category</th>
-                  <th className="border px-2 py-1">Brand</th>
-                  <th className="border px-2 py-1">Model</th>
-                  <th className="border px-2 py-1">Status</th>
-                  <th className="border px-2 py-1">Purchase Date</th>
-                  <th className="border px-2 py-1">Location</th>
+                <tr className="bg-slate-100 text-slate-700">
+                  <th className="p-3 text-left">Serial</th>
+                  <th className="p-3 text-left">Name</th>
+                  <th className="p-3 text-left">Category</th>
+                  <th className="p-3 text-left">Brand</th>
+                  <th className="p-3 text-left">Model</th>
+                  <th className="p-3 text-left">Status</th>
+                  <th className="p-3 text-left">Purchase Date</th>
+                  <th className="p-3 text-left">Location</th>
                 </tr>
               </thead>
 
               <tbody>
                 {assets.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-3">
+                    <td colSpan={8} className="text-center py-4 text-slate-500">
                       No assets found.
                     </td>
                   </tr>
                 ) : (
                   assets.map((asset) => (
-                    <tr key={asset._id}>
-                      <td className="border px-2 py-1">{asset.serialNo}</td>
-                      <td className="border px-2 py-1">{asset.assetName}</td>
-                      <td className="border px-2 py-1">
-                        {asset.categoryId?.name || "-"}
+                    <tr key={asset._id} className="border-b bg-white transition hover:bg-slate-50">
+                      <td className="p-3">{asset.serialNo}</td>
+                      <td className="p-3">{asset.assetName}</td>
+                      <td className="p-3">{asset.categoryId?.name || "-"}</td>
+                      <td className="p-3">{asset.brand || "-"}</td>
+                      <td className="p-3">{asset.model || "-"}</td>
+                      <td className="p-3">{asset.status}</td>
+                      <td className="p-3">
+                        {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "-"}
                       </td>
-                      <td className="border px-2 py-1">{asset.brand || "-"}</td>
-                      <td className="border px-2 py-1">{asset.model || "-"}</td>
-                      <td className="border px-2 py-1">{asset.status}</td>
-                      <td className="border px-2 py-1">
-                        {asset.purchaseDate
-                          ? new Date(asset.purchaseDate).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="border px-2 py-1">
-                        {asset.locationId?.name || "-"}
-                      </td>
+                      <td className="p-3">{asset.locationId?.name || "-"}</td>
                     </tr>
                   ))
                 )}

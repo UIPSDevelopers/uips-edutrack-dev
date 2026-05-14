@@ -73,105 +73,104 @@ export default function AddCategory() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-gray-800">Add Category</h1>
-      </div>
-
-      <PropertyTaggingTabs />
-      {/* ADD CATEGORY FORM */}
-      <Card className="shadow-sm border border-gray-200 mt-4">
-        <CardHeader>
-          <CardTitle>Add New Category</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            onSubmit={handleSubmit}
-          >
-            {/* Category Name */}
-            <div className="flex flex-col md:col-span-1">
-              <label className="text-sm font-medium text-gray-700">
-                Category Name
-              </label>
-              <Input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="e.g., Electronics, Furniture"
-                required
-              />
+      <main className="p-6 space-y-6">
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+                Property Tagging
+              </p>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+                Add Category
+              </h1>
+              <p className="max-w-2xl text-sm text-slate-500">
+                Add a new asset category and keep your tagging structure organized.
+              </p>
             </div>
 
-            {/* Category Code */}
-            <div className="flex flex-col md:col-span-1">
-              <label className="text-sm font-medium text-gray-700">
-                Category Code
-              </label>
-              <Input
-                name="code"
-                value={form.code}
-                onChange={handleChange}
-                placeholder="e.g., ELEC, FURN"
-              />
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">Categories</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{categories.length}</p>
             </div>
+          </div>
+        </div>
 
-            {/* Submit */}
-            <div className="md:col-span-2 flex justify-end mt-2">
-              <Button
-                type="submit"
-                className="bg-[#800000] hover:bg-[#a10000] text-white"
-                disabled={loading}
-              >
-                {loading ? "Saving..." : "Add Category"}
-              </Button>
+        <PropertyTaggingTabs />
+
+        <Card className="overflow-hidden shadow-sm border border-gray-200">
+          <CardHeader className="items-center gap-4">
+            <div>
+              <CardTitle>Add New Category</CardTitle>
+              <p className="text-sm text-slate-500">Create a category to classify assets consistently.</p>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardHeader>
 
-      {/* CATEGORY LIST TABLE */}
-      <Card className="shadow-sm border border-gray-200 mt-6">
-        <CardHeader>
-          <CardTitle>Categories List</CardTitle>
-        </CardHeader>
+          <CardContent>
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
+              <div className="flex flex-col md:col-span-1">
+                <label className="text-sm font-medium text-slate-700">Category Name</label>
+                <Input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="e.g., Electronics, Furniture"
+                  required
+                />
+              </div>
 
-        <CardContent className="overflow-x-auto">
-          <table className="w-full table-auto border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Name
-                </th>
-                <th className="border border-gray-300 px-2 py-1 text-left">
-                  Code
-                </th>
-              </tr>
-            </thead>
+              <div className="flex flex-col md:col-span-1">
+                <label className="text-sm font-medium text-slate-700">Category Code</label>
+                <Input
+                  name="code"
+                  value={form.code}
+                  onChange={handleChange}
+                  placeholder="e.g., ELEC, FURN"
+                />
+              </div>
 
-            <tbody>
-              {categories.length === 0 && (
-                <tr>
-                  <td colSpan={2} className="text-center py-2">
-                    No categories found.
-                  </td>
+              <div className="md:col-span-2 flex justify-end mt-2">
+                <Button type="submit" className="bg-[#800000] hover:bg-[#a10000] text-white" disabled={loading}>
+                  {loading ? "Saving..." : "Add Category"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden shadow-sm border border-gray-200">
+          <CardHeader>
+            <CardTitle>Categories List</CardTitle>
+          </CardHeader>
+
+          <CardContent className="overflow-x-auto">
+            <table className="min-w-full text-sm border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-slate-100 text-slate-700">
+                  <th className="p-3 text-left">Name</th>
+                  <th className="p-3 text-left">Code</th>
                 </tr>
-              )}
+              </thead>
 
-              {categories.map((cat) => (
-                <tr key={cat._id}>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {cat.name}
-                  </td>
-                  <td className="border border-gray-300 px-2 py-1">
-                    {cat.code || "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+              <tbody>
+                {categories.length === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="text-center py-4 text-slate-500">
+                      No categories found.
+                    </td>
+                  </tr>
+                ) : (
+                  categories.map((cat) => (
+                    <tr key={cat._id} className="border-b bg-white transition hover:bg-slate-50">
+                      <td className="p-3">{cat.name}</td>
+                      <td className="p-3">{cat.code || "-"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      </main>
     </>
   );
 }
