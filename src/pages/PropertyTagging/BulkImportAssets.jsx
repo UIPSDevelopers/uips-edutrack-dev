@@ -250,6 +250,15 @@ export default function BulkImportAssets() {
   // =========================
   return (
     <main className="p-6 space-y-6">
+      <div className="space-y-2">
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+          Property Tagging
+        </p>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+          Bulk Import Assets
+        </h1>
+      </div>
+
       <PropertyTaggingTabs />
 
       <Card className="shadow-sm">

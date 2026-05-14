@@ -166,9 +166,6 @@ export default function AddAsset() {
               <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
                 Add Asset
               </h1>
-              <p className="max-w-2xl text-sm text-slate-500">
-                Add a new tagged asset and keep your inventory data accurate and up to date.
-              </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">

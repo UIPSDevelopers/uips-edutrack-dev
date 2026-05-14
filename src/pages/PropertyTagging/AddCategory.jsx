@@ -83,9 +83,6 @@ export default function AddCategory() {
               <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
                 Add Category
               </h1>
-              <p className="max-w-2xl text-sm text-slate-500">
-                Add a new asset category and keep your tagging structure organized.
-              </p>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">

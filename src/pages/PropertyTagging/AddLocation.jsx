@@ -112,9 +112,6 @@ export default function AddLocation() {
               <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
                 Add Location
               </h1>
-              <p className="max-w-2xl text-sm text-slate-500">
-                Add a new location and keep your asset tagging geography organized.
-              </p>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">

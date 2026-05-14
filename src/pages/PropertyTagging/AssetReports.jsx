@@ -319,9 +319,6 @@ export default function AssetReports() {
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
               Asset Reports
             </h1>
-            <p className="max-w-2xl text-sm text-slate-500">
-              Generate filtered asset reports and export them with a clean, modern layout.
-            </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
