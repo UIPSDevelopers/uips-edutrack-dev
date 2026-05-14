@@ -14,6 +14,9 @@ import {
   ScanLine,
   FileSpreadsheet,
   FileText,
+  ChevronDown,
+  ChevronUp,
+  ChevronUpDown,
 } from "lucide-react";
 
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
@@ -119,6 +122,30 @@ export default function PropertyTagging() {
       return 0;
     });
   }, [filteredAssets, sortConfig]);
+
+  const summary = useMemo(() => {
+    const statusCounts = sortedAssets.reduce((acc, asset) => {
+      const status = asset.status || "Unknown";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const statuses = Object.entries(statusCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([status, count]) => ({ status, count }));
+
+    const locationCount = new Set(
+      sortedAssets.map((asset) => asset.locationId?.name || "Unknown"),
+    ).size;
+
+    return {
+      total: assets.length,
+      selected: selectedAssets.length,
+      locationCount,
+      statuses,
+    };
+  }, [assets, selectedAssets, sortedAssets]);
 
   const handleSort = (key) => {
     setSortConfig((prev) => ({
@@ -399,57 +426,104 @@ export default function PropertyTagging() {
   return (
     <main className="p-6 space-y-6">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Property Tagging</h1>
+      <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm shadow-slate-200/60">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+              Property Tagging
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+              Asset Inventory & QR Management
+            </h1>
+            <p className="max-w-2xl text-sm text-slate-500">
+              Manage tagged assets, print QR labels, scan items, and export polished reports — all from one dashboard.
+            </p>
+          </div>
 
-          <p className="text-sm text-gray-500 mt-1">
-            Manage tagged assets, QR printing, and exports
-          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={exportExcel}>
+              <FileSpreadsheet className="w-4 h-4" />
+              Export Excel
+            </Button>
+
+            <Button variant="secondary" size="sm" onClick={exportPDF}>
+              <FileText className="w-4 h-4" />
+              Export PDF
+            </Button>
+
+            <Button size="sm" className="bg-slate-950 text-white hover:bg-slate-900" onClick={openScanner}>
+              <ScanLine className="w-4 h-4" />
+              Scan QR
+            </Button>
+
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handlePrintQR}
+              disabled={!selectedAssets.length}
+            >
+              <Printer className="w-4 h-4" />
+              Print QR ({selectedAssets.length})
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Total Assets</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.total}</p>
+          <p className="mt-2 text-sm text-slate-500">Valid tagged assets across all locations.</p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={exportExcel}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <FileSpreadsheet className="w-4 h-4 mr-2" />
-            Export Excel
-          </Button>
+        <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Selected</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.selected}</p>
+          <p className="mt-2 text-sm text-slate-500">Assets currently selected for printing.</p>
+        </div>
 
-          <Button onClick={exportPDF} className="bg-red-600 hover:bg-red-700">
-            <FileText className="w-4 h-4 mr-2" />
-            Export PDF
-          </Button>
-
-          <Button onClick={openScanner} className="bg-black text-white">
-            <ScanLine className="w-4 h-4 mr-2" />
-            Scan QR
-          </Button>
-
-          <Button
-            onClick={handlePrintQR}
-            disabled={!selectedAssets.length}
-            className="bg-[#800000] hover:bg-[#a10000]"
-          >
-            <Printer className="w-4 h-4 mr-2" />
-            Print QR ({selectedAssets.length})
-          </Button>
+        <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Locations</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.locationCount}</p>
+          <p className="mt-2 text-sm text-slate-500">Distinct asset locations in this list.</p>
         </div>
       </div>
 
       <PropertyTaggingTabs />
 
-      {/* SEARCH */}
-      <div className="flex items-center gap-2 w-full md:w-1/3">
-        <Search className="w-4 h-4 text-gray-500" />
+      <Card className="overflow-hidden">
+        <CardHeader className="items-center gap-4">
+          <div>
+            <CardTitle>Search & Filter</CardTitle>
+            <p className="text-sm text-slate-500">Search by serial, name, brand, model, category, or location.</p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
+            <span>Showing</span>
+            <span className="rounded-full bg-white px-3 py-1 font-semibold text-slate-900 shadow-sm">{sortedAssets.length}</span>
+            <span>assets</span>
+          </div>
+        </CardHeader>
 
-        <Input
-          placeholder="Search assets..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+        <CardContent className="grid gap-4 sm:grid-cols-[1.8fr_1fr] items-center">
+          <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <Search className="h-5 w-5 text-slate-400" />
+            <Input
+              placeholder="Search assets..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="border-0 px-0 focus-visible:ring-0"
+            />
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              Selected {selectedAssets.length} / {sortedAssets.length}
+            </div>
+            <Button variant="outline" size="sm" onClick={selectAll}>
+              Toggle Select All
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* TABLE */}
       <Card>
@@ -463,10 +537,10 @@ export default function PropertyTagging() {
           ) : sortedAssets.length === 0 ? (
             <p className="text-center py-6">No assets found.</p>
           ) : (
-            <table className="w-full text-sm border-collapse">
+            <table className="min-w-full text-sm border-separate border-spacing-0">
               <thead>
-                <tr className="bg-gray-100 text-left">
-                  <th className="p-3">
+                <tr className="bg-slate-100 text-left text-slate-700">
+                  <th className="whitespace-nowrap p-3">
                     <input
                       type="checkbox"
                       checked={
@@ -489,34 +563,58 @@ export default function PropertyTagging() {
                     <th
                       key={col.key}
                       onClick={() => handleSort(col.key)}
-                      className="p-3 cursor-pointer"
+                      className="group cursor-pointer p-3 text-sm font-semibold tracking-wide text-slate-600 transition-colors duration-150 hover:text-slate-900"
+                      aria-sort={
+                        sortConfig.key === col.key
+                          ? sortConfig.direction === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : "none"
+                      }
                     >
-                      {col.label}
+                      <div className="inline-flex items-center gap-2">
+                        <span>{col.label}</span>
+                        {sortConfig.key === col.key ? (
+                          sortConfig.direction === "asc" ? (
+                            <ChevronUp className="h-4 w-4 text-slate-500" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-500" />
+                          )
+                        ) : (
+                          <ChevronUpDown className="h-4 w-4 text-slate-300 opacity-60" />
+                        )}
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
 
               <tbody>
-                {sortedAssets.map((asset) => (
-                  <tr
-                    key={asset._id}
-                    onClick={(e) => handleRowClick(e, asset._id)}
-                    className="border-b hover:bg-gray-50 cursor-pointer"
-                  >
-                    <td className="p-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedAssets.includes(asset._id)}
-                        onChange={() => toggleSelect(asset._id)}
-                      />
-                    </td>
+                {sortedAssets.map((asset) => {
+                  const selected = selectedAssets.includes(asset._id);
+                  return (
+                    <tr
+                      key={asset._id}
+                      onClick={(e) => handleRowClick(e, asset._id)}
+                      className={
+                        "border-b bg-white transition duration-150 hover:bg-slate-50 " +
+                        (selected ? "bg-slate-100" : "")
+                      }
+                    >
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleSelect(asset._id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
 
-                    <td className="p-3 font-medium text-[#800000]">
-                      {asset.serialNo}
-                    </td>
+                      <td className="p-3 font-medium text-[#800000]">
+                        {asset.serialNo}
+                      </td>
 
-                    <td className="p-3">{asset.assetName}</td>
+                      <td className="p-3">{asset.assetName}</td>
 
                     <td className="p-3">{asset.categoryId?.name || "-"}</td>
 
