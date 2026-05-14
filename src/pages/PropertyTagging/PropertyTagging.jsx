@@ -16,7 +16,7 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
-  ChevronUpDown,
+  ChevronsUpDown,
 } from "lucide-react";
 
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
@@ -581,7 +581,7 @@ export default function PropertyTagging() {
                             <ChevronDown className="h-4 w-4 text-slate-500" />
                           )
                         ) : (
-                          <ChevronUpDown className="h-4 w-4 text-slate-300 opacity-60" />
+                          <ChevronsUpDown className="h-4 w-4 text-slate-300 opacity-60" />
                         )}
                       </div>
                     </th>
