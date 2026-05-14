@@ -264,54 +264,6 @@ export default function AddAsset() {
             </form>
           </CardContent>
         </Card>
-
-        <Card className="overflow-hidden shadow-sm border border-gray-200">
-          <CardHeader>
-            <CardTitle>Assets List</CardTitle>
-          </CardHeader>
-
-          <CardContent className="overflow-x-auto">
-            <table className="min-w-full text-sm border-separate border-spacing-0">
-              <thead>
-                <tr className="bg-slate-100 text-slate-700">
-                  <th className="p-3 text-left">Serial</th>
-                  <th className="p-3 text-left">Name</th>
-                  <th className="p-3 text-left">Category</th>
-                  <th className="p-3 text-left">Brand</th>
-                  <th className="p-3 text-left">Model</th>
-                  <th className="p-3 text-left">Status</th>
-                  <th className="p-3 text-left">Purchase Date</th>
-                  <th className="p-3 text-left">Location</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {assets.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="text-center py-4 text-slate-500">
-                      No assets found.
-                    </td>
-                  </tr>
-                ) : (
-                  assets.map((asset) => (
-                    <tr key={asset._id} className="border-b bg-white transition hover:bg-slate-50">
-                      <td className="p-3">{asset.serialNo}</td>
-                      <td className="p-3">{asset.assetName}</td>
-                      <td className="p-3">{asset.categoryId?.name || "-"}</td>
-                      <td className="p-3">{asset.brand || "-"}</td>
-                      <td className="p-3">{asset.model || "-"}</td>
-                      <td className="p-3">{asset.status}</td>
-                      <td className="p-3">
-                        {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "-"}
-                      </td>
-                      <td className="p-3">{asset.locationId?.name || "-"}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
       </main>
     </>
   );
