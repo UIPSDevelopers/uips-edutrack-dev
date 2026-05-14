@@ -58,7 +58,7 @@ export default function AddAsset() {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await axiosInstance.get("/locations");
+        const res = await axiosInstance.get("/locations/all");
         setLocations(res.data.data || []);
       } catch (err) {
         console.error("Failed to fetch locations", err);

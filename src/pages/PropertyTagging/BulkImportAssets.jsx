@@ -28,7 +28,7 @@ export default function BulkImportAssets() {
       try {
         const [catRes, locRes] = await Promise.all([
           axiosInstance.get("/categories"),
-          axiosInstance.get("/locations"),
+          axiosInstance.get("/locations/all"),
         ]);
 
         setCategories(
