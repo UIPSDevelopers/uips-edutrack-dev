@@ -616,17 +616,22 @@ export default function PropertyTagging() {
 
                       <td className="p-3">{asset.assetName}</td>
 
-                    <td className="p-3">{asset.categoryId?.name || "-"}</td>
+                      <td className="p-3">{asset.categoryId?.name || "-"}</td>
 
-                    <td className="p-3">{asset.brand || "-"}</td>
+                      <td className="p-3">{asset.brand || "-"}</td>
 
-                    <td className="p-3">{asset.model || "-"}</td>
+                      <td className="p-3">{asset.model || "-"}</td>
 
-                    <td className="p-3">{asset.status}</td>
+                      <td className="p-3">
+                        <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+                          {asset.status || "-"}
+                        </span>
+                      </td>
 
-                    <td className="p-3">{asset.locationId?.name || "-"}</td>
-                  </tr>
-                ))}
+                      <td className="p-3">{asset.locationId?.name || "-"}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
