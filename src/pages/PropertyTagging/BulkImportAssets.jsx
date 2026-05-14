@@ -250,14 +250,18 @@ export default function BulkImportAssets() {
   // =========================
   return (
     <main className="p-6 space-y-6">
-      <div className="space-y-2">
-        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
-          Property Tagging
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-          Bulk Import Assets
-        </h1>
-      </div>
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+                Property Tagging
+              </p>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+                Bulk Import Assets
+              </h1>
+            </div>
+          </div>
+        </div>
 
       <PropertyTaggingTabs />
 
