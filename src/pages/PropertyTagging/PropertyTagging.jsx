@@ -435,9 +435,6 @@ export default function PropertyTagging() {
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
               Asset Inventory & QR Management
             </h1>
-            <p className="max-w-2xl text-sm text-slate-500">
-              Manage tagged assets, print QR labels, scan items, and export polished reports — all from one dashboard.
-            </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -468,27 +465,6 @@ export default function PropertyTagging() {
           </div>
         </div>
       </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Total Assets</p>
-          <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.total}</p>
-          <p className="mt-2 text-sm text-slate-500">Valid tagged assets across all locations.</p>
-        </div>
-
-        <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Selected</p>
-          <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.selected}</p>
-          <p className="mt-2 text-sm text-slate-500">Assets currently selected for printing.</p>
-        </div>
-
-        <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Locations</p>
-          <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.locationCount}</p>
-          <p className="mt-2 text-sm text-slate-500">Distinct asset locations in this list.</p>
-        </div>
-      </div>
-
       <PropertyTaggingTabs />
 
       <Card className="overflow-hidden">
