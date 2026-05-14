@@ -167,21 +167,6 @@ export default function AddAsset() {
                 Add Asset
               </h1>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Categories</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">{categories.length}</p>
-              </div>
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Locations</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">{locations.length}</p>
-              </div>
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Existing Assets</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">{assets.length}</p>
-              </div>
-            </div>
           </div>
         </div>
 

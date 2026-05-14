@@ -113,11 +113,6 @@ export default function AddLocation() {
                 Add Location
               </h1>
             </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Known Locations</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{locations.length}</p>
-            </div>
           </div>
         </div>
 

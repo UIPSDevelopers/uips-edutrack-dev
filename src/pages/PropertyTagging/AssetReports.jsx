@@ -320,23 +320,6 @@ export default function AssetReports() {
               Asset Reports
             </h1>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Report Type</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{type}</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Records</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{data.length}</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Date Range</p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">
-                {from || "Any"} → {to || "Any"}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
