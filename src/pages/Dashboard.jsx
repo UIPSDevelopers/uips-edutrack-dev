@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [topCheckedOut, setTopCheckedOut] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
+  const [assetStats, setAssetStats] = useState(null);
 
   const COLORS = ["#800000", "#a16207", "#0f766e", "#2563eb", "#9333ea"];
 
@@ -51,6 +52,13 @@ export default function Dashboard() {
         setCategoryData(summary?.categoryDistribution || []);
         setTopCheckedOut(topRes.data || []);
         setRecentActivity(recentRes.data || []);
+        // fetch asset stats for property tagging
+        try {
+          const statsRes = await axiosInstance.get("/reports/asset/stats");
+          setAssetStats(statsRes.data || {});
+        } catch (e) {
+          console.warn("Failed to fetch asset stats:", e?.message || e);
+        }
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       }
@@ -227,10 +235,94 @@ export default function Dashboard() {
           <h2 className="text-2xl font-semibold text-gray-700">
             Property Tagging
           </h2>
-          <div className="border border-gray-200 bg-gray-50 shadow-md rounded-2xl p-4">
-            <p className="text-sm text-gray-500">
-              Property tagging functionality will appear here.
-            </p>
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div>
+              <StatCard
+                title="Total Assets"
+                value={assetStats?.total || 0}
+                icon={<Package />}
+              />
+            </div>
+
+            <div>
+              <StatCard
+                title="Active"
+                value={assetStats?.byStatus?.ACTIVE || assetStats?.byStatus?.Active || 0}
+                icon={<ClipboardCheck />}
+              />
+            </div>
+
+            <div>
+              <StatCard
+                title="Broken"
+                value={assetStats?.byStatus?.BROKEN || assetStats?.byStatus?.Broken || 0}
+                icon={<AlertCircle />}
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 grid lg:grid-cols-2 gap-6">
+            <ChartCard title="Assets by Category" icon={<PieChartIcon />}>
+              {(!assetStats?.byCategory || assetStats.byCategory.length === 0) ? (
+                <p className="text-sm text-gray-500">No asset category data</p>
+              ) : (
+                <div className="flex items-center gap-6">
+                  <ResponsiveContainer width={300} height={260}>
+                    <PieChart>
+                      <Pie
+                        data={assetStats.byCategory}
+                        dataKey="count"
+                        nameKey="name"
+                        innerRadius={50}
+                        outerRadius={100}
+                        paddingAngle={4}
+                        cornerRadius={8}
+                        labelLine={false}
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      >
+                        {assetStats.byCategory.map((c, i) => (
+                          <Cell key={c._id} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+
+                  <ul className="flex flex-col gap-2">
+                    {assetStats.byCategory.map((c, i) => (
+                      <li key={c._id} className="flex items-center gap-3">
+                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        <span className="text-sm text-gray-700">{c.name}: {c.count}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </ChartCard>
+
+            <ChartCard title="Top Locations">
+              {(!assetStats?.byLocation || assetStats.byLocation.length === 0) ? (
+                <p className="text-sm text-gray-500">No location data</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-700">
+                        <th className="py-2 px-3 text-left">Location</th>
+                        <th className="py-2 px-3 text-left">Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {assetStats.byLocation.map((loc) => (
+                        <tr key={loc._id} className="border-b hover:bg-gray-50">
+                          <td className="py-2 px-3">{loc.name}</td>
+                          <td className="py-2 px-3 font-semibold">{loc.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </ChartCard>
           </div>
         </section>
       </motion.div>
