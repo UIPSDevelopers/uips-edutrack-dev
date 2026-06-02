@@ -62,6 +62,11 @@ export default function Login() {
       if (response.data && response.data.token) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
+        
+        // ✅ Store token expiration timestamp (in milliseconds)
+        if (response.data.expiresAt) {
+          localStorage.setItem("tokenExpiresAt", response.data.expiresAt);
+        }
 
         toast.success(`Welcome back, ${response.data.user.firstname}!`);
         navigate("/dashboard");

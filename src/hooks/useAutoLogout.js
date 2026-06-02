@@ -3,7 +3,8 @@ import { useEffect, useRef } from "react";
 
 export default function useAutoLogout(idleMinutes = 15) {
   const lastResetRef = useRef(0);
-  const throttleMs = 1000; // only reset timer max once per second
+  const throttleMs = 500; // Reduced from 1000 for better responsiveness
+  const warningTimeMs = 60000; // Warn 1 minute before logout
 
   useEffect(() => {
     // Only run if user is logged in
@@ -12,18 +13,50 @@ export default function useAutoLogout(idleMinutes = 15) {
 
     const IDLE_TIME = idleMinutes * 60 * 1000; // minutes → ms
     let timeoutId;
+    let warningTimeoutId;
 
-    const logoutNow = () => {
+    const logoutNow = async () => {
+      // Call logout endpoint to notify backend
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          await fetch(
+            `${import.meta.env.VITE_API_BASE_URL || "https://uips-edutrack-backend-dev.onrender.com/api"}/auth/logout`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Logout API call failed:", error);
+        // Continue with client-side logout anyway
+      }
+
+      // Clear auth info
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      localStorage.removeItem("tokenExpiresAt");
 
+      // Redirect to login with reason
       const params = new URLSearchParams({
         reason: "session_expired",
-        msg: "Session expired due to inactivity",
+        msg: "Your session expired due to inactivity. Please log in again.",
       });
 
-      // Hard redirect – no React Router hook needed
       window.location.href = `/?${params.toString()}`;
+    };
+
+    const showWarning = () => {
+      // Show 1-minute warning (optional enhancement)
+      // You can emit a custom event here or show a toast
+      const event = new CustomEvent("tokenExpiring", {
+        detail: { message: "Your session will expire in 1 minute." },
+      });
+      window.dispatchEvent(event);
     };
 
     // Throttled reset to avoid excessive timeout clearing
@@ -33,19 +66,28 @@ export default function useAutoLogout(idleMinutes = 15) {
 
       lastResetRef.current = now;
       clearTimeout(timeoutId);
+      clearTimeout(warningTimeoutId);
+
+      // Set warning timeout (1 minute before logout)
+      warningTimeoutId = setTimeout(showWarning, IDLE_TIME - warningTimeMs);
+
+      // Set logout timeout
       timeoutId = setTimeout(logoutNow, IDLE_TIME);
     };
 
-    const events = ["mousemove", "keydown", "scroll", "click", "touchstart"];
+    // Monitor user activity
+    const events = ["mousemove", "keydown", "scroll", "click", "touchstart", "keyup"];
 
     events.forEach((ev) => window.addEventListener(ev, resetTimer));
 
-    // start timer immediately
+    // Start timer immediately
     resetTimer();
 
+    // Cleanup
     return () => {
       events.forEach((ev) => window.removeEventListener(ev, resetTimer));
       clearTimeout(timeoutId);
+      clearTimeout(warningTimeoutId);
     };
   }, [idleMinutes]);
 }

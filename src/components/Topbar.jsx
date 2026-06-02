@@ -8,10 +8,31 @@ export default function Topbar({ onToggleSidebar }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      // Call logout endpoint to notify backend
+      const token = localStorage.getItem("token");
+      if (token) {
+        await fetch(
+          `${import.meta.env.VITE_API_BASE_URL || "https://uips-edutrack-backend-dev.onrender.com/api"}/auth/logout`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Logout API call failed:", error);
+    } finally {
+      // Clear auth info regardless of API response
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tokenExpiresAt");
+      navigate("/");
+    }
   };
 
   // close dropdown on outside click

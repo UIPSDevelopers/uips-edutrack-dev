@@ -14,10 +14,21 @@ export function useValidateSession() {
         return;
       }
 
+      // Check if token has already expired (offline mode)
+      const expiresAt = localStorage.getItem("tokenExpiresAt");
+      if (expiresAt && Date.now() > parseInt(expiresAt)) {
+        // Token is expired
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("tokenExpiresAt");
+        window.location.href = "/?reason=session_expired&msg=Your%20session%20has%20expired.%20Please%20log%20in%20again.";
+        return;
+      }
+
       try {
         // Call a protected endpoint to verify session is still valid on backend
         // This endpoint should return 401 if token is expired/invalid
-        await axiosInstance.get("/me");
+        await axiosInstance.get("/auth/me");
         setIsValidating(false);
       } catch (error) {
         const status = error.response?.status;
@@ -26,7 +37,8 @@ export function useValidateSession() {
         if (status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
-          window.location.href = "/?reason=session_expired";
+          localStorage.removeItem("tokenExpiresAt");
+          window.location.href = "/?reason=session_expired&msg=Your%20session%20has%20expired.%20Please%20log%20in%20again.";
         } else {
           // For other errors (network issues, endpoint not found, etc)
           // just stop validating and let the rest of the app proceed
