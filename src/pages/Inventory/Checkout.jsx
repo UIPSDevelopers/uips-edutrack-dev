@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReceiptText, ScanLine, Trash2 } from "lucide-react";
 import InventoryTabs from "@/pages/Inventory/InventoryTabs";
@@ -23,6 +24,7 @@ export default function Checkout() {
   const [items, setItems] = useState([]);
   const [showDialog, setShowDialog] = useState(false);
   const [receiptNo, setReceiptNo] = useState("");
+  const [remarks, setRemarks] = useState("");
   const [issuedBy, setIssuedBy] = useState("");
   const [checkoutId, setCheckoutId] = useState("");
   const [transactionNo, setTransactionNo] = useState("");
@@ -121,6 +123,7 @@ export default function Checkout() {
     try {
       const payload = {
         receiptNo,
+        remarks,
         issuedBy,
         items: items.map((i) => ({
           itemId: i.itemId,
@@ -143,6 +146,7 @@ export default function Checkout() {
       );
       setItems([]);
       setReceiptNo("");
+      setRemarks("");
       setShowDialog(false);
     } catch (error) {
       console.error("Error saving checkout:", error);
@@ -310,6 +314,18 @@ export default function Checkout() {
               placeholder="Enter receipt number"
               value={receiptNo}
               onChange={(e) => setReceiptNo(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-3 mt-2">
+            <label className="text-sm font-medium text-gray-700">
+              Remarks
+            </label>
+            <Textarea
+              placeholder="Enter notes or remarks for this checkout"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              className="min-h-[100px]"
             />
           </div>
 
