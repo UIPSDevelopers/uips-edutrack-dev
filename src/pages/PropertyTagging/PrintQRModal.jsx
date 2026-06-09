@@ -13,9 +13,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  /* =========================
-     FETCH ASSETS
-  ========================= */
+  
   useEffect(() => {
     if (!open || !assetIds.length) return;
 
@@ -44,9 +42,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
     fetchAssets();
   }, [open, assetIds]);
 
-  /* =========================
-     IMAGE TO BASE64
-  ========================= */
+  
   const toBase64 = (url) =>
     new Promise((resolve, reject) => {
       const img = new Image();
@@ -67,9 +63,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       img.src = url;
     });
 
-  /* =========================
-     GENERATE PDF (CORPORATE LABEL)
-  ========================= */
+  
   const handleDownloadPDF = async () => {
     if (!assets.length) return;
 
@@ -85,25 +79,19 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const imgUrl = `${API_BASE}/asset/assets/${asset._id}/qrcode`;
       const imgData = await toBase64(imgUrl);
 
-      /* =========================
-       BACKGROUND SPLIT (KEEP SAME)
-    ========================= */
+      
 
       pdf.setFillColor(245, 245, 245);
       pdf.rect(23, 0, 27, 25, "F");
 
-      /* =========================
-       DARK PRINT-SAFE DIVIDERS
-    ========================= */
+      
 
-      // Vertical divider (NOW DARK FOR PRINT)
-      pdf.setDrawColor(0, 0, 0); // 🔥 pure black
-      pdf.setLineWidth(0.3); // thicker for print visibility
+      
+      pdf.setDrawColor(0, 0, 0); 
+      pdf.setLineWidth(0.3); 
       pdf.line(22.5, 2, 22.5, 23);
 
-      /* =========================
-       QR CODE (LEFT CENTERED)
-    ========================= */
+      
 
       const qrSize = 21;
       const leftAreaW = 22;
@@ -113,15 +101,13 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
       pdf.addImage(imgData, "PNG", qrX, qrY, qrSize, qrSize);
 
-      /* =========================
-       TEXT AREA (RIGHT)
-    ========================= */
+      
 
       const leftBoundary = 24;
       const rightBoundary = 49;
       const centerX = (leftBoundary + rightBoundary) / 2;
 
-      // UIPS
+      
       const brandY = 11;
 
       pdf.setFont("helvetica", "bold");
@@ -131,17 +117,17 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
       const brandWidth = pdf.getTextWidth(brand);
       pdf.text(brand, centerX - brandWidth / 2, brandY);
 
-      // Divider under UIPS (NOW DARK)
-      pdf.setDrawColor(0, 0, 0); // 🔥 black for print visibility
+      
+      pdf.setDrawColor(0, 0, 0); 
       pdf.setLineWidth(0.3);
       pdf.line(leftBoundary, 13, rightBoundary, 13);
 
-      // SERIAL
+      
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(8);
       pdf.text(`${asset.serialNo || "-"}`, leftBoundary, 17);
 
-      // DATE (BLACK)
+      
       const date = asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
         : "-";
@@ -153,9 +139,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
 
       pdf.setTextColor(0);
 
-      /* =========================
-       PAGE BREAK
-    ========================= */
+      
       if (i !== assets.length - 1) {
         pdf.addPage([50, 25], "landscape");
       }
@@ -169,7 +153,7 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white w-[420px] p-4 rounded-lg relative">
-        {/* CLOSE */}
+        {}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500"
@@ -177,17 +161,17 @@ export default function PrintQRModal({ open = false, onClose, assetIds = [] }) {
           ✕
         </button>
 
-        {/* HEADER */}
+        {}
         <h2 className="text-lg font-semibold mb-3">UIPS QR Label Export</h2>
 
-        {/* STATUS */}
+        {}
         {loading ? (
           <p>Loading assets...</p>
         ) : (
           <p className="text-sm text-gray-600">{assets.length} labels ready</p>
         )}
 
-        {/* ACTIONS */}
+        {}
         <div className="flex justify-end mt-4 gap-2">
           <Button variant="outline" onClick={onClose}>
             Close

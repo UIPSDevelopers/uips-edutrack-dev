@@ -17,31 +17,31 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import axiosInstance from "@/lib/axios"; // ✅ use axiosInstance
+import axiosInstance from "@/lib/axios"; 
 
 export default function AddItem() {
   const [barcodeValue, setBarcodeValue] = useState("");
   const [generatedBarcode, setGeneratedBarcode] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user")); // retrieve user info
+  const user = JSON.parse(localStorage.getItem("user")); 
 
   const [form, setForm] = useState({
     itemType: "",
     itemName: "",
-    gradeLevel: "", // 🆕 Added Grade Level
+    gradeLevel: "", 
     sizeOrSource: "",
     barcode: "",
     addedBy: user ? `${user.firstname} ${user.lastname}` : "Unknown User",
   });
 
-  // ✅ Sidebar state (for mobile)
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
-  // ✅ Ref for printable content
+  
   const printRef = useRef(null);
 
-  // ✅ useReactToPrint (v3+)
+  
   const print = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Barcode_${form.itemName}`,
@@ -49,13 +49,13 @@ export default function AddItem() {
     onPrintError: (err) => console.error("Print failed:", err),
   });
 
-  // ✅ Handle input change
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Generate barcode
+  
   const handleGenerateBarcode = () => {
     if (!form.barcode) {
       alert("Please enter a Barcode or Serial Number first.");
@@ -65,7 +65,7 @@ export default function AddItem() {
     setGeneratedBarcode(true);
   };
 
-  // ✅ Save item (axios)
+  
   const handleSave = async () => {
     if (!form.itemName || !form.itemType || !form.barcode) {
       alert("Please fill in all required fields.");
@@ -81,10 +81,10 @@ export default function AddItem() {
         setForm({
           itemType: "",
           itemName: "",
-          gradeLevel: "", // reset Grade Level
+          gradeLevel: "", 
           sizeOrSource: "",
           barcode: "",
-          addedBy: form.addedBy, // keep same user
+          addedBy: form.addedBy, 
         });
         setGeneratedBarcode(false);
         setBarcodeValue("");
@@ -100,7 +100,7 @@ export default function AddItem() {
     }
   };
 
-  // ✅ Handle print button
+  
   const handlePrintClick = () => {
     if (!printRef.current) {
       alert("There is nothing to print.");
@@ -125,7 +125,7 @@ export default function AddItem() {
         </CardHeader>
 
         <CardContent className="grid md:grid-cols-2 gap-6">
-          {/* Item Type (Dropdown) */}
+          {}
           <div>
             <label className="text-sm font-medium">Item Type</label>
             <Select
@@ -150,7 +150,7 @@ export default function AddItem() {
             </Select>
           </div>
 
-          {/* Item Name */}
+          {}
           <div>
             <label className="text-sm font-medium">Item Name</label>
             <Input
@@ -162,7 +162,7 @@ export default function AddItem() {
             />
           </div>
 
-          {/* Grade Level */}
+          {}
           <div>
             <label className="text-sm font-medium">Grade Level</label>
             <Input
@@ -174,7 +174,7 @@ export default function AddItem() {
             />
           </div>
 
-          {/* Size / Source */}
+          {}
           <div>
             <label className="text-sm font-medium">Size / Source</label>
             <Input
@@ -186,7 +186,7 @@ export default function AddItem() {
             />
           </div>
 
-          {/* Barcode / Serial Number */}
+          {}
           <div>
             <label className="text-sm font-medium">
               Barcode / Serial Number
@@ -208,7 +208,7 @@ export default function AddItem() {
             </div>
           </div>
 
-          {/* Added By */}
+          {}
           <div>
             <label className="text-sm font-medium">Added By</label>
             <Input
@@ -219,7 +219,7 @@ export default function AddItem() {
             />
           </div>
 
-          {/* ✅ Barcode Preview + Print */}
+          {}
           {generatedBarcode && (
             <div className="md:col-span-2 flex flex-col items-start mt-4 space-y-2">
               <div
@@ -242,7 +242,7 @@ export default function AddItem() {
                 </p>
               </div>
 
-              {/* Print Button */}
+              {}
               <Button
                 onClick={handlePrintClick}
                 className="bg-[#800000] hover:bg-[#a10000] text-white flex items-center gap-2"
@@ -253,7 +253,7 @@ export default function AddItem() {
             </div>
           )}
 
-          {/* Save Button */}
+          {}
           <div className="md:col-span-2">
             <Button
               onClick={handleSave}

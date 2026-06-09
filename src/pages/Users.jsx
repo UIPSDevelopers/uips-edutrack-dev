@@ -40,21 +40,21 @@ export default function Users() {
 
   const [editUser, setEditUser] = useState(null);
 
-  // ✅ Sidebar state (for mobile)
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
-  // 👤 Get current user + role
+  
   const storedUser =
     typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const user = storedUser ? JSON.parse(storedUser) : null;
   const role = user?.role;
 
-  // 🚫 IT-only access
+  
   const canAccessUsers = role === "IT";
 
-  // 🧠 Fetch all users (only if IT)
+  
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -77,7 +77,7 @@ export default function Users() {
     fetchUsers();
   }, [canAccessUsers]);
 
-  // ➕ Add User Handler
+  
   const handleAddUser = async (e) => {
     e.preventDefault();
     if (
@@ -90,7 +90,7 @@ export default function Users() {
     }
 
     try {
-      // axiosInstance already has baseURL, just use relative path
+      
       const res = await axiosInstance.post("/users", newUser);
 
       const createdUser = res.data.user || res.data;
@@ -111,7 +111,7 @@ export default function Users() {
     }
   };
 
-  // ✏️ Edit User Handler
+  
   const handleEditUser = async (e) => {
     e.preventDefault();
 
@@ -120,10 +120,10 @@ export default function Users() {
     try {
       console.log("🔹 Updating user:", editUser);
 
-      // 🆕 Build payload and avoid sending empty password
+      
       const payload = { ...editUser };
       if (!payload.password) {
-        delete payload.password; // don't update password if left blank
+        delete payload.password; 
       }
 
       const res = await axiosInstance.put(`/users/${editUser.userId}`, payload);
@@ -157,7 +157,7 @@ export default function Users() {
 
   return (
     <>
-        {/* 🚫 Unauthorized overlay (IT-only) */}
+        {}
         {!canAccessUsers && (
           <div className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white shadow-lg border border-red-300 rounded-xl p-8 text-center w-[350px]">
@@ -182,11 +182,11 @@ export default function Users() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Header */}
+            {}
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-2xl font-semibold text-gray-800">Users</h1>
 
-              {/* Add User Modal */}
+              {}
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="bg-[#800000] hover:bg-[#a10000] text-white">
@@ -304,7 +304,7 @@ export default function Users() {
               </Dialog>
             </div>
 
-            {/* User List */}
+            {}
             <Card className="shadow-sm border border-gray-200">
               <CardHeader>
                 <CardTitle className="text-sm text-gray-500">
@@ -371,7 +371,7 @@ export default function Users() {
                                   </Button>
                                 </DialogTrigger>
 
-                                {/* Edit Dialog */}
+                                {}
                                 <DialogContent className="sm:max-w-md">
                                   <DialogHeader>
                                     <DialogTitle>Edit User</DialogTitle>

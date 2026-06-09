@@ -26,9 +26,9 @@ export default function AssetDetails() {
 
   const [locations, setLocations] = useState([]);
 
-  // =========================
-  // EDIT STATES
-  // =========================
+  
+  
+  
   const [editType, setEditType] = useState("");
   const [showEditDialog, setShowEditDialog] = useState(false);
 
@@ -40,9 +40,9 @@ export default function AssetDetails() {
 
   const [savingEdit, setSavingEdit] = useState(false);
 
-  // =========================
-  // SERVICE MODAL
-  // =========================
+  
+  
+  
   const [showDialog, setShowDialog] = useState(false);
 
   const [serviceForm, setServiceForm] = useState({
@@ -53,9 +53,9 @@ export default function AssetDetails() {
     serviceDate: "",
   });
 
-  // =========================
-  // FETCH ASSET
-  // =========================
+  
+  
+  
   const fetchAsset = async () => {
     try {
       setLoading(true);
@@ -98,9 +98,9 @@ export default function AssetDetails() {
     fetchAsset();
   }, [id]);
 
-  // =========================
-  // INPUT HANDLER
-  // =========================
+  
+  
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -110,9 +110,9 @@ export default function AssetDetails() {
     }));
   };
 
-  // =========================
-  // EDIT HANDLER
-  // =========================
+  
+  
+  
   const handleEditChange = (e) => {
     const { name, value } = e.target;
 
@@ -122,9 +122,9 @@ export default function AssetDetails() {
     }));
   };
 
-  // =========================
-  // UPDATE ASSET
-  // =========================
+  
+  
+  
   const handleUpdateAsset = async () => {
     try {
       setSavingEdit(true);
@@ -149,14 +149,14 @@ export default function AssetDetails() {
     }
   };
 
-  // =========================
-  // VALID SERVICE TYPES
-  // =========================
+  
+  
+  
   const allowedTypes = ["Cleaning", "Repair", "Maintenance", "Inspection"];
 
-  // =========================
-  // ADD SERVICE
-  // =========================
+  
+  
+  
   const handleAddService = async () => {
     try {
       if (!serviceForm.serviceType) {
@@ -193,9 +193,9 @@ export default function AssetDetails() {
     }
   };
 
-  // =========================
-  // SAFE DATE FORMAT
-  // =========================
+  
+  
+  
   const formatDate = (date) => {
     if (!date) return "-";
 
@@ -207,26 +207,26 @@ export default function AssetDetails() {
   const [history, setHistory] = useState([]);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
 
-  // =========================
-  // LOADING STATES
-  // =========================
+  
+  
+  
   if (loading) return <p className="p-6">Loading asset...</p>;
 
   if (!asset) {
     return <p className="p-6 text-red-500">Asset not found</p>;
   }
 
-  // =========================
-  // UI
-  // =========================
+  
+  
+  
   return (
     <main className="p-6 space-y-6">
-      {/* BACK */}
+      {}
       <Button variant="outline" onClick={() => navigate(-1)}>
         ← Back
       </Button>
 
-      {/* ASSET INFO */}
+      {}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Asset Details</CardTitle>
@@ -237,7 +237,7 @@ export default function AssetDetails() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* BASIC INFO */}
+          {}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <strong>Serial:</strong> {asset.serialNo}
@@ -264,9 +264,9 @@ export default function AssetDetails() {
             </div>
           </div>
 
-          {/* EDITABLE CARDS */}
+          {}
           <div className="grid md:grid-cols-3 gap-4">
-            {/* LOCATION */}
+            {}
             <div className="border rounded-xl p-4 flex justify-between items-start">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Location</p>
@@ -286,7 +286,7 @@ export default function AssetDetails() {
               </Button>
             </div>
 
-            {/* STATUS */}
+            {}
             <div className="border rounded-xl p-4 flex justify-between items-start">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Status</p>
@@ -306,7 +306,7 @@ export default function AssetDetails() {
               </Button>
             </div>
 
-            {/* REMARKS */}
+            {}
             <div className="border rounded-xl p-4 flex justify-between items-start">
               <div className="flex-1">
                 <p className="text-xs text-gray-500 mb-1">Remarks</p>
@@ -331,7 +331,7 @@ export default function AssetDetails() {
         </CardContent>
       </Card>
 
-      {/* SERVICE HISTORY */}
+      {}
       <Card>
         <CardHeader className="flex justify-between items-center">
           <CardTitle>Service History</CardTitle>
@@ -379,7 +379,7 @@ export default function AssetDetails() {
         </CardContent>
       </Card>
 
-      {/* EDIT MODAL */}
+      {}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
@@ -387,7 +387,7 @@ export default function AssetDetails() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* LOCATION */}
+            {}
             {editType === "location" && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Location</label>
@@ -409,7 +409,7 @@ export default function AssetDetails() {
               </div>
             )}
 
-            {/* STATUS */}
+            {}
             {editType === "status" && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Status</label>
@@ -427,7 +427,7 @@ export default function AssetDetails() {
               </div>
             )}
 
-            {/* REMARKS */}
+            {}
             {editType === "remarks" && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Remarks</label>
@@ -453,7 +453,7 @@ export default function AssetDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* ADD SERVICE MODAL */}
+      {}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
@@ -515,7 +515,7 @@ export default function AssetDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* HISTORY MODAL */}
+      {}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -531,7 +531,7 @@ export default function AssetDetails() {
                   key={item._id}
                   className="border rounded-xl p-4 bg-gray-50"
                 >
-                  {/* HEADER */}
+                  {}
                   <div className="flex justify-between items-center mb-3">
                     <div>
                       <p className="font-semibold text-sm">
@@ -544,7 +544,7 @@ export default function AssetDetails() {
                     </div>
                   </div>
 
-                  {/* LOCATION */}
+                  {}
                   {item.changes?.location && (
                     <div className="text-sm mb-2">
                       <span className="font-medium">Location:</span>
@@ -563,7 +563,7 @@ export default function AssetDetails() {
                     </div>
                   )}
 
-                  {/* STATUS */}
+                  {}
                   {item.changes?.status && (
                     <div className="text-sm mb-2">
                       <span className="font-medium">Status:</span>
@@ -582,7 +582,7 @@ export default function AssetDetails() {
                     </div>
                   )}
 
-                  {/* REMARKS */}
+                  {}
                   {item.changes?.remarks && (
                     <div className="text-sm">
                       <span className="font-medium">Remarks:</span>

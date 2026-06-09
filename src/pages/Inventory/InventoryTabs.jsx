@@ -10,7 +10,7 @@ import {
   ShoppingCart,
   FileText,
   Undo2,
-  Upload, // 🆕 for Bulk Import
+  Upload, 
 } from "lucide-react";
 
 export default function InventoryTabs() {
@@ -25,7 +25,7 @@ export default function InventoryTabs() {
     else if (location.pathname.includes("/checkout")) setActiveTab("checkout");
     else if (location.pathname.includes("/returns")) setActiveTab("returns");
     else if (location.pathname.includes("/bulk-import"))
-      setActiveTab("bulk"); // 🆕
+      setActiveTab("bulk"); 
     else if (location.pathname.includes("/reports")) setActiveTab("reports");
   }, [location]);
 
@@ -85,7 +85,7 @@ export default function InventoryTabs() {
           <Undo2 size={16} /> Returns
         </TabsTrigger>
 
-        {/* 🆕 Bulk Import Tab */}
+        {}
         <TabsTrigger
           value="bulk"
           onClick={() => navigate("/inventory/bulk-import")}

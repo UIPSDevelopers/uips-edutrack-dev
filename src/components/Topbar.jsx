@@ -10,7 +10,7 @@ export default function Topbar({ onToggleSidebar }) {
 
   const handleLogout = async () => {
     try {
-      // Call logout endpoint to notify backend
+      
       const token = localStorage.getItem("token");
       if (token) {
         await fetch(
@@ -27,7 +27,7 @@ export default function Topbar({ onToggleSidebar }) {
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
-      // Clear auth info regardless of API response
+      
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("tokenExpiresAt");
@@ -35,7 +35,7 @@ export default function Topbar({ onToggleSidebar }) {
     }
   };
 
-  // close dropdown on outside click
+  
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -48,15 +48,15 @@ export default function Topbar({ onToggleSidebar }) {
 
   return (
     <header className="relative w-full flex items-center justify-between bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-3 sticky top-0 z-50 overflow-visible">
-      {/* 🌈 Background Gradient */}
+      {}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-20 -left-24 w-72 h-72 bg-gradient-to-br from-[#800000] via-[#a63c3c] to-[#b86a6a] opacity-10 rounded-full blur-3xl"></div>
         <div className="absolute top-0 right-0 w-60 h-60 bg-gradient-to-bl from-[#800000] to-transparent opacity-10 rounded-full blur-2xl"></div>
       </div>
 
-      {/* Left Section */}
+      {}
       <div className="flex items-center gap-3 relative z-10">
-        {/* 🍔 Burger (mobile) */}
+        {}
         <button
           onClick={onToggleSidebar}
           className="md:hidden text-gray-700 hover:text-[#800000] transition transform hover:scale-110"
@@ -64,7 +64,7 @@ export default function Topbar({ onToggleSidebar }) {
           <Menu size={24} />
         </button>
 
-        {/* Accent Label */}
+        {}
         <div className="hidden md:flex items-center gap-2">
           <div className="w-2 h-8 bg-[#800000] rounded-full shadow-sm"></div>
           <div className="flex flex-col">
@@ -78,15 +78,15 @@ export default function Topbar({ onToggleSidebar }) {
         </div>
       </div>
 
-      {/* Right Section */}
+      {}
       <div className="flex items-center gap-5 relative z-50">
-        {/* 🔔 Notifications */}
+        {}
         <button className="relative text-gray-600 hover:text-[#800000] transition">
           <Bell size={20} />
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
 
-        {/* 👤 User Dropdown */}
+        {}
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}

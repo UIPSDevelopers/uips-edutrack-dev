@@ -12,15 +12,15 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex font-poppins bg-gray-50 min-h-screen">
-      {/* 🧭 Sidebar */}
+      {}
       <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
 
-      {/* 🧱 Main Content */}
+      {}
       <div className="flex-1 ml-0 md:ml-64 transition-all duration-300">
-        {/* 🔝 Topbar */}
+        {}
         <Topbar onToggleSidebar={handleToggleSidebar} />
 
-        {/* 📄 Page Content */}
+        {}
         <main className="p-6 space-y-6">{children}</main>
       </div>
     </div>

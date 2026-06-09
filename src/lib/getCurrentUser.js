@@ -1,4 +1,4 @@
-// src/lib/getCurrentUser.js
+
 
 export function getCurrentUser() {
   try {
@@ -11,7 +11,7 @@ export function getCurrentUser() {
       return `${user.firstname} ${user.lastname}`;
     }
 
-    // fallback options
+    
     if (user.firstname) return user.firstname;
     if (user.email) return user.email;
     return "Unknown User";

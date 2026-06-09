@@ -36,9 +36,9 @@ export default function AddAsset() {
   const [locations, setLocations] = useState([]);
   const [assets, setAssets] = useState([]);
 
-  // =========================
-  // FETCH CATEGORIES
-  // =========================
+  
+  
+  
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -52,9 +52,9 @@ export default function AddAsset() {
     fetchCategories();
   }, []);
 
-  // =========================
-  // FETCH LOCATIONS
-  // =========================
+  
+  
+  
   useEffect(() => {
     const fetchLocations = async () => {
       try {
@@ -68,9 +68,9 @@ export default function AddAsset() {
     fetchLocations();
   }, []);
 
-  // =========================
-  // FETCH ASSETS
-  // =========================
+  
+  
+  
   const fetchAssets = async () => {
     try {
       const res = await axiosInstance.get("asset/assets");
@@ -84,9 +84,9 @@ export default function AddAsset() {
     fetchAssets();
   }, []);
 
-  // =========================
-  // INPUT HANDLER
-  // =========================
+  
+  
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -96,9 +96,9 @@ export default function AddAsset() {
     }));
   };
 
-  // =========================
-  // SELECT HANDLER
-  // =========================
+  
+  
+  
   const handleSelectChange = (name, value) => {
     setForm((prev) => ({
       ...prev,
@@ -106,9 +106,9 @@ export default function AddAsset() {
     }));
   };
 
-  // =========================
-  // ADD SINGLE ASSET
-  // =========================
+  
+  
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 

@@ -48,15 +48,15 @@ export default function PropertyTagging() {
     direction: "asc",
   });
 
-  // =========================
-  // VALIDATION
-  // =========================
+  
+  
+  
   const isValidObjectId = (id) =>
     typeof id === "string" && /^[a-f\d]{24}$/i.test(id);
 
-  // =========================
-  // ROLE CHECK
-  // =========================
+  
+  
+  
   const user =
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "null")
@@ -66,9 +66,9 @@ export default function PropertyTagging() {
 
   const canView = ["IT", "InventoryStaff", "InventoryAdmin"].includes(role);
 
-  // =========================
-  // FETCH ASSETS
-  // =========================
+  
+  
+  
   useEffect(() => {
     if (!canView) {
       setLoading(false);
@@ -93,9 +93,9 @@ export default function PropertyTagging() {
     fetchAssets();
   }, [canView]);
 
-  // =========================
-  // FILTER
-  // =========================
+  
+  
+  
   const filteredAssets = useMemo(() => {
     if (!searchTerm) return assets;
 
@@ -106,9 +106,9 @@ export default function PropertyTagging() {
     );
   }, [assets, searchTerm]);
 
-  // =========================
-  // SORT
-  // =========================
+  
+  
+  
   const sortedAssets = useMemo(() => {
     if (!sortConfig.key) return filteredAssets;
 
@@ -154,9 +154,9 @@ export default function PropertyTagging() {
     }));
   };
 
-  // =========================
-  // SELECT
-  // =========================
+  
+  
+  
   const toggleSelect = (id) => {
     if (!isValidObjectId(id)) return;
 
@@ -173,18 +173,18 @@ export default function PropertyTagging() {
     );
   };
 
-  // =========================
-  // PRINT
-  // =========================
+  
+  
+  
   const handlePrintQR = () => {
     if (!selectedAssets.length) return;
 
     setShowPrint(true);
   };
 
-  // =========================
-  // EXPORT EXCEL
-  // =========================
+  
+  
+  
   const exportExcel = () => {
     if (!sortedAssets.length) {
       return alert("No assets to export");
@@ -222,9 +222,9 @@ export default function PropertyTagging() {
     );
   };
 
-  // =========================
-  // EXPORT PDF
-  // =========================
+  
+  
+  
   const exportPDF = () => {
     if (!sortedAssets.length) {
       return alert("No assets to export");
@@ -234,10 +234,10 @@ export default function PropertyTagging() {
 
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // COLORS
+    
     const primary = [128, 0, 0];
 
-    // HEADER
+    
     doc.setFillColor(...primary);
     doc.rect(0, 0, pageWidth, 28, "F");
 
@@ -250,14 +250,14 @@ export default function PropertyTagging() {
 
     doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 75, 18);
 
-    // REPORT DETAILS
+    
     doc.setTextColor(0, 0, 0);
 
     doc.setFontSize(10);
 
     doc.text(`Total Assets: ${sortedAssets.length}`, 14, 40);
 
-    // TABLE
+    
     const tableData = sortedAssets.map((asset, index) => [
       index + 1,
       asset.serialNo || "-",
@@ -347,9 +347,9 @@ export default function PropertyTagging() {
     );
   };
 
-  // =========================
-  // SCANNER OPEN
-  // =========================
+  
+  
+  
   const openScanner = () => {
     setShowScanner(true);
 
@@ -360,9 +360,9 @@ export default function PropertyTagging() {
     }, 200);
   };
 
-  // =========================
-  // SCAN HANDLER
-  // =========================
+  
+  
+  
   const handleScan = (data) => {
     if (!data || scanLockRef.current) return;
 
@@ -397,18 +397,18 @@ export default function PropertyTagging() {
     }, 800);
   };
 
-  // =========================
-  // ROW CLICK
-  // =========================
+  
+  
+  
   const handleRowClick = (e, id) => {
     if (e.target.type === "checkbox") return;
 
     navigate(`/property-tagging/${id}`);
   };
 
-  // =========================
-  // UNAUTHORIZED
-  // =========================
+  
+  
+  
   if (!canView) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -420,12 +420,12 @@ export default function PropertyTagging() {
     );
   }
 
-  // =========================
-  // UI
-  // =========================
+  
+  
+  
   return (
     <main className="p-6 space-y-6">
-      {/* HEADER */}
+      {}
       <div className="rounded-3xl border border-gray-200 bg-white/90 p-6 shadow-sm shadow-slate-200/60">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
@@ -501,7 +501,7 @@ export default function PropertyTagging() {
         </CardContent>
       </Card>
 
-      {/* TABLE */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Assets List ({sortedAssets.length})</CardTitle>
@@ -614,7 +614,7 @@ export default function PropertyTagging() {
         </CardContent>
       </Card>
 
-      {/* MODALS */}
+      {}
       <PrintQRModal
         open={showPrint}
         onClose={() => setShowPrint(false)}

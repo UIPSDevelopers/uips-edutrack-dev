@@ -28,7 +28,7 @@ import {
 import InventoryTabs from "@/pages/Inventory/InventoryTabs";
 import axiosInstance from "@/lib/axios";
 
-// ✅ Helper functions
+
 async function fetchCheckoutByRef(receiptNo) {
   try {
     const res = await axiosInstance.get(`/checkouts/${receiptNo}`);
@@ -60,7 +60,7 @@ async function getReturns() {
   }
 }
 
-// 🧾 Main Component
+
 export default function Returns() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -81,7 +81,7 @@ export default function Returns() {
   );
 }
 
-// 🧾 Return Form
+
 function ReturnForm() {
   const [receiptRef, setReceiptRef] = useState("");
   const [transactionRef, setTransactionRef] = useState("");
@@ -104,7 +104,7 @@ function ReturnForm() {
     [lines]
   );
 
-  // 🔍 Lookup checkout by Receipt No.
+  
   const handleLookup = async () => {
     if (!receiptRef.trim()) return;
     setLoading(true);
@@ -121,7 +121,7 @@ function ReturnForm() {
 
     setTransactionRef(data.transactionNo || "-");
 
-    // 🆕 Include gradeLevel if available in checkout items
+    
     setLines(
       data.items.map((it) => ({
         itemId: it.itemId,
@@ -130,7 +130,7 @@ function ReturnForm() {
         maxQty: it.quantity,
         quantity: 1,
         condition: "Good",
-        gradeLevel: it.gradeLevel || "", // Added
+        gradeLevel: it.gradeLevel || "", 
       }))
     );
 
@@ -147,7 +147,7 @@ function ReturnForm() {
         maxQty: 9999,
         quantity: 1,
         condition: "Good",
-        gradeLevel: "", // Added
+        gradeLevel: "", 
       },
     ]);
   };
@@ -177,7 +177,7 @@ function ReturnForm() {
         sizeOrSource: l.sizeOrSource,
         quantity: Number(l.quantity),
         condition: l.condition,
-        gradeLevel: l.gradeLevel || "", // Added
+        gradeLevel: l.gradeLevel || "", 
         remarks: l.remarks || "",
       })),
     };
@@ -224,7 +224,7 @@ function ReturnForm() {
           </div>
         )}
 
-        {/* ✅ Search by Receipt No */}
+        {}
         <div>
           <Label>Receipt No.</Label>
           <div className="flex gap-2">
@@ -246,7 +246,7 @@ function ReturnForm() {
           </p>
         </div>
 
-        {/* Display transaction number (auto-filled) */}
+        {}
         {transactionRef && (
           <div>
             <Label>Transaction No.</Label>
@@ -280,13 +280,13 @@ function ReturnForm() {
           </Button>
         </div>
 
-        {/* Items Table */}
+        {}
         <div className="border rounded-lg overflow-hidden">
           <div className="grid grid-cols-12 bg-slate-100 text-xs font-medium text-slate-700 px-3 py-2">
             <div className="col-span-3">Item</div>
             <div className="col-span-2">Qty</div>
             <div className="col-span-2">Condition</div>
-            <div className="col-span-2">Grade Level</div> {/* Added */}
+            <div className="col-span-2">Grade Level</div> {}
             <div className="col-span-2">Remarks</div>
             <div className="col-span-1 text-right">Actions</div>
           </div>
@@ -387,7 +387,7 @@ function ReturnForm() {
   );
 }
 
-// 🧾 Return List (with item details)
+
 function ReturnList() {
   const [returns, setReturns] = useState([]);
 
@@ -436,7 +436,7 @@ function ReturnList() {
                     <td className="py-2 px-3">{r.items?.length || 0}</td>
                   </tr>
 
-                  {/* Item details below each return */}
+                  {}
                   <tr className="bg-slate-50 text-slate-700">
                     <td colSpan="5" className="p-2 pl-8">
                       {r.items?.length > 0 ? (

@@ -27,9 +27,9 @@ export default function AddLocation() {
   const [loading, setLoading] = useState(false);
   const [locations, setLocations] = useState([]);
 
-  // ======================
-  // FETCH LOCATIONS
-  // ======================
+  
+  
+  
   const fetchLocations = async () => {
     try {
       const res = await axiosInstance.get("/locations");
@@ -43,9 +43,9 @@ export default function AddLocation() {
     fetchLocations();
   }, []);
 
-  // ======================
-  // INPUT HANDLER
-  // ======================
+  
+  
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -55,9 +55,9 @@ export default function AddLocation() {
     }));
   };
 
-  // ======================
-  // SELECT HANDLER
-  // ======================
+  
+  
+  
   const handleSelectChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
@@ -65,9 +65,9 @@ export default function AddLocation() {
     }));
   };
 
-  // ======================
-  // SUBMIT LOCATION
-  // ======================
+  
+  
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

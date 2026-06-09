@@ -111,7 +111,7 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
-/* thin scrollbar for tab list */
+
 .scrollbar-thin {
   scrollbar-width: thin;
 }
@@ -127,7 +127,7 @@ body {
   font-family: "Poppins", sans-serif;
 }
 
-/* Floating background animation */
+
 @keyframes float {
   0%,
   100% {

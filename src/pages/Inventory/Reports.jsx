@@ -21,15 +21,15 @@ export default function Reports() {
   const [totals, setTotals] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 🆕 pagination state (server-side)
+  
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20); // 10 / 20 / 50 / 0("All")
+  const [limit, setLimit] = useState(20); 
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
   const isAll = limit === 0;
 
-  // Sidebar (if you’re using it elsewhere)
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
@@ -42,7 +42,7 @@ export default function Reports() {
     return "/reports/delivery";
   };
 
-  // 🔹 Core fetch function (for generate + pagination)
+  
   const fetchReport = async (pageOverride = page, limitOverride = limit) => {
     setLoading(true);
     try {
@@ -50,7 +50,7 @@ export default function Reports() {
 
       const params = {};
 
-      // date filters
+      
       if (from && to) {
         const fromDate = new Date(from);
         const toDate = new Date(to);
@@ -60,7 +60,7 @@ export default function Reports() {
         params.to = toDate.toISOString();
       }
 
-      // pagination
+      
       if (limitOverride === 0) {
         params.all = true;
       } else {
@@ -74,7 +74,7 @@ export default function Reports() {
 
       console.log("✅ Data received:", result);
 
-      // summary-style response
+      
       if (result.summary && Array.isArray(result.summary)) {
         setData(result.summary);
         setTotals(result.totals || null);
@@ -82,7 +82,7 @@ export default function Reports() {
         setTotalPages(result.pages || 1);
         setPage(result.page || pageOverride || 1);
       } else {
-        // normal paginated array or raw array
+        
         const list = Array.isArray(result)
           ? result
           : Array.isArray(result.items)
@@ -106,14 +106,14 @@ export default function Reports() {
     }
   };
 
-  // 🔘 Generate button handler
+  
   const handleGenerate = async () => {
-    // reset to page 1 whenever filters/type change
+    
     setPage(1);
     await fetchReport(1, limit);
   };
 
-  //Export current view to Excel
+  
   const handleExportCurrentExcel = () => {
     if (!data.length) {
       alert("⚠️ No data to export.");
@@ -130,7 +130,7 @@ export default function Reports() {
     );
   };
 
-  //Export ALL to Excel (ignores pagination, respects filters)
+  
   const handleExportAllExcel = async () => {
     try {
       const url = buildUrlForType();
@@ -177,7 +177,7 @@ export default function Reports() {
     }
   };
 
-  // 🧾 Export helper
+  
   const exportRowsToPDF = async (rows, scopeLabel) => {
     if (!rows || rows.length === 0) {
       alert("⚠️ No data to export.");
@@ -185,7 +185,7 @@ export default function Reports() {
     }
 
     const tableHeaders = Object.keys(rows[0]);
-    // add Grade Level if exists
+    
     if (
       !tableHeaders.includes("gradeLevel") &&
       rows.some((r) => r.gradeLevel)
@@ -218,12 +218,12 @@ export default function Reports() {
     );
   };
 
-  // 🔹 Export current page only
+  
   const handleExportCurrentPDF = async () => {
     await exportRowsToPDF(data, "VIEW");
   };
 
-  // 🔹 Export ALL (ignores pagination, respects filters)
+  
   const handleExportAllPDF = async () => {
     try {
       const url = buildUrlForType();
@@ -278,7 +278,7 @@ export default function Reports() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* 🔹 Filter Section */}
+          {}
           <div className="flex flex-wrap gap-4 items-center">
             <select
               value={type}
@@ -315,7 +315,7 @@ export default function Reports() {
             </Button>
           </div>
 
-          {/* 🔹 Summary Header */}
+          {}
           {data.length > 0 && (
             <div className="border rounded-md bg-gray-50 p-4 mt-2 shadow-sm">
               <h2 className="font-semibold text-gray-800 text-sm mb-1">
@@ -352,7 +352,7 @@ export default function Reports() {
             </div>
           )}
 
-          {/* 🔹 Pagination + Export controls */}
+          {}
           {data.length > 0 && (
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4 text-sm">
               <span className="text-gray-500">
@@ -362,7 +362,7 @@ export default function Reports() {
               </span>
 
               <div className="flex flex-wrap gap-3 items-center justify-end">
-                {/* Rows per page */}
+                {}
                 <div className="flex items-center gap-2">
                   <span className="text-gray-500 text-xs">Rows per page:</span>
                   <select
@@ -382,7 +382,7 @@ export default function Reports() {
                   </select>
                 </div>
 
-                {/* Pagination buttons */}
+                {}
                 {!isAll && totalPages > 1 && (
                   <div className="flex gap-2">
                     <Button
@@ -410,7 +410,7 @@ export default function Reports() {
                   </div>
                 )}
 
-                {/* Export buttons */}
+                {}
                 <div className="flex flex-wrap gap-2">
                   <Button
                     onClick={handleExportCurrentPDF}
@@ -447,7 +447,7 @@ export default function Reports() {
             </div>
           )}
 
-          {/* 🔹 Results Table */}
+          {}
           <div className="mt-4">
             <Card className="border border-gray-200">
               <CardHeader>
@@ -502,7 +502,7 @@ export default function Reports() {
                   </table>
                 )}
 
-                {/* ✅ Totals for summary */}
+                {}
                 {type === "summary" && totals && (
                   <div className="mt-6 border-t pt-4 text-sm text-gray-700 space-y-1">
                     <p>

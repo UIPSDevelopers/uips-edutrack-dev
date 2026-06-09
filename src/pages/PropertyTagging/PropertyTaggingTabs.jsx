@@ -37,7 +37,7 @@ export default function PropertyTaggingTabs() {
         "
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {/* Overview */}
+        {}
         <TabsTrigger
           value="overview"
           onClick={() => navigate("/property-tagging")}
@@ -47,7 +47,7 @@ export default function PropertyTaggingTabs() {
           <Package size={16} /> Overview
         </TabsTrigger>
 
-        {/* Add Asset */}
+        {}
         <TabsTrigger
           value="add"
           onClick={() => navigate("/property-tagging/add-asset")}
@@ -57,7 +57,7 @@ export default function PropertyTaggingTabs() {
           <PlusCircle size={16} /> Add Asset
         </TabsTrigger>
 
-        {/* Bulk Import Assets */}
+        {}
         <TabsTrigger
           value="bulk-import"
           onClick={() => navigate("/property-tagging/bulk-import")}
@@ -67,7 +67,7 @@ export default function PropertyTaggingTabs() {
           <PlusCircle size={16} /> Bulk Import Assets
         </TabsTrigger>
 
-        {/* Categories (NEW) */}
+        {}
         <TabsTrigger
           value="categories"
           onClick={() => navigate("/property-tagging/add-category")}
@@ -86,7 +86,7 @@ export default function PropertyTaggingTabs() {
           <FolderPlus size={16} /> Locations
         </TabsTrigger>
 
-        {/* Reports */}
+        {}
         <TabsTrigger
           value="asset-reports"
           onClick={() => navigate("/property-tagging/asset-reports")}

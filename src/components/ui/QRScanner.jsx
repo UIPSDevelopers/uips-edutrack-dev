@@ -31,7 +31,7 @@ const QRScanner = forwardRef(({ onScan }, ref) => {
         setError(null);
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: "environment", // use back camera on mobile
+            facingMode: "environment", 
             width: { ideal: 1280 },
             height: { ideal: 720 },
           },

@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Download,
 } from "lucide-react";
-import axiosInstance from "@/lib/axios"; // ✅ use axiosInstance so token is sent
+import axiosInstance from "@/lib/axios"; 
 
 export default function BulkImportItems() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -25,18 +25,18 @@ export default function BulkImportItems() {
   const [uploading, setUploading] = useState(false);
   const [importSummary, setImportSummary] = useState(null);
 
-  // 🆕 For initial inventory / delivery
+  
   const [deliveryNumber, setDeliveryNumber] = useState("");
   const [createInitialDelivery, setCreateInitialDelivery] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user"));
-  // ✅ added gradeLevel to required headers
+  
   const requiredHeaders = ["itemType", "itemName", "gradeLevel", "sizeOrSource", "barcode"];
 
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
-  // ---------- Helpers ----------
+  
 
   const normalizeAndValidate = (rawRows) => {
     if (!rawRows || !rawRows.length) {
@@ -57,10 +57,10 @@ export default function BulkImportItems() {
           : Number(quantityRaw) || 0;
 
       return {
-        __row: idx + 2, // Excel row number (approx)
+        __row: idx + 2, 
         itemType: lowerMap["itemtype"] || "",
         itemName: lowerMap["itemname"] || "",
-        gradeLevel: lowerMap["gradelevel"] || "", // 🆕 Grade Level
+        gradeLevel: lowerMap["gradelevel"] || "", 
         sizeOrSource:
           lowerMap["sizeorsource"] || lowerMap["size / source"] || "",
         barcode: lowerMap["barcode"] || "",
@@ -121,7 +121,7 @@ export default function BulkImportItems() {
         __row: lineIndex + 2,
         itemType: cols[idx.itemType] || "",
         itemName: cols[idx.itemName] || "",
-        gradeLevel: cols[idx.gradeLevel] || "", // 🆕 Grade Level
+        gradeLevel: cols[idx.gradeLevel] || "", 
         sizeOrSource: cols[idx.sizeOrSource] || "",
         barcode: cols[idx.barcode] || "",
         quantity,
@@ -225,7 +225,7 @@ export default function BulkImportItems() {
     }
   };
 
-  // ---------- Import handler (uses axiosInstance) ----------
+  
 
   const handleImport = async () => {
     if (!rows.length) {
@@ -246,7 +246,7 @@ export default function BulkImportItems() {
       const payloadItems = rows.map((r) => ({
         itemType: r.itemType,
         itemName: r.itemName,
-        gradeLevel: r.gradeLevel, // 🆕 include Grade Level
+        gradeLevel: r.gradeLevel, 
         sizeOrSource: r.sizeOrSource,
         barcode: r.barcode,
         quantity: Number(r.quantity) || 0,
@@ -313,7 +313,7 @@ export default function BulkImportItems() {
           details: failedOnly.map((r) => ({
             row: r.__row,
             itemName: r.itemName,
-            gradeLevel: r.gradeLevel, // 🆕 Grade Level
+            gradeLevel: r.gradeLevel, 
             barcode: r.barcode,
             error: r.__error,
           })),
@@ -337,7 +337,7 @@ export default function BulkImportItems() {
     }
   };
 
-  // ---------- UI ----------
+  
 
   return (
     <main className="p-6 space-y-6">
@@ -358,7 +358,7 @@ export default function BulkImportItems() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Instructions + template */}
+          {}
           <div className="space-y-2">
             <p className="text-xs text-gray-500">
               Upload a <span className="font-mono">.csv, .xlsx, or .xls</span>{" "}
@@ -386,7 +386,7 @@ export default function BulkImportItems() {
             </Button>
           </div>
 
-          {/* 🆕 Initial stock / delivery options */}
+          {}
           <div className="grid gap-2 sm:grid-cols-[auto,1fr] items-center border border-gray-200 rounded-md p-3 bg-gray-50">
             <div className="flex items-center gap-2">
               <input
@@ -419,7 +419,7 @@ export default function BulkImportItems() {
             </div>
           </div>
 
-          {/* File upload */}
+          {}
           <div className="flex flex-wrap items-center gap-3">
             <label className="cursor-pointer">
               <Input
@@ -440,7 +440,7 @@ export default function BulkImportItems() {
             )}
           </div>
 
-          {/* Error banner */}
+          {}
           {error && (
             <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
               <AlertTriangle className="w-4 h-4 mt-0.5" />
@@ -448,7 +448,7 @@ export default function BulkImportItems() {
             </div>
           )}
 
-          {/* Import summary */}
+          {}
           {importSummary && (
             <div className="text-xs bg-gray-50 border border-gray-200 rounded-md px-3 py-2 space-y-1">
               <div className="flex items-center gap-1 text-gray-700">
@@ -485,7 +485,7 @@ export default function BulkImportItems() {
             </div>
           )}
 
-          {/* Preview table */}
+          {}
           {rows.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -514,7 +514,7 @@ export default function BulkImportItems() {
                       <th className="border px-2 py-1 text-left">#</th>
                       <th className="border px-2 py-1 text-left">Item Type</th>
                       <th className="border px-2 py-1 text-left">Item Name</th>
-                      <th className="border px-2 py-1 text-left">Grade Level</th> {/* 🆕 */}
+                      <th className="border px-2 py-1 text-left">Grade Level</th> {}
                       <th className="border px-2 py-1 text-left">
                         Size / Source
                       </th>
@@ -529,7 +529,7 @@ export default function BulkImportItems() {
                         <td className="border px-2 py-1">{idx + 1}</td>
                         <td className="border px-2 py-1">{row.itemType}</td>
                         <td className="border px-2 py-1">{row.itemName}</td>
-                        <td className="border px-2 py-1">{row.gradeLevel}</td> {/* 🆕 */}
+                        <td className="border px-2 py-1">{row.gradeLevel}</td> {}
                         <td className="border px-2 py-1">{row.sizeOrSource}</td>
                         <td className="border px-2 py-1">{row.barcode}</td>
                         <td className="border px-2 py-1">

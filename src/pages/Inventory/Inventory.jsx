@@ -44,37 +44,37 @@ export default function Inventory() {
   });
   const [showDialog, setShowDialog] = useState(false);
 
-  // 🆕 Pagination state (limit = 0 means "All")
+  
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
   const [sortConfig, setSortConfig] = useState({
-    key: null, // column to sort by
-    direction: "asc", // 'asc' or 'desc'
+    key: null, 
+    direction: "asc", 
   });
 
   const handleSort = (key) => {
     setSortConfig((prev) => {
       if (prev.key === key) {
-        // Toggle direction if same column
+        
         return {
           key,
           direction: prev.direction === "asc" ? "desc" : "asc",
         };
       }
-      // New column defaults to ascending
+      
       return { key, direction: "asc" };
     });
   };
 
-  // 🔹 Sidebar control
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
-  // 👤 Get current user + role
+  
   const storedUser =
     typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -90,7 +90,7 @@ export default function Inventory() {
     window.open("/inventory/print-barcodes", "_blank");
   };
 
-  // 🎛 Role-based permissions
+  
   const canViewInventory = [
     "IT",
     "InventoryStaff",
@@ -108,7 +108,7 @@ export default function Inventory() {
 
   const isAll = limit === 0;
 
-  // ✅ Fetch items (backend pagination + search/filter + all)
+  
   useEffect(() => {
     if (!canViewInventory) {
       setLoading(false);
@@ -225,7 +225,7 @@ export default function Inventory() {
     }
   };
 
-  // ✅ Export PDF (current dataset – if limit=0, that's ALL)
+  
   const handleExportPDF = async () => {
     if (filtered.length === 0) {
       alert("⚠️ No data to export.");
@@ -339,7 +339,7 @@ export default function Inventory() {
     }
   };
 
-  // 🆕 Export ALL (ignores pagination, respects filters)
+  
   const handleExportAllPDF = async () => {
     try {
       const params = {
@@ -474,12 +474,12 @@ export default function Inventory() {
       const valA = a[sortConfig.key];
       const valB = b[sortConfig.key];
 
-      // Handle numbers
+      
       if (typeof valA === "number" && typeof valB === "number") {
         return sortConfig.direction === "asc" ? valA - valB : valB - valA;
       }
 
-      // Handle strings (including undefined/null)
+      
       const strA = valA ? String(valA).toLowerCase() : "";
       const strB = valB ? String(valB).toLowerCase() : "";
 
@@ -515,7 +515,7 @@ export default function Inventory() {
           </Card>
         )}
 
-        {/* Filter + Search */}
+        {}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-2 w-full md:w-1/3">
             <Search className="w-4 h-4 text-gray-500" />
@@ -589,7 +589,7 @@ export default function Inventory() {
           </div>
         </div>
 
-        {/* Table */}
+        {}
         <Card className="shadow-sm border border-gray-200 mt-4">
           <CardHeader>
             <CardTitle className="text-sm text-gray-500">
@@ -597,7 +597,7 @@ export default function Inventory() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {/* TOP: Pagination info */}
+            {}
             {!loading && filtered.length > 0 && (
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4 text-sm">
                 <span className="text-gray-500">
@@ -630,7 +630,7 @@ export default function Inventory() {
               </div>
             )}
 
-            {/* TOP: Export Buttons */}
+            {}
             {!loading && filtered.length > 0 && (
               <div className="flex flex-wrap gap-3 mb-4">
                 <Button
@@ -752,7 +752,7 @@ export default function Inventory() {
           </CardContent>
         </Card>
 
-        {/* ✏️ Edit Item Modal */}
+        {}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -797,7 +797,7 @@ export default function Inventory() {
         </Dialog>
       </div>
 
-      {/* 🚫 Unauthorized Overlay */}
+      {}
       {!canViewInventory && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/30">
           <div className="bg-white/90 backdrop-blur-xl border border-red-200 rounded-2xl shadow-xl px-8 py-6 max-w-md text-center">

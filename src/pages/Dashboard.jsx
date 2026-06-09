@@ -52,7 +52,7 @@ export default function Dashboard() {
         setCategoryData(summary?.categoryDistribution || []);
         setTopCheckedOut(topRes.data || []);
         setRecentActivity(recentRes.data || []);
-        // fetch asset stats for property tagging
+        
         try {
           const statsRes = await axiosInstance.get("/reports/asset/stats");
           setAssetStats(statsRes.data || {});
@@ -79,7 +79,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* HEADER */}
+        {}
         <div>
           <h1 className="text-3xl font-bold text-gray-800">
             Dashboard Overview
@@ -89,7 +89,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* QUICK STATS */}
+        {}
         <section className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="Total Items"
@@ -108,7 +108,7 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* CHARTS */}
+        {}
         <section className="mt-6 grid lg:grid-cols-2 gap-6">
           <ChartCard title="Deliveries vs Checkouts" icon={<BarChart2 />}>
             <ResponsiveContainer width="100%" height={250}>
@@ -146,7 +146,7 @@ export default function Dashboard() {
           </ChartCard>
         </section>
 
-        {/* RECENT ACTIVITY + CATEGORY */}
+        {}
         <section className="mt-6 grid lg:grid-cols-2 gap-6">
           <RecentActivityCard logs={recentActivity} />
 
@@ -155,7 +155,7 @@ export default function Dashboard() {
               <p className="text-sm text-gray-500">No category data</p>
             ) : (
               <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
-                {/* Pie Chart */}
+                {}
                 <ResponsiveContainer width={250} height={250}>
                   <PieChart>
                     <Pie
@@ -166,7 +166,7 @@ export default function Dashboard() {
                       outerRadius={100}
                       paddingAngle={4}
                       cornerRadius={10}
-                      labelLine={true} // show connecting lines
+                      labelLine={true} 
                       label={({
                         percent,
                         name,
@@ -175,7 +175,7 @@ export default function Dashboard() {
                         midAngle,
                         outerRadius,
                       }) => {
-                        const radius = outerRadius + 15; // offset outside the pie
+                        const radius = outerRadius + 15; 
                         const rad = (midAngle * Math.PI) / 180;
                         const x = cx + radius * Math.cos(-rad);
                         const y = cy + radius * Math.sin(-rad);
@@ -204,7 +204,7 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
 
-                {/* Legends */}
+                {}
                 <ul className="flex flex-row lg:flex-col gap-2 flex-wrap justify-center">
                   {categoryData.map((cat, index) => (
                     <li key={cat._id} className="flex items-center gap-2">
@@ -225,12 +225,12 @@ export default function Dashboard() {
           </ChartCard>
         </section>
 
-        {/* LOW STOCK */}
+        {}
         <section className="mt-6">
           <LowStockCard items={lowStockItems} />
         </section>
 
-        {/* PROPERTY TAGGING */}
+        {}
         <section className="mt-10 space-y-4">
           <h2 className="text-2xl font-semibold text-gray-700">
             Property Tagging
@@ -330,7 +330,7 @@ export default function Dashboard() {
   );
 }
 
-/* ================= REUSABLE COMPONENTS ================= */
+
 const StatCard = ({ title, value, icon }) => (
   <motion.div whileHover={{ scale: 1.03 }}>
     <Card className="shadow-md border border-gray-200 rounded-2xl hover:shadow-lg transition">

@@ -20,9 +20,9 @@ export default function BulkImportAssets() {
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
 
-  // =========================
-  // FETCH DATA
-  // =========================
+  
+  
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -46,9 +46,9 @@ export default function BulkImportAssets() {
     fetchData();
   }, []);
 
-  // =========================
-  // MAPS
-  // =========================
+  
+  
+  
   const categoryMap = useMemo(() => {
     const map = new Map();
     categories.forEach((c) =>
@@ -65,9 +65,9 @@ export default function BulkImportAssets() {
     return map;
   }, [locations]);
 
-  // =========================
-  // NORMALIZE
-  // =========================
+  
+  
+  
   const normalize = (data) => {
     return data.map((r, i) => {
       const map = {};
@@ -112,9 +112,9 @@ export default function BulkImportAssets() {
     });
   };
 
-  // =========================
-  // EXCEL PARSER
-  // =========================
+  
+  
+  
   const parseExcel = (buffer) => {
     const wb = XLSX.read(buffer, { type: "array" });
     const sheet = wb.Sheets[wb.SheetNames[0]];
@@ -125,9 +125,9 @@ export default function BulkImportAssets() {
     return normalize(json);
   };
 
-  // =========================
-  // FILE HANDLER
-  // =========================
+  
+  
+  
   const handleFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -149,9 +149,9 @@ export default function BulkImportAssets() {
     reader.readAsArrayBuffer(file);
   };
 
-  // =========================
-  // IMPORT
-  // =========================
+  
+  
+  
   const handleImport = async () => {
     if (!rows.length) return setError("No data");
 
@@ -179,21 +179,21 @@ export default function BulkImportAssets() {
         assets: payload,
       });
 
-      const data = res.data; // 👈 IMPORTANT FIX
+      const data = res.data; 
 
       setRows([]);
       setFileName("");
       setError("");
 
-      // DEBUG (optional but helpful)
+      
       console.log("IMPORT RESPONSE:", data);
 
-      // SUCCESS TOAST (always fires if request succeeds)
+      
       toast.success("Import completed successfully", {
         description: `${data?.count ?? 0} assets imported.`,
       });
 
-      // WARNINGS
+      
       if (data?.failed > 0) {
         toast.warning("Some rows failed", {
           description: `${data.failed} rows were not imported.`,
@@ -213,9 +213,9 @@ export default function BulkImportAssets() {
       setUploading(false);
     }
   };
-  // =========================
-  // TEMPLATE
-  // =========================
+  
+  
+  
   const handleTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
       [
@@ -245,9 +245,9 @@ export default function BulkImportAssets() {
     XLSX.writeFile(wb, "asset_template.xlsx");
   };
 
-  // =========================
-  // UI
-  // =========================
+  
+  
+  
   return (
     <main className="p-6 space-y-6">
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm shadow-slate-200/60">
@@ -274,7 +274,7 @@ export default function BulkImportAssets() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* FILE */}
+          {}
           <div className="flex gap-3 items-center">
             <label className="cursor-pointer">
               <Input type="file" className="hidden" onChange={handleFile} />
@@ -297,7 +297,7 @@ export default function BulkImportAssets() {
             </Button>
           </div>
 
-          {/* ERROR */}
+          {}
           {error && (
             <div className="text-xs text-red-600 flex gap-2">
               <AlertTriangle className="w-4 h-4" />
@@ -305,7 +305,7 @@ export default function BulkImportAssets() {
             </div>
           )}
 
-          {/* TABLE */}
+          {}
           {rows.length > 0 && (
             <div className="border rounded-md overflow-auto max-h-96">
               <table className="min-w-full text-xs">
@@ -368,7 +368,7 @@ export default function BulkImportAssets() {
             </div>
           )}
 
-          {/* IMPORT */}
+          {}
           <Button
             onClick={handleImport}
             disabled={uploading}

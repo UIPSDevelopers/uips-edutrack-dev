@@ -18,7 +18,7 @@ export default function Login() {
   const [wakingUp, setWakingUp] = useState(false);
 
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams(); // <== IMPORTANT FIX
+  const [searchParams, setSearchParams] = useSearchParams(); 
 
   const reason = searchParams.get("reason");
   const msgFromUrl = searchParams.get("msg");
@@ -28,7 +28,7 @@ export default function Login() {
     if (token) navigate("/dashboard");
   }, [navigate]);
 
-  // ✅ FIX: show message once, then remove ?reason=session_expired
+  
   useEffect(() => {
     if (reason === "session_expired") {
       const message =
@@ -38,7 +38,7 @@ export default function Login() {
       setError(message);
       toast.info(message);
 
-      // 🧹 Remove query params from URL
+      
       setSearchParams({}, { replace: true });
     }
   }, [reason, msgFromUrl, setSearchParams]);
@@ -63,7 +63,7 @@ export default function Login() {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         
-        // ✅ Store token expiration timestamp (in milliseconds)
+        
         if (response.data.expiresAt) {
           localStorage.setItem("tokenExpiresAt", response.data.expiresAt);
         }
@@ -88,13 +88,13 @@ export default function Login() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-gray-50 to-slate-100 font-poppins overflow-hidden">
-      {/* Background Glow */}
+      {}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-[#800000]/10 rounded-full blur-3xl animate-float"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] bg-[#800000]/5 rounded-full blur-3xl animate-float-slow"></div>
       </div>
 
-      {/* Wake-up banner */}
+      {}
       {wakingUp && (
         <div className="absolute top-6 w-[90%] max-w-sm mx-auto text-center z-50">
           <div className="bg-[#800000]/10 border border-[#800000]/30 text-[#800000] py-3 px-4 rounded-xl shadow-sm text-sm animate-pulse">
@@ -114,7 +114,7 @@ export default function Login() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="w-full max-w-sm bg-white/70 backdrop-blur-2xl border border-gray-200 rounded-3xl shadow-xl p-8 space-y-6"
         >
-          {/* Header */}
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -136,14 +136,14 @@ export default function Login() {
             <p className="text-sm text-gray-500">Academic Monitoring System</p>
           </motion.div>
 
-          {/* One-time session expired banner */}
+          {}
           {error && reason === "session_expired" && (
             <div className="text-xs rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-amber-800 text-center">
               {error}
             </div>
           )}
 
-          {/* Login Form */}
+          {}
           <motion.form
             onSubmit={handleSubmit}
             initial={{ opacity: 0 }}

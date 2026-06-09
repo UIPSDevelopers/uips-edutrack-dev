@@ -28,22 +28,22 @@ export default function Delivery() {
   const [supplier, setSupplier] = useState("");
   const barcodeInputRef = useRef(null);
 
-  // Sidebar state for mobile
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
-  // Auto-fill logged-in user
+  
   useEffect(() => {
     setReceivedBy(getCurrentUser());
   }, []);
 
-  // Auto-focus barcode input
+  
   useEffect(() => {
     barcodeInputRef.current?.focus();
   }, []);
 
-  // Add item by barcode
+  
   const handleAdd = async () => {
     if (!barcode.trim()) return;
 
@@ -60,7 +60,7 @@ export default function Delivery() {
       const existing = scanned.find((i) => i.barcode === barcode);
 
       if (existing) {
-        // If already scanned, just increase qty
+        
         const updated = scanned.map((i) =>
           i.barcode === barcode
             ? { ...i, quantity: i.quantity + Number(quantity) }
@@ -77,7 +77,7 @@ export default function Delivery() {
             itemName: item.itemName,
             itemType: item.itemType,
             itemId: item.itemId,
-            gradeLevel: item.gradeLevel || "", // 🆕 Add gradeLevel
+            gradeLevel: item.gradeLevel || "", 
             sizeOrSource: item.sizeOrSource || "-",
           },
         ]);
@@ -95,7 +95,7 @@ export default function Delivery() {
     }
   };
 
-  // Auto-add on Enter key
+  
   const handleBarcodeKeyPress = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -103,7 +103,7 @@ export default function Delivery() {
     }
   };
 
-  // Open finalize modal
+  
   const openFinalizeModal = () => {
     if (scanned.length === 0) {
       alert("⚠️ No items scanned yet.");
@@ -112,7 +112,7 @@ export default function Delivery() {
     setShowDialog(true);
   };
 
-  // Confirm finalize delivery
+  
   const handleConfirmFinalize = async () => {
     if (!deliveryNumber.trim()) {
       alert("⚠️ Delivery number is required.");
@@ -127,7 +127,7 @@ export default function Delivery() {
         itemId: i.itemId,
         itemName: i.itemName,
         itemType: i.itemType,
-        gradeLevel: i.gradeLevel, // 🆕 include gradeLevel
+        gradeLevel: i.gradeLevel, 
         sizeOrSource: i.sizeOrSource,
         barcode: [i.barcode],
         quantity: i.quantity,
@@ -154,7 +154,7 @@ export default function Delivery() {
 
   return (
     <main className="p-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-800">
           Delivery / Stock-In
@@ -163,7 +163,7 @@ export default function Delivery() {
 
       <InventoryTabs />
 
-      {/* Card Section */}
+      {}
       <Card className="border border-gray-200 shadow-sm rounded-2xl">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold text-[#800000] flex items-center gap-2">
@@ -176,7 +176,7 @@ export default function Delivery() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Received By */}
+          {}
           <div className="w-full md:w-1/3">
             <label className="text-sm font-medium text-gray-700">
               Received By
@@ -188,7 +188,7 @@ export default function Delivery() {
             />
           </div>
 
-          {/* Barcode Input Section */}
+          {}
           <div className="flex flex-wrap items-center gap-3 mt-4 max-w-lg">
             <Input
               ref={barcodeInputRef}
@@ -216,7 +216,7 @@ export default function Delivery() {
             </Button>
           </div>
 
-          {/* Table */}
+          {}
           {scanned.length > 0 ? (
             <div className="overflow-x-auto rounded-md border border-gray-200 mt-4">
               <table className="w-full text-sm border-collapse uppercase">
@@ -228,7 +228,7 @@ export default function Delivery() {
                     <th className="p-3 text-left font-medium">
                       Grade Level
                     </th>{" "}
-                    {/* 🆕 */}
+                    {}
                     <th className="p-3 text-left font-medium">Size/Source</th>
                     <th className="p-3 text-left font-medium">Barcode</th>
                     <th className="p-3 text-center font-medium w-20">Qty</th>
@@ -247,7 +247,7 @@ export default function Delivery() {
                         {item.itemName}
                       </td>
                       <td className="p-3">{item.itemType}</td>
-                      <td className="p-3">{item.gradeLevel}</td> {/* 🆕 */}
+                      <td className="p-3">{item.gradeLevel}</td> {}
                       <td className="p-3">{item.sizeOrSource || "-"}</td>
                       <td className="p-3 text-gray-600">{item.barcode}</td>
                       <td className="p-3 text-center font-semibold text-[#800000]">
@@ -264,7 +264,7 @@ export default function Delivery() {
             </p>
           )}
 
-          {/* Finalize Delivery */}
+          {}
           <div className="pt-6 flex justify-center">
             <Button
               onClick={openFinalizeModal}
@@ -278,7 +278,7 @@ export default function Delivery() {
         </CardContent>
       </Card>
 
-      {/* Finalize Delivery Modal */}
+      {}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>

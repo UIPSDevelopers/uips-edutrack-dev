@@ -15,9 +15,9 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function AssetReports() {
-  // =========================
-  // STATE
-  // =========================
+  
+  
+  
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [type, setType] = useState("SUMMARY");
@@ -26,9 +26,9 @@ export default function AssetReports() {
   const [loading, setLoading] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // =========================
-  // FETCH REPORT
-  // =========================
+  
+  
+  
   const fetchReport = async () => {
     setLoading(true);
     setHasGenerated(true);
@@ -55,9 +55,9 @@ export default function AssetReports() {
     }
   };
 
-  // =========================
-  // EXPORT EXCEL (FULL DATA)
-  // =========================
+  
+  
+  
   const exportExcel = () => {
     if (!data.length) return alert("No data to export");
 
@@ -97,9 +97,9 @@ export default function AssetReports() {
     );
   };
 
-  // =========================
-  // EXPORT PDF (FULL DATA)
-  // =========================
+  
+  
+  
   const exportPDF = () => {
     if (!data.length) return alert("No data to export");
 
@@ -107,15 +107,15 @@ export default function AssetReports() {
 
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // =========================
-    // COLORS (MAROON THEME)
-    // =========================
+    
+    
+    
     const primary = [128, 0, 0];
     const gray = [120, 120, 120];
 
-    // =========================
-    // HEADER SECTION
-    // =========================
+    
+    
+    
     doc.setFillColor(...primary);
     doc.rect(0, 0, pageWidth, 30, "F");
 
@@ -127,9 +127,9 @@ export default function AssetReports() {
     doc.text(`Type: ${type}`, pageWidth - 60, 12);
     doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 60, 20);
 
-    // =========================
-    // FILTER INFO BOX
-    // =========================
+    
+    
+    
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
 
@@ -144,9 +144,9 @@ export default function AssetReports() {
 
     y += 25;
 
-    // =========================
-    // TABLE DATA
-    // =========================
+    
+    
+    
     const tableBody = data.map((row) => {
       const asset = row.assetId;
 
@@ -168,9 +168,9 @@ export default function AssetReports() {
       ];
     });
 
-    // =========================
-    // MODERN TABLE
-    // =========================
+    
+    
+    
     autoTable(doc, {
       startY: y,
       head: [
@@ -220,9 +220,9 @@ export default function AssetReports() {
       margin: { left: 10, right: 10 },
 
       didDrawPage: (data) => {
-        // =========================
-        // FOOTER (PAGE NUMBER)
-        // =========================
+        
+        
+        
         const pageCount = doc.internal.getNumberOfPages();
         const pageSize = doc.internal.pageSize;
         const pageHeight = pageSize.height || pageSize.getHeight();
@@ -240,23 +240,23 @@ export default function AssetReports() {
       },
     });
 
-    // =========================
-    // SAVE FILE
-    // =========================
+    
+    
+    
     doc.save(
       `ASSET_REPORT_${type}_${new Date().toISOString().split("T")[0]}.pdf`,
     );
   };
 
-  // =========================
-  // ROW RENDER (FULL DETAILS)
-  // =========================
+  
+  
+  
   const renderRow = (row, i) => {
     const asset = row.assetId;
 
     return (
       <tr key={i} className="border-b hover:bg-gray-50 align-top">
-        {/* ASSET */}
+        {}
         <td className="p-3">
           <div className="font-semibold">{asset?.assetName}</div>
           <div className="text-[#800000] font-medium">{asset?.serialNo}</div>
@@ -266,7 +266,7 @@ export default function AssetReports() {
           <div className="text-xs">Status: {asset?.status}</div>
         </td>
 
-        {/* REPORT TYPE */}
+        {}
         <td className="p-3">
           <div className="font-semibold">
             {row.actionType || row.serviceType || "ASSET"}
@@ -279,7 +279,7 @@ export default function AssetReports() {
           {row.performedBy && <div>By: {row.performedBy}</div>}
         </td>
 
-        {/* CHANGES */}
+        {}
         <td className="p-3 text-sm space-y-2">
           {row.changes?.location && (
             <div>
@@ -297,7 +297,7 @@ export default function AssetReports() {
           {!row.changes && <span>-</span>}
         </td>
 
-        {/* DATE */}
+        {}
         <td className="p-3 whitespace-nowrap">
           {row.createdAt ? new Date(row.createdAt).toLocaleString() : "-"}
         </td>
@@ -305,9 +305,9 @@ export default function AssetReports() {
     );
   };
 
-  // =========================
-  // UI
-  // =========================
+  
+  
+  
   return (
     <main className="p-6 space-y-6">
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm shadow-slate-200/60">

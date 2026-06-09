@@ -16,7 +16,7 @@ export default function AddCategory() {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
 
-  // Fetch categories
+  
   const fetchCategories = async () => {
     try {
       const res = await axiosInstance.get("/categories");
@@ -30,7 +30,7 @@ export default function AddCategory() {
     fetchCategories();
   }, []);
 
-  // Handle input change
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -40,7 +40,7 @@ export default function AddCategory() {
     }));
   };
 
-  // Submit category
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -55,7 +55,7 @@ export default function AddCategory() {
 
       alert(`✅ Category added successfully: ${res.data.data.name}`);
 
-      // reset form
+      
       setForm({
         name: "",
         code: "",

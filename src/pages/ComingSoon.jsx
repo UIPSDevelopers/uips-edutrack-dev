@@ -1,4 +1,4 @@
-// src/pages/ComingSoon.jsx
+
 "use client";
 
 import React from "react";
@@ -21,21 +21,21 @@ export default function ComingSoon({
 
   return (
     <div className="relative min-h-[70vh] flex items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/60">
-      {/* 🔹 Blurry gradient blobs in the background */}
+      {}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 -left-16 h-64 w-64 bg-[#800000]/30 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -right-10 h-72 w-72 bg-amber-400/40 rounded-full blur-3xl" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/40 to-white/70 backdrop-blur-xl" />
       </div>
 
-      {/* 🌟 Main content card */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
         className="relative z-10 max-w-xl w-full px-6 py-8 md:px-10 md:py-10 bg-white/70 backdrop-blur-2xl border border-white/60 shadow-xl rounded-3xl"
       >
-        {/* Icon cluster */}
+        {}
         <div className="flex items-center gap-3 mb-4 text-[#800000]">
           <motion.div
             animate={{ y: [0, -4, 0] }}
@@ -72,7 +72,7 @@ export default function ComingSoon({
           </p>
         </div>
 
-        {/* Progress-ish bar */}
+        {}
         <div className="mt-6 mb-5">
           <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-slate-500 mb-1.5">
             <span>Module status</span>
@@ -88,7 +88,7 @@ export default function ComingSoon({
           </div>
         </div>
 
-        {/* Actions / hint */}
+        {}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
           <div className="text-[11px] md:text-xs text-slate-500">
             You can still navigate to other modules while this one is being

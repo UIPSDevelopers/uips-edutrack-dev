@@ -24,7 +24,7 @@ export async function generatePDFTemplate({
   const headerHeight = 80;
   const headerBottomTextY = headerHeight + 18;
 
-  // 🏫 Load UIPS Logo
+  
   const logoUrl = "https://i.postimg.cc/DWkx44nh/uips-logo.png";
   let logoBase64 = null;
 
@@ -40,7 +40,7 @@ export async function generatePDFTemplate({
     console.warn("⚠️ Logo not loaded, continuing without image.");
   }
 
-  // 📅 Date Range
+  
   let rangeText = "All Data";
 
   if (from || to) {
@@ -65,18 +65,18 @@ export async function generatePDFTemplate({
 
   const generatedText = new Date().toLocaleString();
 
-  // 🎨 Draw Header (for each page)
+  
   const drawHeader = () => {
-    // Maroon Bar
+    
     doc.setFillColor(128, 0, 0);
     doc.rect(0, 0, pageWidth, headerHeight, "F");
 
-    // Logo
+    
     if (logoBase64) {
       doc.addImage(logoBase64, "PNG", 25, -2, 80, 80);
     }
 
-    // School Name
+    
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
@@ -84,21 +84,21 @@ export async function generatePDFTemplate({
       align: "center",
     });
 
-    // Subtitle
+    
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.text(subtitle || title || "EduTrack Report", pageWidth / 2, 50, {
       align: "center",
     });
 
-    // 🔹 BELOW the maroon bar
+    
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(9);
 
-    // Date Range (left)
+    
     doc.text(`Date Range: ${rangeText}`, 40, headerBottomTextY);
 
-    // Generated On (right)
+    
     doc.text(
       `Generated on: ${generatedText}`,
       pageWidth - 180,
@@ -106,7 +106,7 @@ export async function generatePDFTemplate({
     );
   };
 
-  // 📋 Table
+  
   autoTable(doc, {
     startY: headerBottomTextY + 20,
     margin: { top: headerBottomTextY + 20, left: 40, right: 40, bottom: 40 },
@@ -124,7 +124,7 @@ export async function generatePDFTemplate({
     didDrawPage: (data) => {
       drawHeader();
 
-      // Footer
+      
       doc.setFontSize(9);
       doc.setTextColor(120, 120, 120);
       doc.text(
@@ -134,12 +134,12 @@ export async function generatePDFTemplate({
         { align: "center" }
       );
 
-      // Page number
+      
       doc.text(`Page ${data.pageNumber}`, pageWidth - 80, pageHeight - 20);
     },
   });
 
-  // 📊 Totals (bottom of last page)
+  
   if (totals) {
     const finalY = doc.lastAutoTable.finalY + 30;
     doc.setTextColor(0, 0, 0);

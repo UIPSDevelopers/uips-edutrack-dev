@@ -24,7 +24,7 @@ import AddAsset from "@/pages/PropertyTagging/AddAsset";
 import AddCategory from "@/pages/PropertyTagging/AddCategory";
 import AddLocation from "@/pages/PropertyTagging/AddLocation";
 import AssetDetails from "@/pages/PropertyTagging/AssetDetails";
-import BulkImportAssets from "@/pages/PropertyTagging/BulkImportAssets"; //bulk import for assets
+import BulkImportAssets from "@/pages/PropertyTagging/BulkImportAssets"; 
 import { Toaster } from "sonner";
 import AssetReports from "@/pages/PropertyTagging/AssetReports";
 
@@ -32,15 +32,15 @@ import { useWarmupServer } from "@/hooks/useWarmupServer";
 import useAutoLogout from "@/hooks/useAutoLogout";
 import { useValidateSession } from "@/hooks/useValidateSession";
 
-import AppLayout from "@/layouts/AppLayout"; // 🆕 layout with Sidebar + Topbar
+import AppLayout from "@/layouts/AppLayout"; 
 
-// ✅ Protected Route Wrapper
+
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/" replace />;
 }
 
-// ✅ Public Route Wrapper (for login)
+
 function PublicRoute({ children }) {
   const token = localStorage.getItem("token");
   return token ? <Navigate to="/dashboard" replace /> : children;
@@ -49,16 +49,16 @@ function PublicRoute({ children }) {
 function App() {
   const token = localStorage.getItem("token");
   const { isWarmingUp } = useWarmupServer(token);
-  const { isValidating } = useValidateSession(); // ✅ Validate session on app load
+  const { isValidating } = useValidateSession(); 
 
-  // 🆕 enable idle logout only when logged in (15 minutes)
+  
   useAutoLogout(15);
 
   return (
     <Router>
       <Toaster richColors position="top-right" />
       <main className="relative min-h-screen">
-        {/* � Validating session on app load */}
+        {}
         {isValidating && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-3 p-6 rounded-2xl shadow-lg bg-white">
@@ -70,7 +70,7 @@ function App() {
           </div>
         )}
 
-        {/* �💤 Waking up server overlay (only when logged in) */}
+        {}
         {token && isWarmingUp && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-3 p-6 rounded-2xl shadow-lg bg-white">
@@ -87,7 +87,7 @@ function App() {
         )}
 
         <Routes>
-          {/* 🟢 Public Route */}
+          {}
           <Route
             path="/"
             element={
@@ -97,7 +97,7 @@ function App() {
             }
           />
 
-          {/* 🔐 All protected routes share the same layout */}
+          {}
           <Route
             element={
               <ProtectedRoute>
@@ -105,14 +105,14 @@ function App() {
               </ProtectedRoute>
             }
           >
-            {/* Dashboard / core */}
+            {}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/users" element={<Users />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/visitors" element={<Visitors />} />
             <Route path="/reports-page" element={<ReportsPage />} />
 
-            {/* Inventory System Routes */}
+            {}
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/inventory/add-item" element={<AddItem />} />
             <Route
@@ -125,7 +125,7 @@ function App() {
             <Route path="/inventory/reports" element={<Reports />} />
             <Route path="/property-tagging/:id" element={<AssetDetails />} />
 
-            {/* Property Tagging Routes */}
+            {}
             <Route path="/property-tagging" element={<PropertyTagging />} />
             <Route path="/property-tagging/add-asset" element={<AddAsset />} />
             <Route
@@ -145,7 +145,7 @@ function App() {
               element={<AssetReports />}
             />
           </Route>
-          {/* 🖨️ Print Barcodes (NO layout) */}
+          {}
           <Route
             path="/inventory/print-barcodes"
             element={
@@ -155,7 +155,7 @@ function App() {
             }
           />
 
-          {/* �️ Print QR codes (NO layout) */}
+          {}
           <Route
             path="/property-tagging/print-qr"
             element={
@@ -165,7 +165,7 @@ function App() {
             }
           />
 
-          {/* �🚧 Fallback Route (404 → login) */}
+          {}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

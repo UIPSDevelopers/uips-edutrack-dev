@@ -17,7 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { getCurrentUser } from "@/lib/getCurrentUser";
-import axiosInstance from "@/lib/axios"; // ✅ use axiosInstance
+import axiosInstance from "@/lib/axios";
 
 export default function Checkout() {
   const [barcode, setBarcode] = useState("");
@@ -30,22 +30,18 @@ export default function Checkout() {
   const [transactionNo, setTransactionNo] = useState("");
   const barcodeInputRef = useRef(null);
 
-  // ✅ Sidebar state (for mobile)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
-  // 🧍 Auto-fill current user
   useEffect(() => {
     setIssuedBy(getCurrentUser());
   }, []);
 
-  // Auto-focus barcode input
   useEffect(() => {
     barcodeInputRef.current?.focus();
   }, [items]);
 
-  // 🔍 Add item by barcode (axios)
   const handleAdd = async () => {
     if (!barcode.trim()) return;
 
@@ -75,7 +71,7 @@ export default function Checkout() {
             itemId: item.itemId,
             itemName: item.itemName,
             itemType: item.itemType,
-            gradeLevel: item.gradeLevel || "", // 🆕 Add Grade Level
+            gradeLevel: item.gradeLevel || "",
             qty: 1,
           },
         ]);
@@ -91,7 +87,6 @@ export default function Checkout() {
     }
   };
 
-  // Auto-add on Enter key
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -99,12 +94,10 @@ export default function Checkout() {
     }
   };
 
-  // 🗑️ Remove item
   const handleRemove = (barcode) => {
     setItems(items.filter((i) => i.barcode !== barcode));
   };
 
-  // 🧾 Open modal for finalize checkout
   const openFinalizeModal = () => {
     if (items.length === 0) {
       alert("⚠️ No items to checkout.");
@@ -113,7 +106,6 @@ export default function Checkout() {
     setShowDialog(true);
   };
 
-  // ✅ Confirm checkout → send to backend (axios)
   const handleConfirmCheckout = async () => {
     if (!receiptNo.trim()) {
       alert("Please enter a valid receipt number.");
@@ -129,7 +121,7 @@ export default function Checkout() {
           itemId: i.itemId,
           itemName: i.itemName,
           itemType: i.itemType,
-          gradeLevel: i.gradeLevel, // 🆕 include gradeLevel
+          gradeLevel: i.gradeLevel,
           barcode: i.barcode,
           sizeOrSource: i.sizeOrSource,
           quantity: i.qty,
@@ -159,7 +151,6 @@ export default function Checkout() {
 
   return (
     <main className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold text-gray-800">
           Checkout / Stock-Out
@@ -179,7 +170,6 @@ export default function Checkout() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {/* Checkout ID */}
           {checkoutId && (
             <div className="w-full md:w-1/3">
               <label className="text-sm font-medium text-gray-700">
@@ -193,7 +183,6 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* Transaction Number */}
           {transactionNo && (
             <div className="w-full md:w-1/3">
               <label className="text-sm font-medium text-gray-700">
@@ -207,7 +196,6 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* Issued By */}
           <div className="w-full md:w-1/3">
             <label className="text-sm font-medium text-gray-700">
               Issued By
@@ -219,7 +207,6 @@ export default function Checkout() {
             />
           </div>
 
-          {/* Barcode Input */}
           <div className="flex flex-wrap items-center gap-3 mt-4 max-w-lg">
             <Input
               ref={barcodeInputRef}
@@ -239,7 +226,6 @@ export default function Checkout() {
             </Button>
           </div>
 
-          {/* Table */}
           {items.length > 0 ? (
             <div className="overflow-x-auto rounded-md border border-gray-200 mt-4">
               <table className="w-full text-sm border-collapse uppercase">
@@ -248,7 +234,7 @@ export default function Checkout() {
                     <th className="p-3 text-left">#</th>
                     <th className="p-3 text-left">Item Name</th>
                     <th className="p-3 text-left">Type</th>
-                    <th className="p-3 text-left">Grade Level</th> {/* 🆕 */}
+                    <th className="p-3 text-left">Grade Level</th>
                     <th className="p-3 text-left">Barcode</th>
                     <th className="p-3 text-center">Qty</th>
                     <th className="p-3 text-right">Action</th>
@@ -260,7 +246,7 @@ export default function Checkout() {
                       <td className="p-3">{i + 1}</td>
                       <td className="p-3 font-medium text-gray-800">{item.itemName}</td>
                       <td className="p-3">{item.itemType}</td>
-                      <td className="p-3">{item.gradeLevel}</td> {/* 🆕 */}
+                      <td className="p-3">{item.gradeLevel}</td>
                       <td className="p-3 text-gray-600">{item.barcode}</td>
                       <td className="p-3 text-center font-semibold text-[#800000]">{item.qty}</td>
                       <td className="p-3 text-right">
@@ -282,7 +268,6 @@ export default function Checkout() {
             </p>
           )}
 
-          {/* Finalize Button */}
           <div className="pt-4 flex justify-center">
             <Button
               onClick={openFinalizeModal}
@@ -296,7 +281,6 @@ export default function Checkout() {
         </CardContent>
       </Card>
 
-      {/* Finalize Modal */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
