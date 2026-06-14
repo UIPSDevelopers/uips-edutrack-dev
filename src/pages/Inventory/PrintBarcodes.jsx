@@ -1,27 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import JsBarcode from "jsbarcode";
+import jsPDF from "jspdf";
+
+// (old image-based preview removed)
 
 function BarcodeImage({ value, scaleWidth, scaleHeight }) {
-  const [src, setSrc] = useState("");
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    if (!value) return;
+    if (!value || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
     const DPR = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
-    // target display size in CSS pixels (controls visible length)
-    const displayWidth = 280 * scaleWidth;
-    const displayHeight = 80 * scaleHeight;
+    const displayWidth = 280 * scaleWidth; // CSS px
+    const displayHeight = 80 * scaleHeight; // CSS px
 
-    // render at higher pixel density so downscaling keeps crisp edges
     const pixelWidth = Math.max(200, Math.ceil(displayWidth * DPR));
     const pixelHeight = Math.max(40, Math.ceil(displayHeight * DPR));
 
-    const canvas = document.createElement("canvas");
     canvas.width = pixelWidth;
     canvas.height = pixelHeight;
 
+    // set CSS size for canvas to control visible size
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${displayHeight}px`;
+
     const ctx = canvas.getContext("2d");
     if (ctx) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
@@ -41,31 +49,86 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
       background: "#ffffff",
       lineColor: "#000000",
     });
-
-    setSrc(canvas.toDataURL("image/png"));
   }, [value, scaleWidth, scaleHeight]);
 
   return (
     <div className="flex justify-center mt-2">
-      {src ? (
-        <img
-          src={src}
-          alt={value}
-          style={{
-            width: "100%",
-            maxWidth: `${280 * scaleWidth}px`,
-            height: "auto",
-          }}
-        />
-      ) : null}
+      <canvas ref={canvasRef} />
     </div>
   );
 }
-
 export default function PrintBarcodes() {
   const [items, setItems] = useState([]);
   const [scaleWidth, setScaleWidth] = useState(1);
   const [scaleHeight, setScaleHeight] = useState(1);
+  
+  const handlePrintPDF = async () => {
+    if (!items.length) return;
+
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 28; // pts
+    const gap = 10; // pts between labels
+
+    // convert CSS px to points (1pt = 1.333px at 96dpi) -> pt = px * 72/96
+    const pxToPt = (px) => (px * 72) / 96;
+
+    let x = margin;
+    let y = margin;
+
+    for (const item of items) {
+      // create high-res canvas for barcode
+      const DPR = typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2;
+      const displayW = 280 * scaleWidth; // CSS px
+      const displayH = 80 * scaleHeight; // CSS px
+      const pixelW = Math.max(200, Math.ceil(displayW * DPR));
+      const pixelH = Math.max(40, Math.ceil(displayH * DPR));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = pixelW;
+      canvas.height = pixelH;
+
+      const moduleWidth = Math.max(1, Math.round(1.2 * DPR * scaleWidth));
+      const barHeight = Math.max(30, Math.round(pixelH - Math.round(18 * DPR)));
+      const fontSize = Math.max(10, Math.round(12 * DPR * scaleHeight));
+
+      JsBarcode(canvas, item.barcode || item.itemId, {
+        format: "CODE128",
+        width: moduleWidth,
+        height: barHeight,
+        displayValue: true,
+        fontSize,
+        margin: Math.round(6 * DPR),
+        textMargin: Math.round(4 * DPR),
+        background: "#ffffff",
+        lineColor: "#000000",
+      });
+
+      const dataUrl = canvas.toDataURL("image/png");
+
+      const imgW = pxToPt(displayW);
+      const imgH = pxToPt(displayH);
+
+      if (x + imgW > pageWidth - margin) {
+        x = margin;
+        y += imgH + gap;
+      }
+
+      if (y + imgH > pageHeight - margin) {
+        doc.addPage();
+        x = margin;
+        y = margin;
+      }
+
+      doc.addImage(dataUrl, "PNG", x, y, imgW, imgH);
+
+      x += imgW + gap;
+    }
+
+    const url = doc.output("bloburl");
+    window.open(url, "_blank");
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem("printBarcodes");
@@ -96,10 +159,10 @@ export default function PrintBarcodes() {
 
         <button
           type="button"
-          onClick={() => window.print()}
+          onClick={handlePrintPDF}
           className="inline-flex items-center rounded bg-[#800000] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#a10000]"
         >
-          Print Labels
+          Generate PDF
         </button>
       </div>
 
