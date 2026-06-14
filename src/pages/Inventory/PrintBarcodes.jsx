@@ -16,8 +16,9 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
     const displayWidth = 280 * scaleWidth; // CSS px
     const displayHeight = 80 * scaleHeight; // CSS px
 
-    const pixelWidth = Math.max(200, Math.ceil(displayWidth * DPR));
-    const pixelHeight = Math.max(40, Math.ceil(displayHeight * DPR));
+    const RENDER_MULT = 3; // supersample multiplier for HD output
+    const pixelWidth = Math.max(1200, Math.ceil(displayWidth * DPR * RENDER_MULT));
+    const pixelHeight = Math.max(240, Math.ceil(displayHeight * DPR * RENDER_MULT));
 
     canvas.width = pixelWidth;
     canvas.height = pixelHeight;
@@ -34,9 +35,9 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    const moduleWidth = Math.max(1, Math.round(1.2 * DPR * scaleWidth));
-    const barHeight = Math.max(30, Math.round(pixelHeight - Math.round(18 * DPR)));
-    const fontSize = Math.max(10, Math.round(12 * DPR * scaleHeight));
+    const moduleWidth = Math.max(1, Math.round(1.2 * DPR * RENDER_MULT * scaleWidth));
+    const barHeight = Math.max(40, Math.round(pixelHeight - Math.round(18 * DPR * RENDER_MULT)));
+    const fontSize = Math.max(12, Math.round(12 * DPR * RENDER_MULT * scaleHeight));
 
     JsBarcode(canvas, value, {
       format: "CODE128",
@@ -80,18 +81,19 @@ export default function PrintBarcodes() {
     for (const item of items) {
       // create high-res canvas for barcode
       const DPR = typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2;
+      const RENDER_MULT = 3;
       const displayW = 280 * scaleWidth; // CSS px
       const displayH = 80 * scaleHeight; // CSS px
-      const pixelW = Math.max(200, Math.ceil(displayW * DPR));
-      const pixelH = Math.max(40, Math.ceil(displayH * DPR));
+      const pixelW = Math.max(1200, Math.ceil(displayW * DPR * RENDER_MULT));
+      const pixelH = Math.max(240, Math.ceil(displayH * DPR * RENDER_MULT));
 
       const canvas = document.createElement("canvas");
       canvas.width = pixelW;
       canvas.height = pixelH;
 
-      const moduleWidth = Math.max(1, Math.round(1.2 * DPR * scaleWidth));
-      const barHeight = Math.max(30, Math.round(pixelH - Math.round(18 * DPR)));
-      const fontSize = Math.max(10, Math.round(12 * DPR * scaleHeight));
+      const moduleWidth = Math.max(1, Math.round(1.2 * DPR * RENDER_MULT * scaleWidth));
+      const barHeight = Math.max(40, Math.round(pixelH - Math.round(18 * DPR * RENDER_MULT)));
+      const fontSize = Math.max(12, Math.round(12 * DPR * RENDER_MULT * scaleHeight));
 
       JsBarcode(canvas, item.barcode || item.itemId, {
         format: "CODE128",
