@@ -36,10 +36,17 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
     }
 
     const moduleWidth = Math.max(1, Math.round(1.2 * DPR * RENDER_MULT * scaleWidth));
-    const barHeight = Math.max(40, Math.round(pixelHeight - Math.round(18 * DPR * RENDER_MULT)));
-    // Font scales with height only and is clamped to avoid distortion
-    const rawFont = Math.round(12 * DPR * RENDER_MULT * scaleHeight);
-    const fontSize = Math.min(Math.max(rawFont, 10), 48);
+    // reserve a portion of the canvas for the serial text to avoid clipping when height is small
+    const reservedTextPx = Math.min(
+      Math.max(Math.round(12 * DPR * RENDER_MULT * scaleHeight), Math.round(pixelHeight * 0.12)),
+      Math.round(pixelHeight * 0.35),
+    );
+    const barHeight = Math.max(24, Math.round(pixelHeight - reservedTextPx - Math.round(6 * DPR * RENDER_MULT)));
+    // Font scales with reserved text area only and is clamped to avoid distortion/missing text
+    const fontSize = Math.min(
+      Math.max(Math.round(reservedTextPx * 0.6), Math.round(8 * DPR)),
+      Math.max(Math.round(reservedTextPx - Math.round(4 * DPR * RENDER_MULT)), Math.round(10 * DPR)),
+    );
 
     JsBarcode(canvas, value, {
       format: "CODE128",
@@ -94,10 +101,15 @@ export default function PrintBarcodes() {
       canvas.height = pixelH;
 
       const moduleWidth = Math.max(1, Math.round(1.2 * DPR * RENDER_MULT * scaleWidth));
-      const barHeight = Math.max(40, Math.round(pixelH - Math.round(18 * DPR * RENDER_MULT)));
-      // Font scales with height only and is clamped to avoid distortion
-      const rawFont = Math.round(12 * DPR * RENDER_MULT * scaleHeight);
-      const fontSize = Math.min(Math.max(rawFont, 10), 48);
+        const reservedTextPx = Math.min(
+          Math.max(Math.round(12 * DPR * RENDER_MULT * scaleHeight), Math.round(pixelH * 0.12)),
+          Math.round(pixelH * 0.35),
+        );
+      const barHeight = Math.max(24, Math.round(pixelH - reservedTextPx - Math.round(6 * DPR * RENDER_MULT)));
+      const fontSize = Math.min(
+        Math.max(Math.round(reservedTextPx * 0.6), Math.round(8 * DPR)),
+        Math.max(Math.round(reservedTextPx - Math.round(4 * DPR * RENDER_MULT)), Math.round(10 * DPR)),
+      );
 
       JsBarcode(canvas, item.barcode || item.itemId, {
         format: "CODE128",
