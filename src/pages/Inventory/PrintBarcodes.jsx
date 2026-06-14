@@ -87,15 +87,26 @@ export default function PrintBarcodes() {
     // convert CSS px to points (1pt = 1.333px at 96dpi) -> pt = px * 72/96
     const pxToPt = (px) => (px * 72) / 96;
 
-    let x = margin;
-    let y = margin;
+    // Precompute layout sizes so labels are evenly spaced in a grid
+    const DPR = typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2;
+    const RENDER_MULT = 3;
+    const displayW = 280 * scaleWidth; // CSS px per label
+    const displayH = 80 * scaleHeight; // CSS px per label
+    const imgW = pxToPt(displayW);
+    const imgH = pxToPt(displayH);
+    const serialFontPt = 9; // fixed serial font in PDF (points)
+    const serialGapPt = 6; // gap between image and serial text
+    const totalImgH = imgH + serialGapPt + serialFontPt;
 
-    for (const item of items) {
-      // create high-res canvas for barcode
-      const DPR = typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2;
-      const RENDER_MULT = 3;
-      const displayW = 280 * scaleWidth; // CSS px
-      const displayH = 80 * scaleHeight; // CSS px
+    const cols = Math.max(1, Math.floor((pageWidth - margin * 2 + gap) / (imgW + gap)));
+
+    let col = 0;
+    let row = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      // create high-res canvas for barcode per item
       const pixelW = Math.max(1200, Math.ceil(displayW * DPR * RENDER_MULT));
       const pixelH = Math.max(240, Math.ceil(displayH * DPR * RENDER_MULT));
 
@@ -104,13 +115,9 @@ export default function PrintBarcodes() {
       canvas.height = pixelH;
 
       const moduleWidth = Math.max(1, Math.round(1.2 * DPR * RENDER_MULT * scaleWidth));
-      const BASE_FONT = 12;
-      const fontSize = Math.round(BASE_FONT * DPR * RENDER_MULT);
-      const reservedTextPx = Math.min(Math.max(Math.round(fontSize * 1.6), Math.round(pixelH * 0.12)), Math.round(pixelH * 0.35));
+      const reservedTextPx = Math.min(Math.max(Math.round((12) * DPR * RENDER_MULT * 1), Math.round(pixelH * 0.12)), Math.round(pixelH * 0.35));
       const barHeight = Math.max(24, Math.round(pixelH - reservedTextPx - Math.round(6 * DPR * RENDER_MULT)));
 
-
-      // Render barcode only; serial will be written separately (fixed size)
       JsBarcode(canvas, item.barcode || item.itemId, {
         format: "CODE128",
         width: moduleWidth,
@@ -123,29 +130,24 @@ export default function PrintBarcodes() {
 
       const dataUrl = canvas.toDataURL("image/png");
 
-      const imgW = pxToPt(displayW);
-      const imgH = pxToPt(displayH);
-      const serialFontPt = 9; // fixed serial font in PDF (points)
-      const serialGapPt = 6; // gap between image and serial text
-      const totalImgH = imgH + serialGapPt + serialFontPt;
+      const xPos = margin + col * (imgW + gap);
+      const yPos = margin + row * (totalImgH + gap);
 
-      if (x + imgW > pageWidth - margin) {
-        x = margin;
-        y += totalImgH + gap;
-      }
-
-      if (y + totalImgH > pageHeight - margin) {
+      if (yPos + totalImgH > pageHeight - margin) {
         doc.addPage();
-        x = margin;
-        y = margin;
+        row = 0;
+        col = 0;
       }
 
-      doc.addImage(dataUrl, "PNG", x, y, imgW, imgH);
-      // draw serial text centered below image (fixed size)
+      doc.addImage(dataUrl, "PNG", xPos, yPos, imgW, imgH);
       doc.setFontSize(serialFontPt);
-      doc.text(item.barcode || item.itemId, x + imgW / 2, y + imgH + serialGapPt + serialFontPt, { align: "center" });
+      doc.text(item.barcode || item.itemId, xPos + imgW / 2, yPos + imgH + serialGapPt + serialFontPt, { align: "center" });
 
-      x += imgW + gap;
+      col++;
+      if (col >= cols) {
+        col = 0;
+        row++;
+      }
     }
 
     const url = doc.output("bloburl");
