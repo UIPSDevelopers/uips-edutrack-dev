@@ -66,7 +66,7 @@ export default function PrintBarcodes() {
 
   return (
     <div className="p-8">
-      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">
             Barcode Print Preview
@@ -85,7 +85,7 @@ export default function PrintBarcodes() {
         </button>
       </div>
 
-      <div className="mb-6 space-y-4">
+      <div className="mb-6 space-y-4 print:hidden">
         <div>
           <label className="flex items-center gap-3 text-sm text-gray-700">
             <span className="font-medium">Width scale:</span>
@@ -136,11 +136,11 @@ export default function PrintBarcodes() {
         @media print {
           body {
             margin: 0;
+            padding: 0;
           }
 
-          button,
-          input[type='range'] {
-            display: none;
+          .print\:hidden {
+            display: none !important;
           }
 
           .break-inside-avoid {
