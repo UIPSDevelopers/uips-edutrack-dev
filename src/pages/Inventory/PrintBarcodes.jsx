@@ -106,9 +106,6 @@ export default function PrintBarcodes() {
             key={item.itemId}
             className="border border-gray-300 rounded-lg bg-white p-4 text-center break-inside-avoid shadow-sm"
           >
-            <div className="text-xs font-semibold uppercase tracking-wide text-gray-600 truncate">
-              {item.itemName || item.itemId}
-            </div>
             <BarcodeImage value={item.barcode || item.itemId} scale={scale} />
             <div className="mt-2 text-xs text-gray-700 break-words">
               {item.barcode || item.itemId}
