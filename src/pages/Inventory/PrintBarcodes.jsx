@@ -70,9 +70,6 @@ function SerialText({ value }) {
     </div>
   );
 }
-    </div>
-  );
-}
 export default function PrintBarcodes() {
   const [items, setItems] = useState([]);
   const [scaleWidth, setScaleWidth] = useState(1);
@@ -251,7 +248,6 @@ export default function PrintBarcodes() {
             break-inside: avoid;
             page-break-inside: avoid;
           }
-                  <SerialText value={item.barcode || item.itemId} />
         }
       `}</style>
     </div>
