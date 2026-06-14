@@ -43,14 +43,13 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
     const reservedTextPx = Math.min(Math.max(Math.round(fontSize * 1.6), Math.round(pixelHeight * 0.12)), Math.round(pixelHeight * 0.35));
     const barHeight = Math.max(24, Math.round(pixelHeight - reservedTextPx - Math.round(6 * DPR * RENDER_MULT)));
 
+    // Render barcode only (no human-readable text inside barcode)
     JsBarcode(canvas, value, {
       format: "CODE128",
       width: moduleWidth,
       height: barHeight,
-      displayValue: true,
-      fontSize,
+      displayValue: false,
       margin: Math.round(6 * DPR),
-      textMargin: Math.round(4 * DPR),
       background: "#ffffff",
       lineColor: "#000000",
     });
@@ -59,6 +58,18 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
   return (
     <div className="flex justify-center mt-2">
       <canvas ref={canvasRef} />
+    </div>
+  );
+}
+
+// Serial text below barcode (fixed size, independent of sliders)
+function SerialText({ value }) {
+  return (
+    <div className="mt-2 text-gray-700" style={{ fontSize: 12 }}>
+      {value}
+    </div>
+  );
+}
     </div>
   );
 }
@@ -101,14 +112,14 @@ export default function PrintBarcodes() {
       const reservedTextPx = Math.min(Math.max(Math.round(fontSize * 1.6), Math.round(pixelH * 0.12)), Math.round(pixelH * 0.35));
       const barHeight = Math.max(24, Math.round(pixelH - reservedTextPx - Math.round(6 * DPR * RENDER_MULT)));
 
+
+      // Render barcode only; serial will be written separately (fixed size)
       JsBarcode(canvas, item.barcode || item.itemId, {
         format: "CODE128",
         width: moduleWidth,
         height: barHeight,
-        displayValue: true,
-        fontSize,
+        displayValue: false,
         margin: Math.round(6 * DPR),
-        textMargin: Math.round(4 * DPR),
         background: "#ffffff",
         lineColor: "#000000",
       });
@@ -117,19 +128,25 @@ export default function PrintBarcodes() {
 
       const imgW = pxToPt(displayW);
       const imgH = pxToPt(displayH);
+      const serialFontPt = 9; // fixed serial font in PDF (points)
+      const serialGapPt = 6; // gap between image and serial text
+      const totalImgH = imgH + serialGapPt + serialFontPt;
 
       if (x + imgW > pageWidth - margin) {
         x = margin;
-        y += imgH + gap;
+        y += totalImgH + gap;
       }
 
-      if (y + imgH > pageHeight - margin) {
+      if (y + totalImgH > pageHeight - margin) {
         doc.addPage();
         x = margin;
         y = margin;
       }
 
       doc.addImage(dataUrl, "PNG", x, y, imgW, imgH);
+      // draw serial text centered below image (fixed size)
+      doc.setFontSize(serialFontPt);
+      doc.text(item.barcode || item.itemId, x + imgW / 2, y + imgH + serialGapPt + serialFontPt, { align: "center" });
 
       x += imgW + gap;
     }
@@ -234,6 +251,7 @@ export default function PrintBarcodes() {
             break-inside: avoid;
             page-break-inside: avoid;
           }
+                  <SerialText value={item.barcode || item.itemId} />
         }
       `}</style>
     </div>
