@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import JsBarcode from "jsbarcode";
 
-function BarcodeImage({ value, scale }) {
+function BarcodeImage({ value, scaleWidth, scaleHeight }) {
   const [src, setSrc] = useState("");
 
   useEffect(() => {
     if (!value) return;
 
     const canvas = document.createElement("canvas");
-    const barWidth = Math.max(1, Math.round(2 * scale));
-    const barHeight = Math.max(45, Math.round(45 * scale));
-    const fontSize = Math.max(10, Math.round(10 * scale));
+    const barWidth = Math.max(1, Math.round(2 * scaleWidth));
+    const barHeight = Math.max(45, Math.round(50 * scaleHeight));
+    const fontSize = Math.max(12, Math.round(14 * scaleHeight));
 
     JsBarcode(canvas, value, {
       format: "CODE128",
@@ -19,13 +19,13 @@ function BarcodeImage({ value, scale }) {
       displayValue: true,
       fontSize,
       margin: 10,
-      textMargin: 2,
+      textMargin: 5,
       background: "#ffffff",
       lineColor: "#000000",
     });
 
     setSrc(canvas.toDataURL("image/png"));
-  }, [value, scale]);
+  }, [value, scaleWidth, scaleHeight]);
 
   return (
     <div className="flex justify-center mt-2">
@@ -35,7 +35,7 @@ function BarcodeImage({ value, scale }) {
           alt={value}
           style={{
             width: "100%",
-            maxWidth: `${280 * scale}px`,
+            maxWidth: `${280 * scaleWidth}px`,
             height: "auto",
           }}
         />
@@ -46,7 +46,8 @@ function BarcodeImage({ value, scale }) {
 
 export default function PrintBarcodes() {
   const [items, setItems] = useState([]);
-  const [scale, setScale] = useState(1);
+  const [scaleWidth, setScaleWidth] = useState(1);
+  const [scaleHeight, setScaleHeight] = useState(1);
 
   useEffect(() => {
     const stored = localStorage.getItem("printBarcodes");
@@ -84,20 +85,37 @@ export default function PrintBarcodes() {
         </button>
       </div>
 
-      <div className="mb-6">
-        <label className="flex items-center gap-3 text-sm text-gray-700">
-          <span className="font-medium">Barcode scale:</span>
-          <span className="text-xs text-gray-500">{Math.round(scale * 100)}%</span>
-        </label>
-        <input
-          type="range"
-          min="0.7"
-          max="1.8"
-          step="0.05"
-          value={scale}
-          onChange={(e) => setScale(Number(e.target.value))}
-          className="mt-2 w-full"
-        />
+      <div className="mb-6 space-y-4">
+        <div>
+          <label className="flex items-center gap-3 text-sm text-gray-700">
+            <span className="font-medium">Width scale:</span>
+            <span className="text-xs text-gray-500">{Math.round(scaleWidth * 100)}%</span>
+          </label>
+          <input
+            type="range"
+            min="0.5"
+            max="2.5"
+            step="0.05"
+            value={scaleWidth}
+            onChange={(e) => setScaleWidth(Number(e.target.value))}
+            className="mt-2 w-full"
+          />
+        </div>
+        <div>
+          <label className="flex items-center gap-3 text-sm text-gray-700">
+            <span className="font-medium">Height scale:</span>
+            <span className="text-xs text-gray-500">{Math.round(scaleHeight * 100)}%</span>
+          </label>
+          <input
+            type="range"
+            min="0.5"
+            max="2.5"
+            step="0.05"
+            value={scaleHeight}
+            onChange={(e) => setScaleHeight(Number(e.target.value))}
+            className="mt-2 w-full"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -106,7 +124,7 @@ export default function PrintBarcodes() {
             key={item.itemId}
             className="border border-gray-300 rounded-lg bg-white p-4 text-center break-inside-avoid shadow-sm"
           >
-            <BarcodeImage value={item.barcode || item.itemId} scale={scale} />
+            <BarcodeImage value={item.barcode || item.itemId} scaleWidth={scaleWidth} scaleHeight={scaleHeight} />
             <div className="mt-2 text-xs text-gray-700 break-words">
               {item.barcode || item.itemId}
             </div>
