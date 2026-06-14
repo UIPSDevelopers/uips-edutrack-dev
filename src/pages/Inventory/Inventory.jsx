@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axiosInstance from "@/lib/axios";
-import PrintBarcodes from "./PrintBarcodes";
 
 export default function Inventory() {
   const [items, setItems] = useState([]);
@@ -43,8 +42,8 @@ export default function Inventory() {
     quantity: 0,
   });
   const [showDialog, setShowDialog] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
-  
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
@@ -81,13 +80,31 @@ export default function Inventory() {
   const role = user?.role;
 
   const handleBulkBarcodePrint = () => {
-    if (filtered.length === 0) {
-      alert("⚠️ No items to print.");
+    const itemsToPrint = items.filter((item) => selectedIds.includes(item.itemId));
+    if (!itemsToPrint.length) {
+      alert("⚠️ Please select at least one item to print.");
       return;
     }
 
-    localStorage.setItem("printBarcodes", JSON.stringify(filtered));
+    localStorage.setItem("printBarcodes", JSON.stringify(itemsToPrint));
     window.open("/inventory/print-barcodes", "_blank");
+  };
+
+  const handleToggleSelect = (itemId) => {
+    setSelectedIds((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    const pageIds = sortedItems.map((item) => item.itemId);
+    const allSelected = pageIds.every((id) => selectedIds.includes(id));
+
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !pageIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...pageIds])));
+    }
   };
 
   
@@ -651,10 +668,11 @@ export default function Inventory() {
                 </Button>
                 <Button
                   onClick={handleBulkBarcodePrint}
+                  disabled={selectedIds.length === 0}
                   className="bg-black hover:bg-gray-800 text-white flex items-center gap-2"
                 >
                   <Package className="w-4 h-4" />
-                  Bulk Barcode Print
+                  Bulk Barcode Print{selectedIds.length ? ` (${selectedIds.length})` : ""}
                 </Button>
               </div>
             )}
@@ -672,6 +690,17 @@ export default function Inventory() {
                 <table className="w-full text-sm border-collapse uppercase">
                   <thead>
                     <tr className="bg-gray-100 text-gray-700 text-left">
+                      <th className="p-3 font-medium">
+                        <input
+                          type="checkbox"
+                          checked={
+                            sortedItems.length > 0 &&
+                            sortedItems.every((item) => selectedIds.includes(item.itemId))
+                          }
+                          onChange={handleToggleSelectAll}
+                          className="h-4 w-4"
+                        />
+                      </th>
                       <th className="p-3 font-medium">#</th>
 
                       {[
@@ -710,6 +739,14 @@ export default function Inventory() {
                         key={item.itemId}
                         className="border-b hover:bg-gray-50 transition"
                       >
+                        <td className="p-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(item.itemId)}
+                            onChange={() => handleToggleSelect(item.itemId)}
+                            className="h-4 w-4"
+                          />
+                        </td>
                         <td className="p-3">
                           {isAll ? i + 1 : (page - 1) * limit + (i + 1)}
                         </td>
