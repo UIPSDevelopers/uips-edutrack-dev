@@ -6,20 +6,38 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
 
   useEffect(() => {
     if (!value) return;
+    const DPR = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+
+    // target display size in CSS pixels (controls visible length)
+    const displayWidth = 280 * scaleWidth;
+    const displayHeight = 80 * scaleHeight;
+
+    // render at higher pixel density so downscaling keeps crisp edges
+    const pixelWidth = Math.max(200, Math.ceil(displayWidth * DPR));
+    const pixelHeight = Math.max(40, Math.ceil(displayHeight * DPR));
 
     const canvas = document.createElement("canvas");
-    const barWidth = Math.max(1, Math.round(2 * scaleWidth));
-    const barHeight = Math.max(45, Math.round(50 * scaleHeight));
-    const fontSize = Math.max(12, Math.round(14 * scaleHeight));
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    const moduleWidth = Math.max(1, Math.round(1.2 * DPR * scaleWidth));
+    const barHeight = Math.max(30, Math.round(pixelHeight - Math.round(18 * DPR)));
+    const fontSize = Math.max(10, Math.round(12 * DPR * scaleHeight));
 
     JsBarcode(canvas, value, {
       format: "CODE128",
-      width: barWidth,
+      width: moduleWidth,
       height: barHeight,
       displayValue: true,
       fontSize,
-      margin: 10,
-      textMargin: 5,
+      margin: Math.round(6 * DPR),
+      textMargin: Math.round(4 * DPR),
       background: "#ffffff",
       lineColor: "#000000",
     });
