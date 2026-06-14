@@ -72,7 +72,7 @@ export default function PrintBarcodes() {
             Barcode Print Preview
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Resize the barcode image then click Print to generate the labels.
+            Resize the barcode image then click Print to generate the labels.x
           </p>
         </div>
 
@@ -125,9 +125,7 @@ export default function PrintBarcodes() {
             className="border border-gray-300 rounded-lg bg-white p-4 text-center break-inside-avoid shadow-sm"
           >
             <BarcodeImage value={item.barcode || item.itemId} scaleWidth={scaleWidth} scaleHeight={scaleHeight} />
-            <div className="mt-2 text-xs text-gray-700 break-words">
-              {item.barcode || item.itemId}
-            </div>
+            
           </div>
         ))}
       </div>
