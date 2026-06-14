@@ -37,7 +37,9 @@ function BarcodeImage({ value, scaleWidth, scaleHeight }) {
 
     const moduleWidth = Math.max(1, Math.round(1.2 * DPR * RENDER_MULT * scaleWidth));
     const barHeight = Math.max(40, Math.round(pixelHeight - Math.round(18 * DPR * RENDER_MULT)));
-    const fontSize = Math.max(12, Math.round(12 * DPR * RENDER_MULT * scaleHeight));
+    // Font scales with height only and is clamped to avoid distortion
+    const rawFont = Math.round(12 * DPR * RENDER_MULT * scaleHeight);
+    const fontSize = Math.min(Math.max(rawFont, 10), 48);
 
     JsBarcode(canvas, value, {
       format: "CODE128",
@@ -93,7 +95,9 @@ export default function PrintBarcodes() {
 
       const moduleWidth = Math.max(1, Math.round(1.2 * DPR * RENDER_MULT * scaleWidth));
       const barHeight = Math.max(40, Math.round(pixelH - Math.round(18 * DPR * RENDER_MULT)));
-      const fontSize = Math.max(12, Math.round(12 * DPR * RENDER_MULT * scaleHeight));
+      // Font scales with height only and is clamped to avoid distortion
+      const rawFont = Math.round(12 * DPR * RENDER_MULT * scaleHeight);
+      const fontSize = Math.min(Math.max(rawFont, 10), 48);
 
       JsBarcode(canvas, item.barcode || item.itemId, {
         format: "CODE128",
