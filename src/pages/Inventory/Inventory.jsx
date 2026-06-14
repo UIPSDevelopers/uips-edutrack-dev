@@ -763,22 +763,22 @@ export default function Inventory() {
                         </td>
                         <td className="p-3">{item.addedBy || "-"}</td>
                         <td className="p-3 text-right text-gray-500 space-x-3">
-                          {canEditInventory && (
+                          {/* {canEditInventory && (
                             <button
                               onClick={() => handleEdit(item)}
                               className="hover:text-blue-600 transition"
                             >
                               Edit
                             </button>
-                          )}
-                          {canDeleteInventory && (
+                          )} */}
+                          {/* {canDeleteInventory && (
                             <button
                               onClick={() => handleDelete(item.itemId)}
                               className="hover:text-red-600 transition"
                             >
                               Delete
                             </button>
-                          )}
+                          )} */}
                         </td>
                       </tr>
                     ))}
