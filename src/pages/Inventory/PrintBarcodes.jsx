@@ -228,7 +228,7 @@ export default function PrintBarcodes() {
             className="border border-gray-300 rounded-lg bg-white p-4 text-center break-inside-avoid shadow-sm"
           >
             <BarcodeImage value={item.barcode || item.itemId} scaleWidth={scaleWidth} scaleHeight={scaleHeight} />
-            
+            <SerialText value={item.barcode || item.itemId} />
           </div>
         ))}
       </div>
