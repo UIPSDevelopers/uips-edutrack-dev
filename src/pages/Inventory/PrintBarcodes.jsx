@@ -93,8 +93,8 @@ export default function PrintBarcodes() {
           </label>
           <input
             type="range"
-            min="0.5"
-            max="2.5"
+            min="0.1"
+            max="2"
             step="0.05"
             value={scaleWidth}
             onChange={(e) => setScaleWidth(Number(e.target.value))}
@@ -108,8 +108,8 @@ export default function PrintBarcodes() {
           </label>
           <input
             type="range"
-            min="0.5"
-            max="2.5"
+            min="0.1"
+            max="2"
             step="0.05"
             value={scaleHeight}
             onChange={(e) => setScaleHeight(Number(e.target.value))}
