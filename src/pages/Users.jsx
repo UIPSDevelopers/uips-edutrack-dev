@@ -40,21 +40,17 @@ export default function Users() {
 
   const [editUser, setEditUser] = useState(null);
 
-  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const handleToggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const handleCloseSidebar = () => setIsSidebarOpen(false);
 
-  
   const storedUser =
     typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const user = storedUser ? JSON.parse(storedUser) : null;
   const role = user?.role;
 
-  
   const canAccessUsers = role === "IT";
 
-  
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -77,7 +73,6 @@ export default function Users() {
     fetchUsers();
   }, [canAccessUsers]);
 
-  
   const handleAddUser = async (e) => {
     e.preventDefault();
     if (
@@ -90,7 +85,6 @@ export default function Users() {
     }
 
     try {
-      
       const res = await axiosInstance.post("/users", newUser);
 
       const createdUser = res.data.user || res.data;
@@ -111,7 +105,6 @@ export default function Users() {
     }
   };
 
-  
   const handleEditUser = async (e) => {
     e.preventDefault();
 
@@ -120,10 +113,9 @@ export default function Users() {
     try {
       console.log("🔹 Updating user:", editUser);
 
-      
       const payload = { ...editUser };
       if (!payload.password) {
-        delete payload.password; 
+        delete payload.password;
       }
 
       const res = await axiosInstance.put(`/users/${editUser.userId}`, payload);
@@ -136,8 +128,8 @@ export default function Users() {
         prev.map((u) =>
           u.userId === editUser.userId || u._id === editUser._id
             ? updatedUser
-            : u
-        )
+            : u,
+        ),
       );
 
       toast.success("User updated successfully");
@@ -157,352 +149,354 @@ export default function Users() {
 
   return (
     <>
-        {}
-        {!canAccessUsers && (
-          <div className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white shadow-lg border border-red-300 rounded-xl p-8 text-center w-[350px]">
-              <h2 className="text-xl font-semibold text-red-700 mb-2">
-                Unauthorized Access
-              </h2>
-              <p className="text-sm text-gray-600">
-                You do not have permission to access the Users Management
-                section.
-              </p>
-            </div>
+      {}
+      {!canAccessUsers && (
+        <div className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white shadow-lg border border-red-300 rounded-xl p-8 text-center w-[350px]">
+            <h2 className="text-xl font-semibold text-red-700 mb-2">
+              Unauthorized Access
+            </h2>
+            <p className="text-sm text-gray-600">
+              You do not have permission to access the Users Management section.
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
-        <main
-          className={`p-6 space-y-6 ${
-            !canAccessUsers ? "pointer-events-none opacity-20" : ""
-          }`}
+      <main
+        className={`p-6 space-y-6 ${
+          !canAccessUsers ? "pointer-events-none opacity-20" : ""
+        }`}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          {}
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-semibold text-gray-800">Users</h1>
+
             {}
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-semibold text-gray-800">Users</h1>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-[#800000] hover:bg-[#a10000] text-white">
+                  <Plus className="mr-2 h-4 w-4" /> Add User
+                </Button>
+              </DialogTrigger>
 
-              {}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="bg-[#800000] hover:bg-[#a10000] text-white">
-                    <Plus className="mr-2 h-4 w-4" /> Add User
-                  </Button>
-                </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New User</DialogTitle>
+                </DialogHeader>
 
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Add New User</DialogTitle>
-                  </DialogHeader>
-
-                  <form onSubmit={handleAddUser} className="space-y-4 mt-2">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label>First Name</Label>
-                        <Input
-                          type="text"
-                          placeholder="Enter first name"
-                          value={newUser.firstname}
-                          onChange={(e) =>
-                            setNewUser({
-                              ...newUser,
-                              firstname: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Last Name</Label>
-                        <Input
-                          type="text"
-                          placeholder="Enter last name"
-                          value={newUser.lastname}
-                          onChange={(e) =>
-                            setNewUser({
-                              ...newUser,
-                              lastname: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-
+                <form onSubmit={handleAddUser} className="space-y-4 mt-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label>Email</Label>
+                      <Label>First Name</Label>
                       <Input
-                        type="email"
-                        placeholder="Enter email address"
-                        value={newUser.email}
+                        type="text"
+                        placeholder="Enter first name"
+                        value={newUser.firstname}
                         onChange={(e) =>
-                          setNewUser({ ...newUser, email: e.target.value })
+                          setNewUser({
+                            ...newUser,
+                            firstname: e.target.value,
+                          })
                         }
                         required
                       />
                     </div>
-
                     <div className="space-y-1">
-                      <Label>Password</Label>
+                      <Label>Last Name</Label>
                       <Input
-                        type="password"
-                        placeholder="Set initial password"
-                        value={newUser.password}
+                        type="text"
+                        placeholder="Enter last name"
+                        value={newUser.lastname}
                         onChange={(e) =>
-                          setNewUser({ ...newUser, password: e.target.value })
+                          setNewUser({
+                            ...newUser,
+                            lastname: e.target.value,
+                          })
                         }
                         required
                       />
                     </div>
+                  </div>
 
-                    <div className="space-y-1">
-                      <Label>Role</Label>
-                      <Select
-                        value={newUser.role}
-                        onValueChange={(value) =>
-                          setNewUser({ ...newUser, role: value })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="IT">IT</SelectItem>
-                          <SelectItem value="Accounts">Accounts</SelectItem>
-                          <SelectItem value="InventoryStaff">
-                            Inventory Staff
-                          </SelectItem>
-                          <SelectItem value="InventoryAdmin">
-                            Inventory Admin
-                          </SelectItem>
-                          <SelectItem value="Security">Security</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-1">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="Enter email address"
+                      value={newUser.email}
+                      onChange={(e) =>
+                        setNewUser({ ...newUser, email: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
 
-                    <div className="flex justify-end gap-2 mt-4">
-                      <Button
-                        type="button"
-                        id="closeAddDialogBtn"
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="bg-[#800000] hover:bg-[#a10000] text-white"
-                      >
-                        Add User
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
+                  <div className="space-y-1">
+                    <Label>Password</Label>
+                    <Input
+                      type="password"
+                      placeholder="Set initial password"
+                      value={newUser.password}
+                      onChange={(e) =>
+                        setNewUser({ ...newUser, password: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
 
-            {}
-            <Card className="shadow-sm border border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-sm text-gray-500">
-                  User Accounts
-                </CardTitle>
-              </CardHeader>
+                  <div className="space-y-1">
+                    <Label>Role</Label>
+                    <Select
+                      value={newUser.role}
+                      onValueChange={(value) =>
+                        setNewUser({ ...newUser, role: value })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="IT">IT</SelectItem>
+                        <SelectItem value="Accounts">Accounts</SelectItem>
+                        <SelectItem value="InventoryStaff">
+                          Inventory Staff
+                        </SelectItem>
+                        <SelectItem value="InventoryAdmin">
+                          Inventory Admin
+                        </SelectItem>
+                        <SelectItem value="MaintenanceStaff">
+                          Maintenance Staff
+                        </SelectItem>
+                        <SelectItem value="MaintenanceAdmin">
+                          Maintenance Admin
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <CardContent>
-                {loading ? (
-                  <p className="text-gray-500 text-sm">Loading users...</p>
-                ) : users.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No users found.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr className="bg-gray-100 text-gray-700 text-left">
-                          <th className="p-3 font-medium">#</th>
-                          <th className="p-3 font-medium">User ID</th>
-                          <th className="p-3 font-medium">Name</th>
-                          <th className="p-3 font-medium">Email</th>
-                          <th className="p-3 font-medium">Role</th>
-                          <th className="p-3 font-medium text-right">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((user, i) => (
-                          <tr
-                            key={user.userId}
-                            className="border-b hover:bg-gray-50 transition"
-                          >
-                            <td className="p-3">{i + 1}</td>
-                            <td className="p-3 text-gray-500">{user.userId}</td>
-                            <td className="p-3 font-medium">
-                              {user.firstname} {user.lastname}
-                            </td>
-                            <td className="p-3">{user.email}</td>
-                            <td className="p-3">
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs ${
-                                  user.role === "IT"
-                                    ? "bg-red-100 text-red-700"
-                                    : user.role === "Accounts"
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button
+                      type="button"
+                      id="closeAddDialogBtn"
+                      className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-[#800000] hover:bg-[#a10000] text-white"
+                    >
+                      Add User
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {}
+          <Card className="shadow-sm border border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-sm text-gray-500">
+                User Accounts
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              {loading ? (
+                <p className="text-gray-500 text-sm">Loading users...</p>
+              ) : users.length === 0 ? (
+                <p className="text-gray-500 text-sm">No users found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-700 text-left">
+                        <th className="p-3 font-medium">#</th>
+                        <th className="p-3 font-medium">User ID</th>
+                        <th className="p-3 font-medium">Name</th>
+                        <th className="p-3 font-medium">Email</th>
+                        <th className="p-3 font-medium">Role</th>
+                        <th className="p-3 font-medium text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user, i) => (
+                        <tr
+                          key={user.userId}
+                          className="border-b hover:bg-gray-50 transition"
+                        >
+                          <td className="p-3">{i + 1}</td>
+                          <td className="p-3 text-gray-500">{user.userId}</td>
+                          <td className="p-3 font-medium">
+                            {user.firstname} {user.lastname}
+                          </td>
+                          <td className="p-3">{user.email}</td>
+                          <td className="p-3">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                user.role === "IT"
+                                  ? "bg-red-100 text-red-700"
+                                  : user.role === "Accounts"
                                     ? "bg-blue-100 text-blue-700"
                                     : "bg-green-100 text-green-700"
-                                }`}
-                              >
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="p-3 text-right">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      setEditUser({ ...user, password: "" })
-                                    }
-                                  >
-                                    <Pencil size={14} className="mr-1" /> Edit
-                                  </Button>
-                                </DialogTrigger>
+                              }`}
+                            >
+                              {user.role}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setEditUser({ ...user, password: "" })
+                                  }
+                                >
+                                  <Pencil size={14} className="mr-1" /> Edit
+                                </Button>
+                              </DialogTrigger>
 
-                                {}
-                                <DialogContent className="sm:max-w-md">
-                                  <DialogHeader>
-                                    <DialogTitle>Edit User</DialogTitle>
-                                  </DialogHeader>
+                              {}
+                              <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>Edit User</DialogTitle>
+                                </DialogHeader>
 
-                                  <form
-                                    onSubmit={handleEditUser}
-                                    className="space-y-4 mt-2"
-                                  >
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div className="space-y-1">
-                                        <Label>First Name</Label>
-                                        <Input
-                                          type="text"
-                                          value={editUser?.firstname || ""}
-                                          onChange={(e) =>
-                                            setEditUser({
-                                              ...editUser,
-                                              firstname: e.target.value,
-                                            })
-                                          }
-                                          required
-                                        />
-                                      </div>
-                                      <div className="space-y-1">
-                                        <Label>Last Name</Label>
-                                        <Input
-                                          type="text"
-                                          value={editUser?.lastname || ""}
-                                          onChange={(e) =>
-                                            setEditUser({
-                                              ...editUser,
-                                              lastname: e.target.value,
-                                            })
-                                          }
-                                          required
-                                        />
-                                      </div>
-                                    </div>
-
+                                <form
+                                  onSubmit={handleEditUser}
+                                  className="space-y-4 mt-2"
+                                >
+                                  <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-1">
-                                      <Label>Email</Label>
+                                      <Label>First Name</Label>
                                       <Input
-                                        type="email"
-                                        value={editUser?.email || ""}
+                                        type="text"
+                                        value={editUser?.firstname || ""}
                                         onChange={(e) =>
                                           setEditUser({
                                             ...editUser,
-                                            email: e.target.value,
+                                            firstname: e.target.value,
                                           })
                                         }
                                         required
                                       />
                                     </div>
-
                                     <div className="space-y-1">
-                                      <Label>New Password (optional)</Label>
+                                      <Label>Last Name</Label>
                                       <Input
-                                        type="password"
-                                        placeholder="Leave blank to keep current password"
-                                        value={editUser?.password || ""}
+                                        type="text"
+                                        value={editUser?.lastname || ""}
                                         onChange={(e) =>
                                           setEditUser({
                                             ...editUser,
-                                            password: e.target.value,
+                                            lastname: e.target.value,
                                           })
                                         }
+                                        required
                                       />
                                     </div>
+                                  </div>
 
-                                    <div className="space-y-1">
-                                      <Label>Role</Label>
-                                      <Select
-                                        value={editUser?.role || ""}
-                                        onValueChange={(value) =>
-                                          setEditUser({
-                                            ...editUser,
-                                            role: value,
-                                          })
-                                        }
-                                      >
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue placeholder="Select role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="IT">IT</SelectItem>
-                                          <SelectItem value="Accounts">
-                                            Accounts
-                                          </SelectItem>
-                                          <SelectItem value="InventoryStaff">
-                                            Inventory Staff
-                                          </SelectItem>
-                                          <SelectItem value="InventoryAdmin">
-                                            Inventory Admin
-                                          </SelectItem>
-                                          <SelectItem value="Security">
-                                            Security
-                                          </SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
+                                  <div className="space-y-1">
+                                    <Label>Email</Label>
+                                    <Input
+                                      type="email"
+                                      value={editUser?.email || ""}
+                                      onChange={(e) =>
+                                        setEditUser({
+                                          ...editUser,
+                                          email: e.target.value,
+                                        })
+                                      }
+                                      required
+                                    />
+                                  </div>
 
-                                    <div className="flex justify-end gap-2 mt-4">
-                                      <Button
-                                        type="button"
-                                        id="closeEditDialogBtn"
-                                        className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        type="submit"
-                                        className="bg-[#800000] hover:bg-[#a10000] text-white"
-                                      >
-                                        Save Changes
-                                      </Button>
-                                    </div>
-                                  </form>
-                                </DialogContent>
-                              </Dialog>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </main>
+                                  <div className="space-y-1">
+                                    <Label>New Password (optional)</Label>
+                                    <Input
+                                      type="password"
+                                      placeholder="Leave blank to keep current password"
+                                      value={editUser?.password || ""}
+                                      onChange={(e) =>
+                                        setEditUser({
+                                          ...editUser,
+                                          password: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <Label>Role</Label>
+                                    <Select
+                                      value={editUser?.role || ""}
+                                      onValueChange={(value) =>
+                                        setEditUser({
+                                          ...editUser,
+                                          role: value,
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select role" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="IT">IT</SelectItem>
+                                        <SelectItem value="Accounts">
+                                          Accounts
+                                        </SelectItem>
+                                        <SelectItem value="InventoryStaff">
+                                          Inventory Staff
+                                        </SelectItem>
+                                        <SelectItem value="InventoryAdmin">
+                                          Inventory Admin
+                                        </SelectItem>
+                                        <SelectItem value="Security">
+                                          Security
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="flex justify-end gap-2 mt-4">
+                                    <Button
+                                      type="button"
+                                      id="closeEditDialogBtn"
+                                      className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      type="submit"
+                                      className="bg-[#800000] hover:bg-[#a10000] text-white"
+                                    >
+                                      Save Changes
+                                    </Button>
+                                  </div>
+                                </form>
+                              </DialogContent>
+                            </Dialog>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </main>
     </>
   );
 }
