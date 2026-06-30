@@ -225,10 +225,10 @@ export default function Users() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label>Email</Label>
+                    <Label>Username</Label>
                     <Input
-                      type="email"
-                      placeholder="Enter email address"
+                      type="text"
+                      placeholder="Enter username"
                       value={newUser.email}
                       onChange={(e) =>
                         setNewUser({ ...newUser, email: e.target.value })
@@ -321,7 +321,7 @@ export default function Users() {
                         <th className="p-3 font-medium">#</th>
                         <th className="p-3 font-medium">User ID</th>
                         <th className="p-3 font-medium">Name</th>
-                        <th className="p-3 font-medium">Email</th>
+                        <th className="p-3 font-medium">Username</th>
                         <th className="p-3 font-medium">Role</th>
                         <th className="p-3 font-medium text-right">Actions</th>
                       </tr>
@@ -407,9 +407,9 @@ export default function Users() {
                                   </div>
 
                                   <div className="space-y-1">
-                                    <Label>Email</Label>
+                                    <Label>Username</Label>
                                     <Input
-                                      type="email"
+                                      type="text"
                                       value={editUser?.email || ""}
                                       onChange={(e) =>
                                         setEditUser({
