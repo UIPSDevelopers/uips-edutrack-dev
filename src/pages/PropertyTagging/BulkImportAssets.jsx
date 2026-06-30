@@ -4,14 +4,31 @@ import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 import PropertyTaggingTabs from "@/pages/PropertyTagging/PropertyTaggingTabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, FileSpreadsheet, AlertTriangle, Download } from "lucide-react";
+import { canEditPropertyTagging } from "@/utils/roles";
 
 export default function BulkImportAssets() {
+  const navigate = useNavigate();
+
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+  const role = user?.role;
+
+  useEffect(() => {
+    if (!canEditPropertyTagging(role)) {
+      navigate("/property-tagging");
+    }
+  }, [role, navigate]);
+
   const [fileName, setFileName] = useState("");
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");

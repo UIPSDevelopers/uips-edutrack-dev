@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
 
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import * as XLSX from "xlsx";
+import { useNavigate } from "react-router-dom";
+import { canEditPropertyTagging } from "@/utils/roles";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function AssetReports() {
+  const navigate = useNavigate();
+
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+  const role = user?.role;
+
+  useEffect(() => {
+    if (!canEditPropertyTagging(role)) {
+      navigate("/property-tagging");
+    }
+  }, [role, navigate]);
+
   
   
   

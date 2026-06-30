@@ -15,10 +15,21 @@ import {
 } from "@/components/ui/dialog";
 
 import axiosInstance from "@/lib/axios";
+import { canEditPropertyTagging, canAddService } from "@/utils/roles";
 
 export default function AssetDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+  const role = user?.role;
+
+  const canEdit = canEditPropertyTagging(role);
+  const canAddServiceRecord = canAddService(role);
 
   const [asset, setAsset] = useState(null);
   const [services, setServices] = useState([]);
@@ -274,16 +285,18 @@ export default function AssetDetails() {
                 <p className="font-medium">{asset.locationId?.name || "-"}</p>
               </div>
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setEditType("location");
-                  setShowEditDialog(true);
-                }}
-              >
-                Edit
-              </Button>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditType("location");
+                    setShowEditDialog(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
             </div>
 
             {}
@@ -294,16 +307,18 @@ export default function AssetDetails() {
                 <p className="font-medium">{asset.status}</p>
               </div>
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setEditType("status");
-                  setShowEditDialog(true);
-                }}
-              >
-                Edit
-              </Button>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditType("status");
+                    setShowEditDialog(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
             </div>
 
             {}
@@ -316,16 +331,18 @@ export default function AssetDetails() {
                 </p>
               </div>
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setEditType("remarks");
-                  setShowEditDialog(true);
-                }}
-              >
-                Edit
-              </Button>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditType("remarks");
+                    setShowEditDialog(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -336,12 +353,14 @@ export default function AssetDetails() {
         <CardHeader className="flex justify-between items-center">
           <CardTitle>Service History</CardTitle>
 
-          <Button
-            onClick={() => setShowDialog(true)}
-            className="bg-[#800000] hover:bg-[#a10000]"
-          >
-            + Add Service
-          </Button>
+          {canAddServiceRecord && (
+            <Button
+              onClick={() => setShowDialog(true)}
+              className="bg-[#800000] hover:bg-[#a10000]"
+            >
+              + Add Service
+            </Button>
+          )}
         </CardHeader>
 
         <CardContent>

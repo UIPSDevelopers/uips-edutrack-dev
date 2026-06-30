@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   LayoutDashboard,
   Boxes,
@@ -11,11 +11,12 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { canViewPropertyTagging } from "@/utils/roles";
 
-const navItems = [
+const allNavItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Inventory", icon: Boxes, path: "/inventory" },
-  { name: "Property Tagging", icon: Tag, path: "/property-tagging" },
+  { name: "Property Tagging", icon: Tag, path: "/property-tagging", requiredRole: "PropertyTagging" },
   { name: "Visitors", icon: Users, path: "/visitors" },
   { name: "Users", icon: UserCog, path: "/users" },
   { name: "Reports", icon: FileText, path: "/reports-page" },
@@ -23,6 +24,22 @@ const navItems = [
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+  const role = user?.role;
+
+  const navItems = useMemo(() => {
+    return allNavItems.filter((item) => {
+      if (item.requiredRole === "PropertyTagging") {
+        return canViewPropertyTagging(role);
+      }
+      return true;
+    });
+  }, [role]);
+
   return (
     <>
       {}

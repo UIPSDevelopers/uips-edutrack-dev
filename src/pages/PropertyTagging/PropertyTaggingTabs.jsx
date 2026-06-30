@@ -4,11 +4,24 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, PlusCircle, FileText, FolderPlus } from "lucide-react";
+import {
+  canAddAsset,
+  canManageCategories,
+  canManageLocations,
+  canEditPropertyTagging,
+} from "@/utils/roles";
 
 export default function PropertyTaggingTabs() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+  const role = user?.role;
 
   useEffect(() => {
     if (location.pathname === "/property-tagging") {
@@ -48,53 +61,63 @@ export default function PropertyTaggingTabs() {
         </TabsTrigger>
 
         {}
-        <TabsTrigger
-          value="add"
-          onClick={() => navigate("/property-tagging/add-asset")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
-          data-[state=active]:bg-[#800000] data-[state=active]:text-white"
-        >
-          <PlusCircle size={16} /> Add Asset
-        </TabsTrigger>
+        {canAddAsset(role) && (
+          <TabsTrigger
+            value="add"
+            onClick={() => navigate("/property-tagging/add-asset")}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
+            data-[state=active]:bg-[#800000] data-[state=active]:text-white"
+          >
+            <PlusCircle size={16} /> Add Asset
+          </TabsTrigger>
+        )}
 
         {}
-        <TabsTrigger
-          value="bulk-import"
-          onClick={() => navigate("/property-tagging/bulk-import")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
-          data-[state=active]:bg-[#800000] data-[state=active]:text-white"
-        >
-          <PlusCircle size={16} /> Bulk Import Assets
-        </TabsTrigger>
+        {canEditPropertyTagging(role) && (
+          <TabsTrigger
+            value="bulk-import"
+            onClick={() => navigate("/property-tagging/bulk-import")}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
+            data-[state=active]:bg-[#800000] data-[state=active]:text-white"
+          >
+            <PlusCircle size={16} /> Bulk Import Assets
+          </TabsTrigger>
+        )}
 
         {}
-        <TabsTrigger
-          value="categories"
-          onClick={() => navigate("/property-tagging/add-category")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
-          data-[state=active]:bg-[#800000] data-[state=active]:text-white"
-        >
-          <FolderPlus size={16} /> Categories
-        </TabsTrigger>
+        {canManageCategories(role) && (
+          <TabsTrigger
+            value="categories"
+            onClick={() => navigate("/property-tagging/add-category")}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
+            data-[state=active]:bg-[#800000] data-[state=active]:text-white"
+          >
+            <FolderPlus size={16} /> Categories
+          </TabsTrigger>
+        )}
 
-        <TabsTrigger
-          value="locations"
-          onClick={() => navigate("/property-tagging/add-location")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
-          data-[state=active]:bg-[#800000] data-[state=active]:text-white"
-        >
-          <FolderPlus size={16} /> Locations
-        </TabsTrigger>
+        {canManageLocations(role) && (
+          <TabsTrigger
+            value="locations"
+            onClick={() => navigate("/property-tagging/add-location")}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
+            data-[state=active]:bg-[#800000] data-[state=active]:text-white"
+          >
+            <FolderPlus size={16} /> Locations
+          </TabsTrigger>
+        )}
 
         {}
-        <TabsTrigger
-          value="asset-reports"
-          onClick={() => navigate("/property-tagging/asset-reports")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
-          data-[state=active]:bg-[#800000] data-[state=active]:text-white"
-        >
-          <FileText size={16} /> Reports
-        </TabsTrigger>
+        {canEditPropertyTagging(role) && (
+          <TabsTrigger
+            value="asset-reports"
+            onClick={() => navigate("/property-tagging/asset-reports")}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium min-w-fit
+            data-[state=active]:bg-[#800000] data-[state=active]:text-white"
+          >
+            <FileText size={16} /> Reports
+          </TabsTrigger>
+        )}
       </TabsList>
     </Tabs>
   );

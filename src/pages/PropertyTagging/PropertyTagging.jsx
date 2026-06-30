@@ -23,6 +23,7 @@ import PropertyTaggingTabs from "./PropertyTaggingTabs";
 import axiosInstance from "@/lib/axios";
 import PrintQRModal from "./PrintQRModal";
 import QRScanner from "@/components/ui/QRScanner";
+import { canViewPropertyTagging } from "@/utils/roles";
 
 import * as XLSX from "xlsx";
 
@@ -64,7 +65,7 @@ export default function PropertyTagging() {
 
   const role = user?.role;
 
-  const canView = ["IT", "InventoryStaff", "InventoryAdmin"].includes(role);
+  const canView = canViewPropertyTagging(role);
 
   
   

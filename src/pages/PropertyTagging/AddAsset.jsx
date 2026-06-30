@@ -16,8 +16,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import axiosInstance from "@/lib/axios";
+import { canAddAsset } from "@/utils/roles";
+import { useNavigate } from "react-router-dom";
 
 export default function AddAsset() {
+  const navigate = useNavigate();
+
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+  const role = user?.role;
+
+  useEffect(() => {
+    if (!canAddAsset(role)) {
+      navigate("/property-tagging");
+    }
+  }, [role, navigate]);
+
   const [form, setForm] = useState({
     assetName: "",
     brand: "",

@@ -6,8 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axiosInstance from "@/lib/axios";
 import PropertyTaggingTabs from "./PropertyTaggingTabs";
+import { useNavigate } from "react-router-dom";
+import { canManageCategories } from "@/utils/roles";
 
 export default function AddCategory() {
+  const navigate = useNavigate();
+
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null;
+
+  const role = user?.role;
+
+  useEffect(() => {
+    if (!canManageCategories(role)) {
+      navigate("/property-tagging");
+    }
+  }, [role, navigate]);
+
   const [form, setForm] = useState({
     name: "",
     code: "",
