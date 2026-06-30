@@ -32,7 +32,7 @@ export default function AddLocation() {
   
   const fetchLocations = async () => {
     try {
-      const res = await axiosInstance.get("/locations");
+      const res = await axiosInstance.get("/locations/all");
       setLocations(res.data.data || []);
     } catch (err) {
       console.error("Error fetching locations:", err);

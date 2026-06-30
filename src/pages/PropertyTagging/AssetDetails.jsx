@@ -62,7 +62,7 @@ export default function AssetDetails() {
 
       const [assetRes, locationRes] = await Promise.all([
         axiosInstance.get(`/asset/assets/${id}`),
-        axiosInstance.get("/locations"),
+        axiosInstance.get("/locations/all"),
       ]);
 
       const fetchedAsset = assetRes.data.asset || null;
